@@ -1,0 +1,36 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# PyCharm
+venv/
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+# Java class files
+*.class
+
+# Librec experiments
+result/
+
+# Python compilation files
+*.pyc
+
+librec-auto/demo/viz/viz-01\.pdf
+
+librec-auto/demo/viz/viz-02\.pdf
+
+librec-auto/demo/viz/
+
+librec-auto/demo/data/split/

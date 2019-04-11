@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<librec-auto>
+	<random-seed>201807</random-seed>
+	<!-- PATH SECTION -->
+	<path>
+		<data>demo/data</data>
+		<result>result</result>
+		<log>log</log>
+	</path>
+	<!-- DATA SECTION -->
+	<data>
+		<format>UIR</format>
+		<train-file format="text">filmtrust.txt</train-file>
+		<binarize-threshold>-1.0</binarize-threshold>
+	</data>
+	<!-- SPLITTER SECTION -->
+	<splitter>
+		<model count="5">kcv</model>
+		<dim>userfixed</dim>
+		<ratio>0.8</ratio>
+		<save>true</save>
+	</splitter>
+	
+	<!-- ALGORITHM SECTION -->
+	<alg>
+		<class>itemknn</class>
+		<similarity type="item">
+			<value>cos</value>
+			<value>pcc</value>
+		</similarity>
+		<neighborhood-size>
+			<value>10</value>
+			<value>20</value>
+			<value>30</value>
+		</neighborhood-size>
+		<shrinkage>50</shrinkage>
+	</alg>
+	
+	<!-- METRICS SECTION -->
+	<metric>
+		<ranking>false</ranking>
+		<class>mse</class>
+	</metric>
+	
+	<!-- POST-PROCESSING SECTION -->
+	<post>
+		<script lang="python2">viz-demo-ndcg.py</script>
+	</post>
+	
+</librec-auto>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<librec-auto>
+	<!-- DATA SECTION -->
+	<data id="filmtrust">
+		<data-path>../lib/librec/data/filmtrust/rating</data-path>
+		<data-format>text</data-format>
+		<data-column>UIR</data-column>
+	</data>
+	
+	<!-- SPLITTER SECTION -->
+	<splitter id="single-split">
+		<split-type>ratio</split-type>
+		<split-ratio>0.8</split-ratio>
+		<split-dim>rating</split-dim>
+	</splitter>
+	 
+	<include>test-include1.xml</include>  <!-- global has definition for itemknn and rmse -->
+	<include>test-include2.xml</include>  <!-- user has definitino for userknn and ndcg -->
+	<!-- ALGORITHM SECTION -->
+	<alg id="itemknn-basic50" ref="itemknn">
+		<param name="rec.neighbors.knn.number">50</param>
+		<param name="rec.similarity.shrinkage">10</param>
+	</alg>
+	<alg id="userknn-basic" ref="userknn"/>
+	
+	<!-- EXPERIMENTS SECTION -->
+	<exp id="FT-IB-err">
+		<data ref="filmtrust" />
+		<splitter ref="single-split" />
+		<alg ref="itemknn-basic50" />
+		<metric ref="rmse" />
+	</exp>
+	<exp id="FT-UB-rank">
+		<data ref="filmtrust" />
+		<splitter ref="cross-valid-user5" />
+		<alg ref="itemknn-basic50" />
+		<metric ref="rmse" />
+	</exp>
+</librec-auto>

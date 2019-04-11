@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<librec-auto>
+	<!-- GENERAL SECTION -->
+	<general>
+		<temp-dir>./temp</temp-dir>
+		<result-dir>./results</result-dir>
+	</general>
+	<!-- DATA SECTION -->
+	<data id="filmtrust">
+		<data-path>../lib/librec/data/filmtrust/rating</data-path>
+		<data-format>text</data-format>
+		<data-column>UIR</data-column>
+	</data>
+	<include>conf/standard-splits.xml</include>
+	<!-- SPLITTER SECTION -->
+	<splitter id="single-split">
+		<split-type>ratio</split-type>
+		<split-ratio>0.8</split-ratio>
+		<split-dim>rating</split-dim>
+	</splitter>
+	<!-- XFORM SECTION -->
+	<xform id="binarize">
+		<threshold>4</threshold>
+		<zero-action>drop</zero-action>
+	</xform>
+	 
+	<include>conf/standard-algorithms.xml</include>
+	<!-- ALGORITHM SECTION -->
+	<alg id="itemknn-basic50" ref="itemknn">
+		<param name="rec.recommender.similarities">item</param>
+		<param name="rec.similarity.class">pcc</param>
+		<param name="rec.neighbors.knn.number">50</param>
+		<param name="rec.similarity.shrinkage">10</param>
+	</alg>
+	<alg id="itemknn-basic50" ref="itemknn">
+		<param name="rec.recommender.similarities">item</param>
+		<param name="rec.similarity.class">pcc</param>
+		<param name="rec.neighbors.knn.number">50</param>
+		<param name="rec.similarity.shrinkage">10</param>
+	</alg>
+	<alg id="als-long-tail">
+		<alg-class>edu.depaul.edu.auto.ALSLongTail</alg-class>
+		<param name="rec.recommender.lambda1">0.1</param>
+		<param name="rec.recommender.lambda2">0.001</param>
+		<param name="rec.recommender.lambda3">25</param>
+	</alg>
+
+	<!-- EVALUATION SECTION -->
+	<metric id="RMSE" ref="rmse">
+	</metric>
+	<metric id="Precision@10" ref="precision">
+		<param name="rec.recommender.ranking.topn">10</param>
+	</metric>
+	<metric id="GenreDiversity">
+		<metric-class>edu.depaul.cdm.auto.GenreDiversityMetric</metric-class>
+		<metric-type>list</metric-type>
+	</metric>
+	
+	<!-- POST-PROCESSING SECTION -->
+	<post-process id="prec-plot">
+		<script lang="python">precision-plot.py</script>
+	</post-process>
+	<post-process id="slack">
+		<script lang="python">notify-user.py</script>
+	</post-process>
+	
+	<!-- EXPERIMENTS SECTION -->
+	<exp id="FT-IB-err">
+		<data ref="filmtrust" />
+		<splitter ref="single-split">
+			<cache>local</cache>
+		</splitter>
+		<alg>itemknn-basic50</alg>
+		<metric>RMSE</metric>
+	</exp>
+	<exp id="FT-long-tail">
+		<data ref="filmtrust"/>
+		<xform ref="binarize">
+			<threshold>3</threshold>
+		</xform>
+		<splitter ref="single-split" cache="local"/>>
+		<alg ref="asl-long-tail">
+			<param name="rec.recommender.lambda3" from="10" to="30" by="5"/>
+			<param name="rec.recommender.lambda2">0.005</param>
+		</alg>
+		<metric ref="Precision@10"/>
+		<metric ref="GenreDiversity"/>
+		<post-process ref="prec-plot"/>
+		<post-process>
+			<script lang="R">diversity-plot.R</script>
+		</post-process>
+		<post-process ref="slack">
+			<arg name="message">Experiment FT-long-tail complete.</arg>
+			<arg name="channel">results</arg>
+		</post-process>
+	</exp>
+</librec-auto>
