@@ -15,10 +15,13 @@ import threading
 
 
 
+
 EXP_DIR_PATTERN = "exp{:03d}"
 
 def get_experiment_paths(count, path, create=False):
     dir_name = EXP_DIR_PATTERN.format(count)
+    print "dir_name: ",dir_name
+    print "path: ",path
     return ExpPaths(path, dir_name, create=create)
 
 def save_properties(prop_dict, path):
@@ -62,34 +65,35 @@ DEFAULT_CONFIG_FILENAME = "config.xml"
 
 # 2018-06-28 RB
 # This is the 2018-07-01 demo option
-def run(target, command, config_filename):
-
+def run(target, command, config_path):
+    print "target: ",target
     base_path = Path(target)
-
+    print "base_path 1: ", base_path
     print "librec-auto: Running experiments in ", target
 
-    config_path = base_path / "conf" / config_filename
-
-    if not config_path.is_file():
+    config_filepath = base_path / config_path / DEFAULT_CONFIG_FILENAME
+    print config_filepath
+    print "base_path 2: ", base_path
+    if not config_filepath.is_file():
         print "librec-auto: Configuration file {} not found. Exiting".format(str(config_path))
         exit(-1)
 
     config = ConfigSimple(config_path)
-
+    print "base_path 3: ", base_path
     config.convert_properties()
-
+    print "base_path 4: ", base_path
     config_out = config.get_prop_dict()
-
+    print "base_path 5: ", base_path
     # This is kind of a hack
     config_out['dfs.split.dir'] = "split"
-
+    print "base_path 6: ", base_path
     var_data = config.get_var_data()
-
+    print "base_path 7: ", base_path
     exp_count = 1
 
     var_params = var_data.keys()
     _var_values = var_data.values()
-
+    print "base_path 8: ", base_path
     var_values = []
     for element in _var_values:
         if type(element) is list:
@@ -97,23 +101,24 @@ def run(target, command, config_filename):
             var_values.append(element)
         else:
             var_values.append([element])
-
+    print "base_path 9: ", base_path
     if len(var_values) == 1:
         value_tuples = [var_values]
     else:
         value_tuples = list(itertools.product(*var_values))
-
+    print "base_path 10: ", base_path
     flag_val = 0
     # ts = [None] * len(value_tuples)
 
     thread_count = int(config_out['rec.thread.count'])
     threads = []
-
+    print "base_path 11: ", base_path
     j = 0
     while(j < len(value_tuples)):  # Iteerate over configurations of variable values
         for k in range(thread_count):
             if(j < len(value_tuples)):
                 value_tuple = value_tuples[j]
+                print "base_path from run: ", base_path
                 thread = threading.Thread(name="thread"+str(k),target=execute_librec_thread, args = (exp_count, base_path,var_params,value_tuple,config_out.copy(),config,command, ))
                 threads.append(thread)
                 thread.start()
@@ -149,11 +154,7 @@ def execute_librec(path, command):
             f.write(line)
 
 def execute_librec_thread(exp_count, base_path,var_params,value_tuple,config_out,config,command):
-    # print "var_params"
-    # print var_params
-    # print "value_tuple"
-    # print  value_tuple
-
+    print "base_path from execute_librec_thread: ", base_path
     paths = get_experiment_paths(exp_count, base_path, create=True)
     exp_path = paths.get_path('exp')
     for key, value in zip(var_params, value_tuple):

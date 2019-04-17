@@ -47,7 +47,7 @@ class ConfigSimple:
 
         self._xml_input = self.read_xml(path)
 
-        self._rules_dict = self.read_rules()
+        self._rules_dict = self.read_rules(path)
 
         self._prop_dict = {}
 
@@ -66,13 +66,13 @@ class ConfigSimple:
     def get_rules_dict(self):
         return self._rules_dict
 
-    def read_rules(self):
-        rule_path = Path("conf/element-rules.xml")
+    def read_rules(self, path_str):
+        rule_path = Path(path_str) / "element-rules.xml"
         rules_input = self._load_from_file(rule_path)
         return rules_input
 
     def read_xml(self, path_str):
-        path = Path(path_str)
+        path = Path(path_str) / "config.xml"
         xml_input = self._load_from_file(path)
         return xml_input
 
