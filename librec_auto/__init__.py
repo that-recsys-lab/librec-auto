@@ -67,21 +67,15 @@ DEFAULT_CONFIG_FILENAME = "config.xml"
 # 2018-06-28 RB
 # This is the 2018-07-01 demo option
 def run(target, command, config_path):
-    print("1")
     base_path = Path(target)
-    print("2")
     print ("librec-auto: Running experiments in ", target)
 
-    print("3")
     config_filepath = base_path / config_path / DEFAULT_CONFIG_FILENAME
-    print("4")
     if not config_filepath.is_file():
         print("librec-auto: Configuration file {} not found. Exiting".format(str(config_path)))
         exit(-1)
 
-    print("5")
     config = ConfigSimple(config_path)
-    print("6")
     config.convert_properties()
     config_out = config.get_prop_dict()
     # This is kind of a hack
@@ -105,7 +99,6 @@ def run(target, command, config_path):
     flag_val = 0
     # ts = [None] * len(value_tuples)
 
-    print("7")
     thread_count = int(config_out['rec.thread.count'])
     threads = []
     j = 0
@@ -140,7 +133,6 @@ def execute_librec(path, command):
     logpath = path / "log/librec.log"
 
     java_command = setup_env(path, command)
-    print("10")
     if (java_command is not None):
         cmd = ['java', '-cp', classpath, mainClass, str(confpath), java_command]
         f = open(str(logpath), 'w+')
@@ -148,10 +140,8 @@ def execute_librec(path, command):
         for line in p.stdout:
             # f.write(line)
             f.write(str(line))
-    print ("11")
 
 def execute_librec_thread(exp_count, base_path,var_params,value_tuple,config_out,config,command):
-    print ("8")
     paths = get_experiment_paths(exp_count, base_path, create=True)
     exp_path = paths.get_path('exp')
     for key, value in zip(var_params, value_tuple):
@@ -168,9 +158,7 @@ def execute_librec_thread(exp_count, base_path,var_params,value_tuple,config_out
     if librec_log.is_file():
         librec_log.unlink()
 
-    print("9")
     execute_librec(exp_path, command)
-    print ("12")
     save_status("Completed", exp_count, var_params, value_tuple, config, paths)
 
     # Aldo's fault - This is only because if we 'split' something with splits made already, it will throw and error
