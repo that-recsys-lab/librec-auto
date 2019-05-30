@@ -1,6 +1,6 @@
 import os
 import pathlib2
-import exp_paths
+from . import exp_paths
 import re
 
 class LogFile:
