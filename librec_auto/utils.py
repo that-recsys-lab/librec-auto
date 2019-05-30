@@ -1,5 +1,5 @@
 from pathlib2 import Path
-import xmltodict
+from . import xmltodict
 
 def safe_xml_path(config, key_list):
     """
@@ -95,11 +95,12 @@ def confirm(prompt=None, resp=False):
         prompt = '%s [%s]|%s: ' % (prompt, 'n', 'y')
 
     while True:
-        ans = raw_input(prompt)
+        # ans = raw_input(prompt)
+        ans = input(prompt)
         if not ans:
             return resp
         if ans not in ['y', 'Y', 'n', 'N']:
-            print 'please enter y or n.'
+            print ('please enter y or n.')
             continue
         if ans == 'y' or ans == 'Y':
             return True
@@ -124,8 +125,8 @@ def xml_load_from_path(path):
         with path.open() as fd:
             txt = fd.read()
     except IOError as e:
-        print "Error reading ", path
-        print "IO error({0}): {1}".format(e.errno, e.strerror)
+        print ("Error reading ", path)
+        print ("IO error({0}): {1}".format(e.errno, e.strerror))
         # logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
         return {}
 
@@ -136,8 +137,8 @@ def xml_load_from_text(txt):
     try:
         xml_data = xmltodict.parse(txt)
     except xmltodict.expat.ExpatError as e:
-        print "Error parsing XML"
-        print "Expat error in line: {0}".format(e.lineno)
+        print ("Error parsing XML")
+        print ("Expat error in line: {0}".format(e.lineno))
         # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
         xml_data = {}
 
