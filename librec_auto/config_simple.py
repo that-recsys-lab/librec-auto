@@ -1,11 +1,11 @@
 from collections import OrderedDict
 
-import xmltodict
+from . import xmltodict
 import itertools
 import logging
 import string
 from datetime import datetime
-from utils import force_list, safe_xml_path, frange
+from .utils import force_list, safe_xml_path, frange
 from pathlib2 import Path
 import os
 
@@ -89,8 +89,8 @@ class ConfigSimple:
             with path.open() as fd:
                 txt = fd.read()
         except IOError as e:
-            print "Error reading ", path
-            print "IO error({0}): {1}".format(e.errno, e.strerror)
+            print ("Error reading ", path)
+            print ("IO error({0}): {1}".format(e.errno, e.strerror))
             # logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
             return {}
 
@@ -100,8 +100,8 @@ class ConfigSimple:
         try:
             conf_data = xmltodict.parse(txt)
         except xmltodict.expat.ExpatError as e:
-            print "Error parsing XML"
-            print "Expat error in line: {0}".format(e.lineno)
+            print ("Error parsing XML")
+            print ("Expat error in line: {0}".format(e.lineno))
             # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
             conf_data = {}
 
@@ -146,13 +146,15 @@ class ConfigSimple:
 
     def get_string_rule(self, attr_rule):
         for item in attr_rule:
-            if type(item) is unicode:
-                return item
+            # if type(item) is unicode:
+            if type(item) is str:
+                    return item
         return None
 
     # Assumes attribute name is first in ordered dictionary.
     def collect_attributes(self, attr_rule):
-        return [(item.keys()[0], item['#text'])
+        # return [(item.keys()[0], item['#text'])
+        return [(list(item.keys())[0], item['#text'])
                 for item in attr_rule if type(item) is OrderedDict]
 
     def translate_attr(self, elem, attr_rule):
