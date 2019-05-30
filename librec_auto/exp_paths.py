@@ -24,7 +24,7 @@ class ExpPaths:
             self.set_path(sub, sub_path)
 
         if create:
-            print "exp_path: ", exp_path
+            print ("exp_path: ", exp_path)
             exp_path.mkdir(exist_ok=True)
             for sub in self._sub_dirs:
                 self.get_path(sub).mkdir(exist_ok=True)
