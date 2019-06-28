@@ -16,3 +16,7 @@
 - Configuration includes
 - Interface to other systems: PSL
 - Sub-group metrics (long-tail, protected group, etc.)
+
+* librec-auto BUGS
+- configuration is read from main directory conf/config.xml even when different -c path is specified.
+- JAR file not found when working directory other than librec_auto main.
