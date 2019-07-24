@@ -29,6 +29,11 @@
 		<test-file><prop>data.model.splitter</prop><value>kcv</value></test-file>
 		<binarize-threshold>data.convert.binarize.threshold</binarize-threshold>
 	</data>
+	<features>
+		<appender-class>feature.appender.class</appender-class>
+		<item-feature-file>data.itemfeature.path</item-feature-file>
+		<user-feature-file>data.userfeature.path</user-feature-file>
+	</features>
 	<splitter>
 		<model>data.model.splitter</model>
 		<model count="*">data.splitter.cv.number</model>
@@ -211,6 +216,7 @@
 		<ranking>rec.recommender.isranking</ranking>
 		<class>rec.eval.classes</class>
 		<list-size>rec.recommender.ranking.topn</list-size>
+		<protected-feature>data.feature</protected-feature>
 	</metric>
 	<post action="ignore"/>
 	<!-- these algorithms can only be used for ranking -->
