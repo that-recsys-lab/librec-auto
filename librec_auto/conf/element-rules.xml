@@ -225,5 +225,5 @@
 		nmfitemitem plsa pnmf rankals ranksgd slim wbpr wrmf
 		sbpr associationrule prankd hybrid</alg-ranking>
 	<!-- these metrics can only be used for rating -->
-	<metric-rating>rmse mae mpe mse</metric-rating>
+	<metric-rating>rmse mae mpe mse sp</metric-rating>
 </librec-auto-element-rules>
