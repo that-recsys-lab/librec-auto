@@ -1,1 +1,0 @@
-This is the canary file for testing the hash function. 
