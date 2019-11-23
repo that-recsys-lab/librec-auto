@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class Cmd(ABC):
@@ -14,9 +14,16 @@ class Cmd(ABC):
     def __repr__(self):
         return "Cmd()"
 
+    def __str__(self):
+        return f"Cmd({type(self)})"
+
     @abstractmethod
     def setup (self, args):
         pass
+
+    @abstractmethod
+    def dry_run(self, config):
+        print (f"librec-auto (DR): Executing command {self}")
 
     @abstractmethod
     def execute (self, config):
@@ -26,6 +33,9 @@ class SequenceCmd(Cmd):
 
     _commands = []
 
+    def __str__(self):
+        return f'SequenceCmd({len(self._commands)} commands)'
+
     def __init__(self, cmds):
         if len(cmds) > 0:
             self.set_commands(cmds)
@@ -34,12 +44,17 @@ class SequenceCmd(Cmd):
         for cmd in self.commands:
             cmd.setup(args)
 
-    def set_commands(self, commands):
-        self.commands = cmds
-        self.status = STATUS_CONFIG
+    def set_commands(self, cmds):
+        self._commands = cmds
+        self.status = Cmd.STATUS_CONFIG
 
     def get_commands(self):
         return self._commands
+
+    def dry_run(self, config):
+        print (f"librec-auto (DR): Executing sequence command {self}")
+        for cmd in self._commands:
+            cmd.dry_run(config)
 
     def execute (self, config):
         self.status = Cmd.STATUS_INPROC

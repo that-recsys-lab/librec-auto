@@ -1,5 +1,6 @@
 from librec_auto.cmd import Cmd
 from multiprocessing.dummy import Pool as ThreadPool
+from librec_auto.util import Status
 
 
 class ParallelCmd(Cmd):
@@ -14,16 +15,24 @@ class ParallelCmd(Cmd):
             self.set_commands(cmds)
             self.status = Cmd.STATUS_CONFIG
 
+    def __str__(self):
+        return f'ParallelCmd({len(self._commands)} commands, {self._thread_count} threads)'
+
     def setup (self, args):
         for cmd in self.commands:
             cmd.setup(args)
 
-    def set_commands(self, commands):
+    def set_commands(self, cmds):
         self.commands = cmds
-        self.status = STATUS_CONFIG
+        self.status = Status.STATUS_CONFIG
 
     def get_commands(self):
         return self._commands
+
+    def dry_run(self, config):
+        print (f"librec-auto (DR): Executing parallel, command {self}")
+        for cmd in self._commands:
+            cmd.dry_run(config)
 
     def execute (self, config):
         self.status = Cmd.STATUS_INPROC

@@ -1,5 +1,7 @@
 from pathlib import Path
 import hashlib
+import inspect
+import librec_auto
 from librec_auto.util import SubPaths
 from librec_auto.util.utils import force_path
 from collections import OrderedDict
@@ -35,8 +37,8 @@ class Files:
 
     _prop_file_name = None
 
-#    _DEFAULT_GLOBAL_DIR_STR = inspect.getfile("librec_auto") # This needs to be tested.
-    _DEFAULT_GLOBAL_DIR_STR = "."
+    _DEFAULT_GLOBAL_DIR_STR = inspect.getfile(librec_auto) # This needs to be tested.
+#    _DEFAULT_GLOBAL_DIR_STR = "."
 
     _DEFAULT_CONFIG_DIR_NAME = "conf"
     _DEFAULT_RULES_DIR_NAME = "rules"
@@ -51,6 +53,7 @@ class Files:
     _DEFAULT_LR_JAR = "librec.jar"
     _DEFAULT_RULES_FILE = "rules/element-rules.xml"
     LOG_PATH = "../log/librec.log"
+    DEFAULT_CONFIG_FILENAME = "config.xml"
 
     # 2019-11-22 RB Do we use this anywhere?
     # _DEFAULT_CACHE_FILENAME = ".cache"
@@ -64,9 +67,8 @@ class Files:
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._sub_path_dict = OrderedDict()
 
-        maybe_global_path = Path(Files._DEFAULT_GLOBAL_DIR_STR)
-        if maybe_global_path.is_dir():
-            self._global_dir_path = maybe_global_path
+        module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
+        self._global_path = module_init_path.parent
         # maybe_user_path = Path(Files._DEFAULT_USER_PATH_STR)
         # if maybe_user_path.is_dir():
         #     self._user_path = maybe_user_path
@@ -95,30 +97,32 @@ class Files:
         return self.get_global_path() / self._DEFAULT_RULES_FILE
 
     def get_classpath (self):
-        return self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR + ";" + \
-               self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR
+        return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
+               (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
 
-    def get_sub_dir_path (self, count):
-        sub_name = self._EXP_DIR_PATTERN.format(count)
-        return self.get_exp_path / Path(sub_name)
+    def get_subexp_name (self, count):
+        return self._EXP_DIR_PATTERN.format(count)
 
     def detect_sub_paths (self):
         sub_count = 1
-        while self.get_sub_dir_path(sub_count).exists():
-            self._sub_path_dict[sub_count] = SubPaths(self.get_sub_dir_path(sub_count), create=False)
+        while (self.get_exp_path() / self.get_subexp_name(sub_count)).exists():
+            self._sub_path_dict[sub_count] = SubPaths(self.get_exp_path(), self.get_subexp_name(sub_count), create=False)
             sub_count += 1
 
-    def create_sub_paths (self):
-        sub_count = 1
-        while self.get_sub_dir_path(sub_count).exists():
-            self._sub_path_dict[sub_count] = SubPaths(self.get_sub_dir_path(sub_count), create=True)
-            sub_count += 1
+    def create_sub_paths (self, tuple_count):
+        if tuple_count == 0:
+            sub_exp_count = 1
+        else:
+            sub_exp_count = tuple_count
+
+        for i in range(sub_exp_count):
+            self._sub_path_dict[i+1] = SubPaths(self.get_exp_path(), self.get_subexp_name(i+1), create=True)
 
     def get_sub_count (self):
         if len(self._sub_path_dict) > 0:
-            max(self._sub_path_dict.keys())
+            return max(self._sub_path_dict.keys())
         else:
-            0
+            return 0
 
     def get_sub_paths(self, count):
         if count in self._sub_path_dict:

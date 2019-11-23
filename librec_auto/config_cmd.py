@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from librec_auto.util import xmltodict
 import logging
+import itertools
 
 
 class ConfigCmd:
@@ -24,7 +25,7 @@ class ConfigCmd:
 
         self._xml_input = self.read_xml(files.get_config_path())
 
-        self._rules_dict = self.read_rules(files.get_rules_path())
+        self._rules_dict = self.read_rules()
 
         self._prop_dict = {}
 
@@ -46,7 +47,10 @@ class ConfigCmd:
         return self._value_tuples[subexp_no]
 
     def get_unparsed(self, type):
-        return self._unparsed[type]
+        if type in self._unparsed:
+            return self._unparsed[type]
+        else:
+            None
 
     def get_rules_dict(self):
         return self._rules_dict
@@ -54,7 +58,7 @@ class ConfigCmd:
     def get_files(self):
         return self._files
 
-    def read_rules(self, path_str):
+    def read_rules(self):
         rules_path = self._files.get_rules_path()
         if (rules_path.exists()):
             rules_input = self._load_from_file(rules_path)
@@ -107,6 +111,7 @@ class ConfigCmd:
                 self.process_aux(self._xml_input['librec-auto'],
                                 self._rules_dict['librec-auto-element-rules'])
                 self.compute_value_tuples()
+                self.get_files().create_sub_paths(len(self._value_tuples))
             else:
                 logging.error("Error processing element rules. Filename: {}", self._files.get_rules_path())
         else:
@@ -179,3 +184,5 @@ class ConfigCmd:
             self._value_tuples = [var_values]
         else:
             self._value_tuples = list(itertools.product(*var_values))
+
+

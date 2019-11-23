@@ -11,8 +11,17 @@ class PurgeCmd (Cmd):
     _type = 'all'
     _files: Files = None
 
+    def __str__(self):
+        return f'PurgeCmd({self._type})'
+
     def __init__(self, type):
         self._type = type
+
+    def setup(self, args):
+        pass
+
+    def dry_run(self, config):
+        print(f"librec-auto (DR): Executing purge command {self}")
 
     def execute(self, config: ConfigCmd):
         self.status = Cmd.STATUS_INPROC

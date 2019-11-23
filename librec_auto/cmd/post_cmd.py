@@ -1,5 +1,5 @@
 from librec_auto.cmd import Cmd
-from librec_auto.util import Files
+from librec_auto.util import Files, utils
 from librec_auto import ConfigCmd
 import shutil
 import os
@@ -8,6 +8,17 @@ import subprocess
 
 
 class PostCmd(Cmd):
+
+    def __str__(self):
+        return f'PostCmd()'
+
+    def setup(self, args):
+        pass
+
+    def dry_run(self, config):
+        print (f'librec-auto (DR): Running post command {self}')
+        for script in self.collect_scripts(config):
+            print (f'    Post script: {script}')
 
     def execute(self, config: ConfigCmd):
         self.status = Cmd.STATUS_INPROC
@@ -27,6 +38,6 @@ class PostCmd(Cmd):
             subprocess.call(proc_spec)
 
     def collect_scripts(self, config):
-        post_xml = config.get_unparsed['post']
+        post_xml = config.get_unparsed('post')
         script_stuff = post_xml['script']
-        return [entry['#text'] for entry in script_stuff]
+        return [entry['#text'] for entry in utils.force_list(script_stuff)]

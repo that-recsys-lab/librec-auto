@@ -34,11 +34,11 @@ class SubPaths:
         subexp_path = base / subexp_name
         self.set_path('subexp', subexp_path)
 
-        status_path = subexp_name / '.status'
+        status_path = subexp_path / '.status'
         self.set_path('status', status_path)
 
         for subdir in self._sub_dirs:
-            subdir_path = subexp_name / subdir
+            subdir_path = subexp_path / subdir
             self.set_path(subdir, subdir_path)
 
         if create:

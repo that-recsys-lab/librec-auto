@@ -8,6 +8,12 @@ import subprocess
 
 class StatusCmd(Cmd):
 
+    def __str__(self):
+        return f"StatusCmd()"
+
+    def dry_run(self, config):
+        print (f'librec-auto (DR): Running status command {self}')
+
     def execute(self, config: ConfigCmd):
         self.status = Cmd.STATUS_INPROC
         files = config.get_files()
