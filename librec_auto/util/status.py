@@ -1,3 +1,5 @@
+import datetime
+
 # A .status file looks like this
 # <librec-auto-status>
 #    <message>Completed</message>

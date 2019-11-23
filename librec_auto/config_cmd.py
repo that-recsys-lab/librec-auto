@@ -46,6 +46,13 @@ class ConfigCmd:
     def get_value_tuple(self, subexp_no):
         return self._value_tuples[subexp_no]
 
+    def get_sub_exp_count(self):
+        exp_count = len(self._value_tuples)
+        if exp_count == 0:
+            return 1
+        else:
+            return exp_count
+
     def get_unparsed(self, type):
         if type in self._unparsed:
             return self._unparsed[type]
@@ -73,6 +80,12 @@ class ConfigCmd:
             return xml_input
         else:
             return None
+
+    def create_sub_experiments(self):
+        exp_count = len(self._value_tuples)
+        if exp_count == 0:
+            exp_count = 1
+        self.get_files().create_sub_paths(exp_count)
 
     def _load_from_file(self, path):
         """
@@ -111,7 +124,6 @@ class ConfigCmd:
                 self.process_aux(self._xml_input['librec-auto'],
                                 self._rules_dict['librec-auto-element-rules'])
                 self.compute_value_tuples()
-                self.get_files().create_sub_paths(len(self._value_tuples))
             else:
                 logging.error("Error processing element rules. Filename: {}", self._files.get_rules_path())
         else:
@@ -172,7 +184,9 @@ class ConfigCmd:
 
     def compute_value_tuples(self):
         self.var_params = self._var_data.keys()
-        original_var_values = self._var_data.values()
+        original_var_values = list(self._var_data.values())
+        if (len(original_var_values) == 1):
+            original_var_values = original_var_values[0]
         var_values = []
         for element in original_var_values:
             if type(element) is list:
@@ -180,8 +194,8 @@ class ConfigCmd:
                 var_values.append(element)
             else:
                 var_values.append([element])
-        if len(var_values) == 1:
-            self._value_tuples = [var_values]
+        if len(self.var_params) == 1:
+            self._value_tuples = var_values
         else:
             self._value_tuples = list(itertools.product(*var_values))
 

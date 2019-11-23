@@ -1,5 +1,3 @@
-import os
-import pathlib2
 from librec_auto.util.sub_paths import SubPaths
 import re
 
@@ -49,7 +47,7 @@ class LogFile:
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
 
-        with open(str(self._log_path / "librec.log"), 'r') as fl:
+        with open(str(self._log_path / SubPaths.DEFAULT_LOG_FILENAME), 'r') as fl:
 
             for ln in fl:
                 m_eval = re.match(eval_pattern, ln)

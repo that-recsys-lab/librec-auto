@@ -48,6 +48,9 @@ class SequenceCmd(Cmd):
         self._commands = cmds
         self.status = Cmd.STATUS_CONFIG
 
+    def add_command(self, cmd):
+        self._commands.append(cmd)
+
     def get_commands(self):
         return self._commands
 

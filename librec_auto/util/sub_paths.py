@@ -15,6 +15,7 @@ class SubPaths:
     """
 
     _LIBREC_PROPERTIES_FILE = 'librec.properties'
+    DEFAULT_LOG_FILENAME = "librec.log"
 
     _path_dict = None
 

@@ -61,7 +61,7 @@ def purge_type (args):
 
 
 def build_librec_commands(librec_action, config):
-    librec_commands = [LibrecCmd(librec_action, i) for i in range(1, config.get_files().get_sub_count()+1)]
+    librec_commands = [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
     threads = 1
     if 'rec.thread.count' in config.get_prop_dict():
         threads = int(config.get_prop_dict()['rec.thread.count'])
@@ -74,59 +74,75 @@ def build_librec_commands(librec_action, config):
 
 def setup_commands (args, config):
     action = args['Actions']
+    purge_noask = args['quiet']
+
     rerank_flag = False
     if config.get_unparsed('rerank') is not None:
         rerank_flag = True
+
+    post_flag = False
+    if config.get_unparsed('post') is not None:
+        post_flag = True
+
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
-        cmd = PurgeCmd(purge_type(args))
+        cmd = PurgeCmd(purge_type(args), noask=purge_noask)
         return cmd
+
+    # Shows the status of the experiment
+    if action == 'status':
+        cmd = StatusCmd()
+        return cmd
+
     # Perform (only) post-processing on results
-    if action == 'post':
+    if action == 'post' and post_flag:
         cmd = PostCmd()
         return cmd
+    # No re-ranker available
+    if action == 'post' and not post_flag:
+        logging.warning("No post-processing scripts available for post command.")
+        return None
+
     # Perform re-ranking on results, followed by post-processing
     if action == 'rerank' and rerank_flag: # Runs a reranking script on the python side
-        cmd1 = PurgeCmd('rerank')
+        cmd1 = PurgeCmd('rerank', noask=purge_noask)
         cmd2 = RerankCmd()
-        cmd3 = PostCmd()
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd = SequenceCmd([cmd1, cmd2])
+        if post_flag:
+            cmd.add_command(PostCmd())
         return cmd
     # No re-ranker available
     if action == 'rerank' and not rerank_flag:
         logging.warning("No re-ranker available for re-rank command.")
         return None
-    # Shows the status of the experiment
-    if action == 'status':
-        cmd = StatusCmd()
-        return cmd
+
     # LibRec actions
-    # eval-only
-    if action == 'eval':
-        cmd1 = PurgeCmd('post')
-        cmd2 = build_librec_commands('eval', config)
-        cmd = SequenceCmd([cmd1, cmd2])
-        return cmd
-    # run experiment only
-    if action == 'run' and rerank_flag:
-        cmd1 = PurgeCmd('results')
-        cmd2 = build_librec_commands('run', config)
-        cmd3 = RerankCmd()
-        cmd4 = PostCmd()
-        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
-        return cmd
-    # run experiment only
-    if action == 'run' and not rerank_flag:
-        cmd1 = PurgeCmd('results')
-        cmd2 = build_librec_commands('run', config)
-        cmd3 = PostCmd()
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
-        return cmd
     # re-run splits only
     if action == 'split':
-        cmd1 = PurgeCmd('split')
+        cmd1 = PurgeCmd('split', noask=purge_noask)
         cmd2 = build_librec_commands('split', config)
         cmd = SequenceCmd([cmd1, cmd2])
+        return cmd
+
+    # eval-only
+    if action == 'eval':
+        cmd1 = PurgeCmd('post', noask=purge_noask)
+        cmd2 = build_librec_commands('eval', config)
+        cmd = SequenceCmd([cmd1, cmd2])
+        if post_flag:
+            cmd.add_command(PostCmd())
+        return cmd
+
+    # run experiment and evals
+    if action == 'run':
+        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd2 = build_librec_commands('full', config)
+        cmd = SequenceCmd([cmd1, cmd2])
+        if rerank_flag:
+            cmd.add_command(RerankCmd())
+        if post_flag:
+            cmd.add_command(PostCmd())
+
         return cmd
 
 # -------------------------------------

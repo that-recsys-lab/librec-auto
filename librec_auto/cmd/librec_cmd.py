@@ -14,7 +14,7 @@ class LibrecCmd (Cmd):
     _sub_path: SubPaths = None
 
     def __str__(self):
-        return f'LibrecCmd(sub-exp: exp{self._sub_no: 03}, command: {self._command})'
+        return f'LibrecCmd(sub-exp: {self._sub_no}, command: {self._command})'
 
     def __init__(self, command, sub_no):
         self._command = command
@@ -24,7 +24,7 @@ class LibrecCmd (Cmd):
     def setup(self, args):
         pass
 
-    def execute_librec(self, exp_path: SubPaths):
+    def execute_librec(self):
         cmd = self.create_proc_spec()
 
         if len(cmd) == 0:
@@ -32,7 +32,8 @@ class LibrecCmd (Cmd):
             self.status = Cmd.STATUS_ERROR
             return
 
-        log_path = self._sub_path.get_path('log')
+        print(f"librec-auto: Running librec. {cmd}")
+        log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
@@ -42,6 +43,7 @@ class LibrecCmd (Cmd):
         else:
             for line in p.stdout:
                 f.write(str(line))
+            f.close()
 
     def dry_run_librec(self):
         cmd = self.create_proc_spec()
@@ -51,6 +53,8 @@ class LibrecCmd (Cmd):
 
     def dry_run(self, config):
         self._config = config
+        config.create_sub_experiments()
+
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
 
         var_params = config.var_params
@@ -62,10 +66,16 @@ class LibrecCmd (Cmd):
 
     def execute(self, config: ConfigCmd):
         self._config = config
+        config.create_sub_experiments()
+
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
 
         var_params = config.var_params
-        value_tuple = config.get_value_tuple(self._sub_no)
+        # If all parameters are fixed, there's only one experiment
+        if len(var_params) == 0:
+            value_tuple = []
+        else:
+            value_tuple = config.get_value_tuple(self._sub_no)
 
         self.save_properties_file(var_params, value_tuple)
 
@@ -73,7 +83,7 @@ class LibrecCmd (Cmd):
 
         Status.save_status("Executing", self._sub_no, var_params, value_tuple, config, self._sub_path)
         self.execute_librec()
-        Status.save_status("Completed", self._sub_no, var_params, value_tuple, config, sub_path)
+        Status.save_status("Completed", self._sub_no, var_params, value_tuple, config, self._sub_path)
 
     def save_properties_file(self, params, values):
         properties = self._config.get_prop_dict().copy()
@@ -85,14 +95,13 @@ class LibrecCmd (Cmd):
 
         self.write_key_value(properties)
 
-    def write_key_value(self, prop_dict, path):
+    def write_key_value(self, prop_dict):
         prop_path = self._sub_path.get_librec_properties_path()
-        with path.open(mode="w") as fh:
+        with prop_path.open(mode="w") as fh:
             fh.write(u'# DO NOT EDIT\n# Properties file created by librec-auto\n')
             # for key, value in prop_dict.iteritems():
             for key, value in prop_dict.items():
                 line = "{}:{}\n".format(key, value)  # type: str
-                # fh.write(unicode(line))
                 fh.write(str(line))
 
     # Checks for any contents of split directory, which would have been removed by purging
@@ -115,7 +124,7 @@ class LibrecCmd (Cmd):
     def create_proc_spec(self):
         classpath = self._config.get_files().get_classpath()
         mainClass = self._DEFAULT_WRAPPER_CLASS
-        confpath = self._sub_path.get_path('conf')
+        confpath = self._sub_path.get_librec_properties_path()
 
         java_command = self.select_librec_action()
         if java_command is None:

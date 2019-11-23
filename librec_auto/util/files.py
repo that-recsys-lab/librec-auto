@@ -96,15 +96,17 @@ class Files:
     def get_rules_path (self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
 
+    # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpath here.
     def get_classpath (self):
-        return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
-               (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
+        # return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
+        #        (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
+        return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix()
 
     def get_subexp_name (self, count):
         return self._EXP_DIR_PATTERN.format(count)
 
     def detect_sub_paths (self):
-        sub_count = 1
+        sub_count = 0
         while (self.get_exp_path() / self.get_subexp_name(sub_count)).exists():
             self._sub_path_dict[sub_count] = SubPaths(self.get_exp_path(), self.get_subexp_name(sub_count), create=False)
             sub_count += 1
@@ -116,7 +118,7 @@ class Files:
             sub_exp_count = tuple_count
 
         for i in range(sub_exp_count):
-            self._sub_path_dict[i+1] = SubPaths(self.get_exp_path(), self.get_subexp_name(i+1), create=True)
+            self._sub_path_dict[i] = SubPaths(self.get_exp_path(), self.get_subexp_name(i), create=True)
 
     def get_sub_count (self):
         if len(self._sub_path_dict) > 0:

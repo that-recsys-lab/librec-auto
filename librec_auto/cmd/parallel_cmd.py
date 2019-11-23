@@ -19,12 +19,15 @@ class ParallelCmd(Cmd):
         return f'ParallelCmd({len(self._commands)} commands, {self._thread_count} threads)'
 
     def setup (self, args):
-        for cmd in self.commands:
+        for cmd in self._commands:
             cmd.setup(args)
 
     def set_commands(self, cmds):
-        self.commands = cmds
+        self._commands = cmds
         self.status = Status.STATUS_CONFIG
+
+    def add_command(self, cmd):
+        self._commands.append(cmd)
 
     def get_commands(self):
         return self._commands

@@ -9,13 +9,15 @@ import os
 class PurgeCmd (Cmd):
 
     _type = 'all'
+    _noask = False
     _files: Files = None
 
     def __str__(self):
         return f'PurgeCmd({self._type})'
 
-    def __init__(self, type):
+    def __init__(self, type, noask=False):
         self._type = type
+        self._noask = noask
 
     def setup(self, args):
         pass
@@ -28,7 +30,7 @@ class PurgeCmd (Cmd):
         self._files = config.get_files()
 
 
-        if self.purge_confirm():
+        if self._noask or self.purge_confirm():
             if self._type == "all" or self._type == 'split':
                 self.purge_subexperiments()
                 self.purge_splits()
