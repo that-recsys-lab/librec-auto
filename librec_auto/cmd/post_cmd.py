@@ -1,7 +1,7 @@
 from librec_auto.cmd import Cmd
 from librec_auto.util import Files, utils
 from librec_auto import ConfigCmd
-import shutil
+from pathlib import Path
 import os
 import sys
 import subprocess
@@ -33,9 +33,19 @@ class PostCmd(Cmd):
             os.makedirs(str(post_path))
 
         for script in self.collect_scripts(config):
-            proc_spec = [sys.executable, script, files.get_post_path().absolute, files.get_result_path().absolute]
-            print (f'librec-auto: Running post-processing script {script}')
+            script_path = self.find_script_path(script, config)
+            proc_spec = [sys.executable, script_path.absolute().as_posix(),
+                         files.get_post_path().absolute().as_posix(), 
+                         files.get_exp_path().absolute().as_posix()]
+            print (f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)
+
+    def find_script_path(self, script, config):
+        script_path = Path(script)
+        if script_path.exists():
+            return script_path
+        else:
+            return config.get_files().get_global_path() / "librec_auto/cmd/post" / script_path
 
     def collect_scripts(self, config):
         post_xml = config.get_unparsed('post')
