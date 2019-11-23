@@ -1,6 +1,6 @@
 import os
 import pathlib2
-from . import exp_paths
+from librec_auto.util.sub_paths import SubPaths
 import re
 
 class LogFile:
@@ -10,7 +10,7 @@ class LogFile:
     _kcv = None
     _log_path = None
 
-    def __init__(self, paths):
+    def __init__(self, paths: SubPaths):
         self._metrics = []
         self._values = {}
 

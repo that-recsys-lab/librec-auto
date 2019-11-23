@@ -1,5 +1,6 @@
 from pathlib2 import Path
-from . import xmltodict
+from librec_auto.util import xmltodict
+
 
 def safe_xml_path(config, key_list):
     """
@@ -119,7 +120,7 @@ def xml_load_from_path(path):
 
     Prints a warning and returns an empty dictionary if the file can't be read.
     :param path: The file name
-    :return: A dictionary with the XML data
+    :return: A dictionary with the XML rules
      """
     try:
         with path.open() as fd:

@@ -425,7 +425,7 @@ def unparse(input_dict, output=None, encoding='utf-8', full_document=True,
 
     Dictionary keys prefixed with `attr_prefix` (default=`'@'`) are interpreted
     as XML node attributes, whereas keys equal to `cdata_key`
-    (default=`'#text'`) are treated as character data.
+    (default=`'#text'`) are treated as character rules.
 
     The `pretty` parameter (default=`False`) enables pretty-printing. In this
     mode, lines are terminated with `'\n'` and indented with `'\t'`, but this

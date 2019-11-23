@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+
+<!-- Some properties have multiple mappings. For example, <beta> will translate as
+	 rec.bhfree.beta, rec.bucm.beta, and rec.recommender.beta. This is OK because
+	 unused properties in the properties file are ignored. Whichever one is relevant
+	 to the current algorithm will be retrieved. -->
+
+<librec-auto-element-rules>
+	<random-seed>rec.random.seed</random-seed>
+	<thread-count>rec.thread.count</thread-count>
+	<path>
+		<data>dfs.data.dir</data>
+		<result>dfs.result.dir</result>
+		<log>dfs.log.dir</log>
+	</path>
+	<data>
+		<format>data.column.format</format>
+		<data-file>data.input.path</data-file>
+		<data-file format="*">data.model.format</data-file>
+		<!-- Handling the "testset" case -->
+		<train-file>data.input.path</train-file>
+		<train-file format="*">data.model.format</train-file>
+		<!--<test-file>rules.testset.path</test-file>-->
+		<!-- This syntax should produce
+		rules.model.splitter=testset
+		There is no corresponding element in the config file to get the testset
+		value from, so it is embedded here in the rule.
+		-->
+		<test-file><prop>data.model.splitter</prop><value>kcv</value></test-file>
+		<binarize-threshold>data.convert.binarize.threshold</binarize-threshold>
+	</data>
+	<features>
+		<appender-class>feature.appender.class</appender-class>
+		<item-feature-file>data.itemfeature.path</item-feature-file>
+		<user-feature-file>data.userfeature.path</user-feature-file>
+	</features>
+	<splitter>
+		<model>data.model.splitter</model>
+		<model count="*">data.splitter.cv.number</model>
+		<dim>data.splitter.ratio</dim>
+		<ratio>data.splitter.trainset.ratio</ratio>
+		<save>data.splitter.save</save>
+	</splitter>
+	
+	
+	<alg>
+		<class>rec.recommender.class</class>
+		
+		<!--general algorithm parameters -->
+		<iterator-max>rec.iterator.maximum</iterator-max>
+		<burn-in>rec.pgm.burnin</burn-in>
+		<sample-lag>rec.pgm.samplelag</sample-lag>
+		<learn-rate>rec.iterator.learnrate</learn-rate>
+		<learn-rate-max>rec.iterator.learnrate.maximum</learn-rate-max>
+		<learn-rate-decay>rec.learnrate.decay</learn-rate-decay>
+		<learn-rate-alpha>rec.learningRate.alpha</learn-rate-alpha>
+		<learn-rate-beta>rec.learningRate.beta</learn-rate-beta>
+		<bold-driver>rec.learnrate.bolddriver</bold-driver>
+		<cache-spec>guava.cache.spec</cache-spec>
+		<early-stop>rec.recommender.earlystop</early-stop>
+		<thread-count>rec.thread.count</thread-count>
+		<verbose>rec.recommender.verbose</verbose>
+		
+		<!-- knn recommenders --> 
+		<similarity>rec.similarity.class</similarity>
+		<similarity type="*">rec.recommender.similarities</similarity>
+		<neighborhood-size>rec.neighbors.knn.number</neighborhood-size>
+		<shrinkage>rec.similarity.shrinkage</shrinkage>
+
+		<!-- item cluster -->
+		<num-topics>rec.pgm.number</num-topics>
+		
+		<!--user cluster -->
+		<num-topics>rec.factor.number</num-topics>
+		
+		<!-- bh free -->
+		<alpha>rec.bhfree.alpha</alpha>
+		<beta>rec.bhfree.beta</beta>
+		<gamma>rec.bhfree.gamma</gamma>
+		<sigma>rec.bhfree.sigma</sigma>
+		<num-user-topics>rec.bhfree.user.topic.number</num-user-topics>
+		<num-item-topics>rec.bhfree.item.topic.number</num-item-topics>
+		
+		<!-- bucm -->
+		<num-topics>rec.pgm.topic.number</num-topics>
+		<alpha>rec.bucm.alpha</alpha>
+		<beta>rec.bucm.beta</beta>
+		<gamma>rec.bucm.gamma</gamma>	
+		
+		<!-- aobpr -->
+		<item-distribution-param>rec.item.distribution.parameter</item-distribution-param>
+		<user-reg>rec.user.regularization</user-reg>
+		<item-reg>rec.item.regularization</item-reg>
+
+		<!-- eALS -->
+		<confidence-weight>rec.wrmf.weight.coefficient</confidence-weight>
+		<judge>rec.eals.wrmf.judge</judge>
+		<missing-data-weight>rec.eals.overall</missing-data-weight>
+		<significance-ratio>rec.eals.ratio</significance-ratio>
+		
+		<!-- fismauc -->
+		<rho>rec.recommender.rho</rho>
+		<beta>rec.recommender.beta</beta>
+		<alpha>rec.recommender.alpha</alpha>
+		<gamma>rec.recommender.gamma</gamma>
+		
+		<!-- fismrmse -->
+		<user-bias-reg>rec.recommender.userBiasReg</user-bias-reg>
+		<item-bias-reg>rec.recommender.itemBiasReg</item-bias-reg>
+		
+		<!-- gbpr -->
+		<rho>rec.gpbr.rho</rho>
+		<group-size>rec.gpbr.gsize</group-size>
+		
+		<!-- itembigram -->
+		<user-prior>rec.user.dirichlet.prior</user-prior>
+		<topic-prior>rec.topic.dirichlet.prior</topic-prior>
+		
+		<!-- nmfitemitem -->
+		<no-self-estimate>rec.nmfitemitem.do_not_estimate_yourself</no-self-estimate>
+		<adaptive-update>rec.nmfitemitem.adaptive_update_rules</adaptive-update>
+		<parallel-split-size>rec.nmfitemitem.parallelize_split_user_size</parallel-split-size>
+		<!-- rankals -->
+		<support-weight>rec.rankals.support.weight</support-weight>
+		
+		<!-- (item) slim -->
+		<l1-reg>rec.slim.regularization.l1</l1-reg>
+		<l2-reg>rec.slim.regularization.l2</l2-reg>	
+		
+		<!-- wbpr -->
+		<bias-reg>rec.bias.regularization</bias-reg>
+
+		<!-- wrmf -->
+		<confidence-wt-coef>rec.wrmf.weight.coefficient</confidence-wt-coef>
+		
+		<!-- biasedmf -->
+		<num-factors>rec.factor.number</num-factors>
+		
+		<!-- bpmf -->
+		<user-mu>rec.recommender.user.mu</user-mu>
+		<user-beta>rec.recommender.user.beta</user-beta>
+		<user-wishart-scale>rec.recommender.user.wishart.scale</user-wishart-scale>
+		<item-mu>rec.recommender.item.mu</item-mu>
+		<item-beta>rec.recommender.item.beta</item-beta>
+		<item-wishart-scale>rec.recommender.item.wishart.scale</item-wishart-scale>
+		<sigma>rec.recommender.rating.sigma</sigma>
+		
+		<!-- fmftrl -->
+		<l1-reg>rec.regularization.lambda1</l1-reg>
+		<l2-reg>rec.regularization.lambda2</l2-reg>	
+		
+		<!-- gplsa -->
+		<smooth-weight>rec.recommender.smoothWeight</smooth-weight>
+		
+		<!-- llorma -->
+		<num-global-factors>rec.global.factors.num</num-global-factors>
+		<global-learnrate>rec.global.iteration.learnrate</global-learnrate>
+		<global-user-reg>rec.global.user.regularization</global-user-reg>
+		<global-item-reg>rec.global.item.regularization</global-item-reg>
+		<global-iterator-max>rec.global.iteration.maximum</global-iterator-max>
+		
+		<!-- svdp -->
+		<implict-reg>rec.impItem.regularization</implict-reg>
+		
+		<!-- efm -->
+		<num-explicit-factors>rec.factor.explicit</num-explicit-factors>
+		<lambdax>rec.regularization.lambdax</lambdax>
+		<lambday>rec.regularization.lambday</lambday>
+		<lambdau>rec.regularization.lambdau</lambdau>
+		<lambdah>rec.regularization.lambdah</lambdah>
+		<lambdav>rec.regularization.lambdav</lambdav>
+		<efm-explain>rec.explain.flag</efm-explain>
+		<efm-explain-features>rec.explain.numfeature</efm-explain-features>
+		<efm-explain-users>rec.explain.userids</efm-explain-users>
+		
+		<!-- hft -->
+		<lambda-user>rec.recommender.lambda.user</lambda-user>
+		<lambda-item>rec.recommender.lambda.item</lambda-item>	
+		
+		<!-- topicmfat -->
+		<lambdab>rec.regularization.lambdaB</lambdab>
+		<init-mean>rec.init.mean</init-mean>
+		<init-std>rec.init.std</init-std>
+
+		<!-- rste -->
+		<social-ratio>rec.user.social.ratio</social-ratio>
+		
+		<!-- socialmf -->
+		<social-reg>rec.social.regularization</social-reg>
+		
+		<!-- sorec -->
+		<user-social-reg>rec.user.social.regularization</user-social-reg>
+		<rate-social-reg>rec.rate.social.regularization</rate-social-reg>
+		
+		<!-- trustmf -->
+		<social-model>rec.social.model</social-model>
+		
+		<!-- personalitydiagnosis -->
+		<sigma>rec.PersonalityDiagnosis.sigma</sigma>
+		
+		<!-- hybrid -->
+		<lambda>rec.hybrid.lambda</lambda>
+		
+		<!-- fairness-aware -->
+		
+		<protected>rec.fair.protected</protected>
+		
+		<!-- bn slim -->
+		<lambda3>rec.bnslim.regularization.l3</lambda3>
+		<min-sim>rec.bnslim.minsimilarity</min-sim>
+		
+	</alg>
+	
+	
+	<metric>
+		<ranking>rec.recommender.isranking</ranking>
+		<class>rec.eval.classes</class>
+		<list-size>rec.recommender.ranking.topn</list-size>
+		<protected-feature>data.feature</protected-feature>
+	</metric>
+	<post action="no-parse"/>
+	<rerank action="no-parse"/>
+
+	<!-- these algorithms can only be used for ranking -->
+	<alg-ranking>mostpopular bhfree bucm aobpr aspectmodelranking bpr climf 
+		eals fismauc fismrmse gbpr itembigram lda listrankmf listwisemf
+		nmfitemitem plsa pnmf rankals ranksgd slim wbpr wrmf
+		sbpr associationrule prankd hybrid</alg-ranking>
+	<!-- these metrics can only be used for rating -->
+	<metric-rating>rmse mae mpe mse</metric-rating>
+</librec-auto-element-rules>
