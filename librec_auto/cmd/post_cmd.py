@@ -35,7 +35,7 @@ class PostCmd(Cmd):
         for script in self.collect_scripts(config):
             script_path = self.find_script_path(script, config)
             proc_spec = [sys.executable, script_path.absolute().as_posix(),
-                         files.get_post_path().absolute().as_posix(), 
+                         files.get_post_path().absolute().as_posix(),
                          files.get_exp_path().absolute().as_posix()]
             print (f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)

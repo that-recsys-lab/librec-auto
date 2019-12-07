@@ -10,7 +10,7 @@ class ParallelCmd(Cmd):
     _thread_count = 1
 
     def __init__(self, cmds, threads):
-        _thread_count = threads
+        self._thread_count = threads
         if len(cmds) > 0:
             self.set_commands(cmds)
             self.status = Cmd.STATUS_CONFIG
@@ -24,7 +24,7 @@ class ParallelCmd(Cmd):
 
     def set_commands(self, cmds):
         self._commands = cmds
-        self.status = Status.STATUS_CONFIG
+        self.status = Cmd.STATUS_CONFIG
 
     def add_command(self, cmd):
         self._commands.append(cmd)
@@ -34,8 +34,19 @@ class ParallelCmd(Cmd):
 
     def dry_run(self, config):
         print (f"librec-auto (DR): Executing parallel, command {self}")
+        self.status = Cmd.STATUS_INPROC
+        self._pool = ThreadPool(self._thread_count)
+
+        self._pool.map(lambda cmd: cmd.dry_run(config), self._commands)
+
+        self._pool.close()
+        self._pool.join()
+
         for cmd in self._commands:
-            cmd.dry_run(config)
+            if cmd.status == Cmd.STATUS_ERROR:
+                self.status = Cmd.STATUS_ERROR
+                return
+        self.status = Cmd.STATUS_COMPLETE
 
     def execute (self, config):
         self.status = Cmd.STATUS_INPROC

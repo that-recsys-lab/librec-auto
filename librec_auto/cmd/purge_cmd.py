@@ -29,7 +29,6 @@ class PurgeCmd (Cmd):
         self.status = Cmd.STATUS_INPROC
         self._files = config.get_files()
 
-
         if self._noask or self.purge_confirm():
             if self._type == "all" or self._type == 'split':
                 self.purge_subexperiments()
@@ -55,8 +54,10 @@ class PurgeCmd (Cmd):
         prompt_str = f"This will perform a purge of type {self._type} experiments and/or file splits in directory {target}"
         return confirm(prompt=prompt_str, resp=False)
 
+
     def purge_subexperiments(self):
         target = self._files.get_exp_path()
+
         print ("librec-auto: Purging sub-experiments ", target)
         if self._files.get_sub_count() > 0:
             for sub_paths in self._files.get_sub_paths_iterator():
@@ -88,6 +89,7 @@ class PurgeCmd (Cmd):
         else:
             print ("librec-auto: Post directory missing ", target)
 
+    # TODO: 2019-12-06 RB The status file will be out of date.
     def purge_rerank(self):
         if self._files.get_sub_count() > 0:
             for sub_paths in self._files.get_sub_paths_iterator():

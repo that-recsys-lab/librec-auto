@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from librec_auto.util import xmltodict
+from librec_auto.util import xmltodict, Files
 import logging
 import itertools
 
@@ -19,11 +19,15 @@ class ConfigCmd:
     var_params = None
     _var_tuples = None
 
-    def __init__(self, files):
+    def __init__(self, config_file, target):
 
-        self._files = files
+        self._files = Files()
 
-        self._xml_input = self.read_xml(files.get_config_path())
+        # files.set_global_path(Path(__file__).parent.absolute())
+        self._files.set_exp_path(target)
+        self._files.set_config_file(config_file)
+
+        self._xml_input = self.read_xml(self._files.get_config_path())
 
         self._rules_dict = self.read_rules()
 
@@ -53,6 +57,10 @@ class ConfigCmd:
         else:
             return exp_count
 
+    # 2019-11-25 RB Configuration elements that aren't passed to LibRec are left in original XML format and handled
+    # later in a command-specific way. A better way might be to have "handler" mechanism so that each command can
+    # be associated its own configuration element and have code that is called when that element is encountered in the
+    # parse. Something to think about.
     def get_unparsed(self, type):
         if type in self._unparsed:
             return self._unparsed[type]

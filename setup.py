@@ -9,7 +9,7 @@ setuptools.setup(
 	scripts=['librec_auto\__init__.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
-    description="The librec-auto project aims to automate recommender system experimens using Librec.",
+    description="The librec-auto project aims to automate recommender system experimens using LibRec.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/that-recsys-lab/librec-auto",

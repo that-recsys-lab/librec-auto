@@ -3,6 +3,7 @@ from librec_auto.util import Files, SubPaths, Status
 from librec_auto import ConfigCmd
 import os
 import subprocess
+import  time
 from pathlib import Path
 
 class LibrecCmd (Cmd):
@@ -50,6 +51,8 @@ class LibrecCmd (Cmd):
 
         proc_spec = ' '.join(cmd)
         print (f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._sub_path.subexp_name}, exec: {proc_spec}')
+        # Only for testing parallel function
+        # time.sleep(1.0)
 
     def dry_run(self, config):
         self._config = config

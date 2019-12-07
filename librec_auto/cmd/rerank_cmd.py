@@ -20,12 +20,14 @@ class RerankCmd(Cmd):
         script = self.get_script(config)
         files = config.get_files()
         if files.get_sub_count() > 0:
-            for i in range(1, files.get_sub_count() + 1):
+            for i in range(0, files.get_sub_count()):
                 sub_paths = files.get_sub_paths(i)
 
                 print(f'librec-auto (DR): Running re-ranking command {self} for {sub_paths.subexp_name}')
                 print(f'    Re-rank script: {script}')
-
+        else:
+            print(f'librec-auto (DR): Running re-ranking command {self} but no results to re-rank.')
+            print(f'    Re-rank script: {script}')
 
     def execute(self, config: ConfigCmd):
         self.status = Cmd.STATUS_INPROC
@@ -40,13 +42,14 @@ class RerankCmd(Cmd):
         else:
             script = self.get_script(config)
             if self._files.get_sub_count() > 0:
-                for i in range(1, self._files.get_sub_count() + 1):
+                for i in range(0, self._files.get_sub_count()):
                     sub_paths = self._files.get_sub_paths(i)
 
                     print(f'librec-auto: Running re-ranking script {script} for {sub_paths.subexp_name}')
                     self.run_script(script, sub_paths)
 
     def run_script(self, script, sub_paths):
+        # TODO: RB If rerank only, then leave original folder alone and delete results files
         sub_paths.results2original()
         proc_spec = [sys.executable, script, sub_paths.get_path('conf'),
                         self._files.get_original_path().absolute,

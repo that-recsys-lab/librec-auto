@@ -16,18 +16,25 @@ Librec-auto uses an XML-based configuration system similar to Maven or Ant.
 
 ## Project structure
 
+This directory contains the Python libraries for the librec_auto module. There are two other affiliated
+respositories:
+
+- librec-auto-java: Contains the java source for the wrapper between LibRec () and librec-auto, which is implemented
+in the jar file: auto.jar.
+- librec-auto-sample: Contains sample data and configuration files that can be used to explore the functionality
+of librec-auto
+
 top-level
-* /lib
-	* /librec
-		* Maven project contains the librec 2.0 project submodule to the rburke fork of librec
-	* /auto
-		* Maven project contains the Java component of librec-auto, depends on librec
-* /librec-auto
-	* contains the Python code for the project, depends on librec and auto
+* /jar
+    * Contains the jar files for LibRec and the wrapper. 
+* /rules
+    * Contains the rules for translating configuration data to LibRec properties format.
+* /librec_auto
+	* Contains the Python code for the project.
 * /doc
-	* contains documentation for the project
+	* Contains documentation for the project
 * /test
-	* contains the tests
+	* Contains the unit tests (not many right now)
 
 	
 

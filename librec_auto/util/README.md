@@ -22,3 +22,5 @@ exp_home - this can be any directory. For example, one of the subdirectories of 
 
         / log: Location for log files from the sub-experiment
 
+Note that we have changed the convention of having the experiments start at 1. Now they start at zero, which makes 
+bookkeeping much easier.

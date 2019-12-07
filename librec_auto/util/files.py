@@ -122,7 +122,7 @@ class Files:
 
     def get_sub_count (self):
         if len(self._sub_path_dict) > 0:
-            return max(self._sub_path_dict.keys())
+            return max(self._sub_path_dict.keys())+1
         else:
             return 0
 
