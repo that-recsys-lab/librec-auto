@@ -80,18 +80,18 @@ class SubPaths:
 
     def results2original(self):
         original_path = self.get_path('original')
-        results_path = self.get_path('results')
+        result_path = self.get_path('result')
         shutil.rmtree(original_path)
         original_path.mkdir()
-        files = glob.glob(results_path / '*')
+        files = glob.glob((result_path / '*').as_posix())
         for file in files:
-            shutil.copy2(f, original_path)
+            shutil.copy2(file, original_path)
 
     def original2results(self):
         original_path = self.get_path('original')
-        results_path = self.get_path('results')
-        files = glob.glob(original_path / '*')
+        result_path = self.get_path('result')
+        files = glob.glob((original_path / '*').as_posix())
         for file in files:
-            shutil.copy2(f, results_path)
+            shutil.copy2(file, result_path)
         shutil.rmtree(original_path)
 

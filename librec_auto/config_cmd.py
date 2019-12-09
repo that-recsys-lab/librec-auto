@@ -18,10 +18,12 @@ class ConfigCmd:
     _unparsed = None
     var_params = None
     _var_tuples = None
+    _target = None
 
     def __init__(self, config_file, target):
 
         self._files = Files()
+        self._target = target
 
         # files.set_global_path(Path(__file__).parent.absolute())
         self._files.set_exp_path(target)
@@ -40,6 +42,9 @@ class ConfigCmd:
         self._var_params = []
 
         self._var_tuples = []
+
+    def get_target(self):
+        return self._target
 
     def get_prop_dict(self):
         return self._prop_dict
@@ -89,11 +94,11 @@ class ConfigCmd:
         else:
             return None
 
-    def create_sub_experiments(self):
+    def ensure_sub_experiments(self):
         exp_count = len(self._value_tuples)
         if exp_count == 0:
             exp_count = 1
-        self.get_files().create_sub_paths(exp_count)
+        self.get_files().ensure_sub_paths(exp_count)
 
     def _load_from_file(self, path):
         """
@@ -132,6 +137,7 @@ class ConfigCmd:
                 self.process_aux(self._xml_input['librec-auto'],
                                 self._rules_dict['librec-auto-element-rules'])
                 self.compute_value_tuples()
+                self.ensure_sub_experiments()
             else:
                 logging.error("Error processing element rules. Filename: {}", self._files.get_rules_path())
         else:

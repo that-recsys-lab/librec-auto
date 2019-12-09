@@ -56,7 +56,6 @@ class LibrecCmd (Cmd):
 
     def dry_run(self, config):
         self._config = config
-        config.create_sub_experiments()
 
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
 
@@ -69,7 +68,6 @@ class LibrecCmd (Cmd):
 
     def execute(self, config: ConfigCmd):
         self._config = config
-        config.create_sub_experiments()
 
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
 

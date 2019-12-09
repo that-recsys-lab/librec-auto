@@ -105,11 +105,16 @@ class Files:
     def get_subexp_name (self, count):
         return self._EXP_DIR_PATTERN.format(count)
 
-    def detect_sub_paths (self):
+    def detect_sub_path(self, exp_no):
+        return (self.get_exp_path() / self.get_subexp_name(exp_no)).exists()
+
+    def detect_sub_paths (self, count=0):
         sub_count = 0
-        while (self.get_exp_path() / self.get_subexp_name(sub_count)).exists():
+        while self.detect_sub_path(sub_count):
             self._sub_path_dict[sub_count] = SubPaths(self.get_exp_path(), self.get_subexp_name(sub_count), create=False)
             sub_count += 1
+        if sub_count != count:
+            print(f'librec-auto: Expecting {count} existing experiment directories in {self.get_exp_path()}. Found {sub_count}.')
 
     def create_sub_paths (self, tuple_count):
         if tuple_count == 0:
@@ -119,6 +124,12 @@ class Files:
 
         for i in range(sub_exp_count):
             self._sub_path_dict[i] = SubPaths(self.get_exp_path(), self.get_subexp_name(i), create=True)
+
+    def ensure_sub_paths(self, exp_count):
+        if self.detect_sub_path(0):
+            self.detect_sub_paths(count=exp_count)
+        else:
+            self.create_sub_paths(exp_count)
 
     def get_sub_count (self):
         if len(self._sub_path_dict) > 0:
