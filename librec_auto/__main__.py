@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from librec_auto import ConfigCmd
+from librec_auto import read_config_file
 from librec_auto.util import Files
 from librec_auto.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
@@ -43,7 +43,7 @@ def read_args():
     return vars(input_args)
 
 
-def read_config_file(args):
+def load_config(args):
 
     config_file =  Files.DEFAULT_CONFIG_FILENAME
 
@@ -52,9 +52,7 @@ def read_config_file(args):
 
     target = args['target']
 
-    config = ConfigCmd(config_file, target)
-    config.process_config()
-    return config
+    return read_config_file(config_file, target)
 
 
 DESCRIBE_TEXT = 'Librec-auto automates recommender systems experimentation using the LibRec Java library.\n' +\
@@ -195,7 +193,7 @@ if __name__ == '__main__':
     if args['action']=='describe':
         print_description(args)
     else:
-        config = read_config_file(args)
+        config = load_config(args)
 
         if len(config.get_prop_dict()) > 0:
             command = setup_commands(args, config)

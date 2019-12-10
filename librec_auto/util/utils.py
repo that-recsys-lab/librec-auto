@@ -1,6 +1,8 @@
 from pathlib2 import Path
 from librec_auto.util import xmltodict
-
+from inspect import getsourcefile
+from os.path import abspath
+from pathlib import Path
 
 def safe_xml_path(config, key_list):
     """
@@ -144,3 +146,18 @@ def xml_load_from_text(txt):
         xml_data = {}
 
     return xml_data
+
+def get_script_path(script_xml, cmd_type):
+
+        if script_xml['@lang'] != 'python3':
+            print(f'librec-auto: Only Python3 scripts currently supported. Got {script_xml["@lang"]}.')
+            return None
+        if '@src' in script_xml:
+            if script_xml['@src'] == 'system':
+                script_path = Path(abspath(getsourcefile(lambda:0))).parent.parent / 'cmd' / cmd_type
+            else:
+                script_path = script_xml['@src']
+        if '#text' in script_xml:
+            return script_path / script_xml['#text']
+        else:
+            return None

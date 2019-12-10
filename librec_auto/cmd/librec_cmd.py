@@ -44,6 +44,7 @@ class LibrecCmd (Cmd):
         else:
             for line in p.stdout:
                 f.write(str(line))
+                print(str(line))
             f.close()
 
     def dry_run_librec(self):
@@ -147,7 +148,7 @@ class LibrecCmd (Cmd):
 
         if self._command == 'eval':
             if self.results_exist():
-                return 're-eval'
+                return 'reRunEval' # I don't like this name. I blame Aldo
             else:  # No result file present, Then check if split exists
                 if self.split_exists():
                     return 'exp-eval'

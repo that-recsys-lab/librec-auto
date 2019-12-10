@@ -139,9 +139,9 @@ class ConfigCmd:
                 self.compute_value_tuples()
                 self.ensure_sub_experiments()
             else:
-                logging.error("Error processing element rules. Filename: {}", self._files.get_rules_path())
+                logging.error(f"Error processing element rules. Filename: {self._files.get_rules_path().as_posix()}")
         else:
-            logging.error("Error processing configuration file. Filename: {}", self._files.get_config_path())
+            logging.error(f"Error processing configuration file. Filename: {self._files.get_config_path().as_posix()}")
 
     def process_aux(self, arg, rules):
         for key in arg:
@@ -214,3 +214,7 @@ class ConfigCmd:
             self._value_tuples = list(itertools.product(*var_values))
 
 
+def read_config_file(config_file, target):
+    config = ConfigCmd(config_file, target)
+    config.process_config()
+    return config

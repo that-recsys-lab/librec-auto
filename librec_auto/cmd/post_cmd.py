@@ -35,8 +35,9 @@ class PostCmd(Cmd):
         for script in self.collect_scripts(config):
             script_path = self.find_script_path(script, config)
             proc_spec = [sys.executable, script_path.absolute().as_posix(),
-                         files.get_post_path().absolute().as_posix(),
-                         files.get_exp_path().absolute().as_posix()]
+                         self._config.get_files().get_config_path().name,
+                         config.get_target(),
+                         files.get_post_path().absolute().as_posix()]
             print (f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)
 
@@ -50,4 +51,4 @@ class PostCmd(Cmd):
     def collect_scripts(self, config):
         post_xml = config.get_unparsed('post')
         script_stuff = post_xml['script']
-        return [entry['#text'] for entry in utils.force_list(script_stuff)]
+        return [utils.get_script_path(entry, 'post') for entry in utils.force_list(script_stuff)]
