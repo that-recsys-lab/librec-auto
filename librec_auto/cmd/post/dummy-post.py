@@ -6,6 +6,8 @@ import os
 import re
 import pandas as pd
 from librec_auto import read_config_file
+import pathlib
+from librec_auto.util import LogFile
 
 def read_args():
     """
@@ -15,24 +17,21 @@ def read_args():
     parser = argparse.ArgumentParser(description='Generic post-processing script')
     parser.add_argument('conf', help='Path to configuration file')
     parser.add_argument('target', help='Experiment target')
-    parser.add_argument('post', help='Path to post-processing output directory')
+    parser.add_argument('--param0', help='Value passed to script')
+    parser.add_argument('--param1', help='Value passed to script', default='lorem ipsum')
 
     input_args = parser.parse_args()
     return vars(input_args)
 
-
 if __name__ == '__main__':
     args = read_args()
     config = read_config_file(args['conf'], args['target'])
-    result_files = enumerate_results(args['original'])
 
-    file_count = 1
-    for file in result_files:
-        file_path = pathlib.Path(file)
-        if file_path.exists():
-            df = pd.read_csv(file)
+    print("Dummy post script")
+    print(f'\tGot parameter param0: {args["param0"]}')
+    print(f'\tGot parameter param1: {args["param1"]}')
 
-            outfile = args['result']
-            outfilename = f'out-{file_count}.txt'
-            df.to_csv(outfilename)
-            file_count += 1
+    for sub_path in config.get_files().get_sub_paths_iterator():
+        log_file = LogFile(sub_path)
+        print(log_file)
+

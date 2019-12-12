@@ -12,8 +12,8 @@ class Files:
 
     The files for librec-auto can be stored in a number of possible locations:
     - global location: determined by the install location of librec-auto
-    - rules-specific location: determined by the location of a rules directory
-    - user-specific location: associated with the user's home directory
+    - rules-specific location: determined by the location of a rules directory [Not implemented]
+    - user-specific location: associated with the user's home directory [Not implemented]
     - experiment-specific location: in a directory associated with a specific experiment. See sub_paths.py for a class
       that handles the sub-experiment-specific files.
 

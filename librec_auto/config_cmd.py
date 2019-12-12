@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from librec_auto.util import xmltodict, Files
+from librec_auto.util import xmltodict, Files, utils
 import logging
 import itertools
 
@@ -212,6 +212,20 @@ class ConfigCmd:
             self._value_tuples = var_values
         else:
             self._value_tuples = list(itertools.product(*var_values))
+
+    # TODO RB 2019-12-12 Should include some error-checking and better messages for badly-formed XML
+    def collect_scripts(self, script_type):
+        post_xml = self.get_unparsed(script_type)
+        script_xml = post_xml['script']
+        scripts = []
+        for entry in utils.force_list(script_xml):
+            script_path = utils.get_script_path(entry, script_type)
+            param_dict = {}
+            for elem_dict in utils.force_list(entry['param']):
+                param_dict[elem_dict['@name']] = elem_dict['#text']
+            scripts.append((script_path, param_dict))
+
+        return scripts
 
 
 def read_config_file(config_file, target):

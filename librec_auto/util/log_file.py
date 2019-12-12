@@ -8,6 +8,9 @@ class LogFile:
     _kcv = None
     _log_path = None
 
+    def __str__(self):
+        return f'LogFile({self._values}'
+
     def __init__(self, paths: SubPaths):
         self._metrics = []
         self._values = {}
