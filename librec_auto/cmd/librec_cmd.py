@@ -132,7 +132,7 @@ class LibrecCmd (Cmd):
         if java_command is None:
             return []
         else:
-            return ['java', '-cp', classpath, mainClass, str(confpath), java_command]
+            return ['java', '-cp', classpath, mainClass, confpath.as_posix(), java_command]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):
