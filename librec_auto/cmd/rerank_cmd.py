@@ -61,8 +61,8 @@ class RerankCmd(Cmd):
         sub_paths.results2original()
         proc_spec = [sys.executable, script.as_posix(), self._config.get_files().get_config_path().name,
                      self._config.get_target(),
-                     sub_paths.get_path('original').absolute(),
-                     sub_paths.get_path('result').absolute()] + param_spec
+                     sub_paths.get_path('original').absolute().as_posix(),
+                     sub_paths.get_path('result').absolute().as_posix()] + param_spec
         subprocess.call(proc_spec)
 
 

@@ -42,15 +42,19 @@ class LibrecCmd (Cmd):
         log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        p.wait()
 
-        if p.returncode < 0:
+        for line in p.stdout:
+            f.write(str(line))
+            print(str(line))
+        f.close()
+
+        #p.wait()
+
+        if type(p.returncode) is 'int' and p.returncode < 0:
             self.status = Cmd.STATUS_ERROR
         else:
-            for line in p.stdout:
-                f.write(str(line))
-                print(str(line))
-            f.close()
+            self.status = Cmd.STATUS_COMPLETE
+
 
     def dry_run_librec(self):
         cmd = self.create_proc_spec()
@@ -135,8 +139,8 @@ class LibrecCmd (Cmd):
         confpath_str = str(confpath)
 
         # 2020-01-06 RB Yes, this is a hack but could not figure out a way around it. Windows, bleh.
-        if isinstance(confpath, WindowsPath):
-            confpath_str = confpath_str.replace('\\', '\\\\')
+        #if isinstance(confpath, WindowsPath):
+        #    confpath_str = confpath_str.replace('\\', '\\\\')
 
         java_command = self.select_librec_action()
         if java_command is None:
