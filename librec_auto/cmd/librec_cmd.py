@@ -5,7 +5,7 @@ import os
 import subprocess
 import shlex
 import  time
-from pathlib import Path
+from pathlib import Path, WindowsPath
 
 class LibrecCmd (Cmd):
 
@@ -26,6 +26,10 @@ class LibrecCmd (Cmd):
     def setup(self, args):
         pass
 
+    # 2020-01-06 RB Theoretically, subprocess.run is the right way to do this, but capturing the log output
+    # seems to work more naturally with Popen. A mystery for future developers. Also, capture_output requires
+    # Python 3.8, which may be too much to ask at this point.
+    # proc = subprocess.run(cmd, capture_output=True
     def execute_librec(self):
         cmd = self.create_proc_spec()
 
@@ -128,13 +132,18 @@ class LibrecCmd (Cmd):
         classpath = self._config.get_files().get_classpath()
         mainClass = self._DEFAULT_WRAPPER_CLASS
         confpath = self._sub_path.get_librec_properties_path()
+        confpath_str = str(confpath)
+
+        # 2020-01-06 RB Yes, this is a hack but could not figure out a way around it. Windows, bleh.
+        if isinstance(confpath, WindowsPath):
+            confpath_str = confpath_str.replace('\\', '\\\\')
 
         java_command = self.select_librec_action()
         if java_command is None:
             return []
         else:
-            proc_spec = ['java', '-cp', classpath, mainClass, confpath.as_posix(), java_command]
-            return [shlex.quote(elem) for elem in proc_spec]
+            return ['java', '-cp', classpath, mainClass, confpath_str, java_command]
+  #          return [shlex.quote(elem) for elem in proc_spec]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):
