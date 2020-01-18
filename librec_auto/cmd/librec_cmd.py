@@ -138,16 +138,11 @@ class LibrecCmd (Cmd):
         confpath = self._sub_path.get_librec_properties_path()
         confpath_str = str(confpath)
 
-        # 2020-01-06 RB Yes, this is a hack but could not figure out a way around it. Windows, bleh.
-        #if isinstance(confpath, WindowsPath):
-        #    confpath_str = confpath_str.replace('\\', '\\\\')
-
         java_command = self.select_librec_action()
         if java_command is None:
             return []
         else:
             return ['java', '-cp', classpath, mainClass, confpath_str, java_command]
-  #          return [shlex.quote(elem) for elem in proc_spec]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):
@@ -163,7 +158,7 @@ class LibrecCmd (Cmd):
 
         if self._command == 'eval':
             if self.results_exist():
-                return 'reRunEval' # I don't like this name. I blame Aldo
+                return 're-eval'
             else:  # No result file present, Then check if split exists
                 if self.split_exists():
                     return 'exp-eval'
@@ -172,5 +167,8 @@ class LibrecCmd (Cmd):
 
         if self._command == 'full':
             return 'full'
+
+        if self._command == 'check':
+            return 'check'
         else:
             return None

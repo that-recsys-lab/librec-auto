@@ -13,7 +13,7 @@ def read_args():
     :return:
     '''
     parser = argparse.ArgumentParser(description='The librec-auto tool for running recommender systems experiments')
-    parser.add_argument('action',choices=['run','split', 'eval', 'rerank', 'post', 'purge', 'status', 'describe'])
+    parser.add_argument('action',choices=['run','split', 'eval', 'rerank', 'post', 'purge', 'status', 'describe', 'check'])
 
     parser.add_argument("target", help="Path to experiment directory")
 
@@ -181,6 +181,10 @@ def setup_commands (args, config):
         cmd = SequenceCmd([cmd1, cmd2])
         if post_flag:
             cmd.add_command(PostCmd())
+        return cmd
+
+    if action == 'check':
+        cmd = build_librec_commands('check', args, config)
         return cmd
 
 
