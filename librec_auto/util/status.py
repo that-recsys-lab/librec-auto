@@ -17,6 +17,11 @@ class Status():
     _TEMPLATE_LINE = '<param><name>{}</name><value>{}</value></param>\n'
 
 
+
+#    def Status(self):
+
+
+
     # Accept list of vars and tuples
     @staticmethod
     def save_status(msg, exp_count, var_names, value_tuple, config, paths):
@@ -32,3 +37,20 @@ class Status():
 
         with status_file.open(mode='w') as fh:
             fh.write(str(status_info))
+
+
+
+    # Decoding the status. Should be integrated into status.py.
+    def status_completed(status):
+        msg = utils.extract_from_path(status, ['librec-auto-status', 'message'])
+        return msg == 'Completed'
+
+    def status_params(status):
+        param_specs = utils.force_list(utils.extract_from_path(status, ['librec-auto-status', 'param']))
+
+        return [spec['name'] for spec in param_specs]
+
+    def status_vals(status):
+        param_specs = utils.force_list(utils.extract_from_path(status, ['librec-auto-status', 'param']))
+
+        return [spec['value'] for spec in param_specs]

@@ -47,8 +47,3 @@ class PostCmd(Cmd):
                          config.get_target()] + param_spec
             print (f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)
-
-
-
-
-

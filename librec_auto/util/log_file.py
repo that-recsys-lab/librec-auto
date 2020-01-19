@@ -43,16 +43,19 @@ class LogFile:
 
     def parse_log(self):
         eval_pattern_str = r'.*Evaluator info:(.*)Evaluator is (\d+.?\d+)'
-        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
+        kcv_pattern_str = r'.*Splitting .* on fold (\d+)'
+#        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
         final_pattern_str = r'.*Evaluator value:(.*)Evaluator is (\d+.?\d+)'
 
         eval_pattern = re.compile(eval_pattern_str)
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
 
-        with open(str(self._log_path / SubPaths.DEFAULT_LOG_FILENAME), 'r') as fl:
+        with open(str(self._log_path / SubPaths.DEFAULT_LOG_FILENAME), 'r', newline='\n') as fl:
 
+            i = 0
             for ln in fl:
+                i += 1
                 m_eval = re.match(eval_pattern, ln)
                 m_kcv = re.match(kcv_pattern, ln)
                 m_final = re.match(final_pattern, ln)
@@ -65,6 +68,6 @@ class LogFile:
                     metric_value = m_eval.group(2)
                     self.add_metric_value(metric_name, metric_value)
 
-                if m_kcv is not None:
-                    self._kcv = m_kcv.group(1)
+            if m_kcv is not None:
+                self._kcv = m_kcv.group(1)
 

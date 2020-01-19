@@ -96,7 +96,7 @@ class Files:
     def get_rules_path (self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
 
-    # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpath here.
+    # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpaths here.
     def get_classpath (self):
         # return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
         #        (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()

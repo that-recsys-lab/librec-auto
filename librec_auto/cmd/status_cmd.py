@@ -11,6 +11,9 @@ class StatusCmd(Cmd):
     def __str__(self):
         return f"StatusCmd()"
 
+    def setup(self, args):
+        pass
+
     def dry_run(self, config):
         print (f'librec-auto (DR): Running status command {self}')
 
@@ -18,7 +21,7 @@ class StatusCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
         files = config.get_files()
         target = files.get_exp_path()
-        result_path = files.get_result_path()
+#        result_path = files.get_result_path()
 
         if files.get_sub_count()==0:
             print("librec-auto: No experiments found.")
@@ -26,7 +29,7 @@ class StatusCmd(Cmd):
             for sub_paths in files.get_sub_paths_iterator():
                 status_path = sub_paths.get_path('status')
                 if status_path.exists():
-                    self.print_status(status_path)
+#                    self.print_status(status_path)
                     self.print_log_info(sub_paths)
 
         self.status = Cmd.STATUS_COMPLETE
