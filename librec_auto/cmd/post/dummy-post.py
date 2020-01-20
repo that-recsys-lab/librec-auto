@@ -7,7 +7,8 @@ import re
 import pandas as pd
 from librec_auto import read_config_file
 import pathlib
-from librec_auto.util import LogFile
+from librec_auto.util import Status
+
 
 def read_args():
     """
@@ -23,6 +24,7 @@ def read_args():
     input_args = parser.parse_args()
     return vars(input_args)
 
+
 if __name__ == '__main__':
     args = read_args()
     config = read_config_file(args['conf'], args['target'])
@@ -32,6 +34,6 @@ if __name__ == '__main__':
     print(f'\tGot parameter param1: {args["param1"]}')
 
     for sub_path in config.get_files().get_sub_paths_iterator():
-        log_file = LogFile(sub_path)
-        print(log_file)
+        status = Status(sub_path)
+        print(status)
 

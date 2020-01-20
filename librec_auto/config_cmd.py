@@ -220,10 +220,13 @@ class ConfigCmd:
         scripts = []
         for entry in utils.force_list(script_xml):
             script_path = utils.get_script_path(entry, script_type)
-            param_dict = {}
-            for elem_dict in utils.force_list(entry['param']):
-                param_dict[elem_dict['@name']] = elem_dict['#text']
-            scripts.append((script_path, param_dict))
+            if 'param' in entry:
+                param_dict = {}
+                for elem_dict in utils.force_list(entry['param']):
+                    param_dict[elem_dict['@name']] = elem_dict['#text']
+                scripts.append((script_path, param_dict))
+            else:
+                scripts.append((script_path, None))
 
         return scripts
 

@@ -1,10 +1,11 @@
 
 import argparse
 from pathlib import Path
+from librec_auto import read_config_file
 from librec_auto import ConfigCmd
-from librec_auto.util import LogFile
+from librec_auto.util import LogFile, Status
 from librec_auto.util import SubPaths
-import librec_auto.utils.util
+#import librec_auto.utils.util
 import sys
 
 import matplotlib
@@ -17,26 +18,22 @@ viz_file_pattern_box = "viz-box-{}.pdf"
 exp_dir_pattern = "exp[0-9][0-9][0-9]"
 
 
-
-
 # Things we need from each experiment run
 # name (dir), params that changed, values of changing parameters, metrics measured,
 
-def get_metric_info(path):
+def get_metric_info(files):
+
     metric_info = {}
-    exp_paths = list(path.glob(exp_dir_pattern))
-    exp_count = len(exp_paths)
 
-    for exp_path in exp_paths:
-        exp_name = exp_path.name
-        status = utils.xml_load_from_path(exp_path / ".status")
+    for sub_paths in files.get_sub_paths_iterator():
+        status = Status(sub_paths)
 
-        if status_completed(status):
-            params = status_params(status)
-            vals = status_vals(status)
-            log = LogFile(ExpPaths(path, exp_name, create=False))
+        if status.is_completed():
+            params = status.m_params
+            vals = status.m_vals
+            log = status.m_log
 
-            metric_info[exp_name] = (params, vals, log)
+            metric_info[status.m_name] = (params, vals, log)
 
     return metric_info
 
@@ -51,9 +48,8 @@ def create_bar(path, metric_name, params, settings, metric_values):
     ax.set_xticks(x_range)
     ax.set_xticklabels(settings)
 
-    # Nasim: if "viz" folder doesn't exist, create one.
-    Path(path / "post").mkdir(parents=True, exist_ok=True)
-    filename = path / "post" / viz_file_pattern_bar.format(metric_name)
+    filename = path / viz_file_pattern_bar.format(metric_name)
+    print(str(filename))
     fig.savefig(str(filename))
     plt.close()
 
@@ -83,9 +79,7 @@ def create_box(path, metric, params, settings, fold_values):
     ax.set_xticklabels(settings)
     ax.set_title('{} distribution by\n{}'.format(metric, params))
 
-    # Nasim: if the viz folder doesn't exist, make it.
-    Path(path / "viz").mkdir(parents=True, exist_ok=True)
-    filename = path / "viz" / viz_file_pattern_box.format(metric)
+    filename = path / viz_file_pattern_box.format(metric)
 
     fig.savefig(str(filename))
     plt.close()
@@ -108,26 +102,31 @@ def create_boxes(path, metric_info):
         create_box(path, metric, param_string, settings, fold_vals)
 
 
-def create_graphics(path):
-    metric_info = get_metric_info(path)
+def create_graphics(config):
+    files = config.get_files()
+    metric_info = get_metric_info(config.get_files())
 
-    create_bars(path, metric_info)
-    create_boxes(path, metric_info)
+    create_bars(files.get_post_path(), metric_info)
+    create_boxes(files.get_post_path(), metric_info)
+
+
+def read_args():
+    """
+    Parse command line arguments.
+    :return:
+    """
+    parser = argparse.ArgumentParser(description='Generic post-processing script')
+    parser.add_argument('conf', help='Path to configuration file')
+    parser.add_argument('target', help='Experiment target')
+
+    input_args = parser.parse_args()
+    return vars(input_args)
 
 
 if __name__ == '__main__':
-    # to seehow you can pass the api key as a parameter here and run the algorithm
-    parser = argparse.ArgumentParser()
-    parser.add_argument("target", help="what the action applies to")
+    args = read_args()
+    config = read_config_file(args['conf'], args['target'])
 
-    args = parser.parse_args()
-    dictargs = vars(args)
+    print(f"librec-auto: Creating summary visualizations for {args['target']}")
 
-    target = dictargs['target']
-
-    base_path = Path(target)
-    print("librec-auto: Creating summary visualizations for", target)
-
-    create_graphics(base_path)
-
-    print("librec-auto: Visualizations created")
+    create_graphics(config)

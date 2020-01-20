@@ -83,7 +83,7 @@ class Files:
 
     def get_config_path(self): return self._exp_path / self._config_dir_path / self._config_file_name
 
-    def get_post_path(self): return self._post_dir_path
+    def get_post_path(self): return self._exp_path / self._post_dir_path
 
     def set_global_path(self, path): self._global_path = Path(path)
 

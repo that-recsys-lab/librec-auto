@@ -41,7 +41,10 @@ class PostCmd(Cmd):
             os.makedirs(str(post_path))
 
         for script_path, params in config.collect_scripts('post'):
-            param_spec = utils.create_param_spec(params)
+            if params is not None:
+                param_spec = utils.create_param_spec(params)
+            else:
+                param_spec = []
             proc_spec = [sys.executable, script_path.absolute().as_posix(),
                          self._config.get_files().get_config_path().name,
                          config.get_target()] + param_spec
