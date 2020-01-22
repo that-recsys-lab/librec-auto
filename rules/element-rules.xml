@@ -216,7 +216,7 @@
 		<ranking>rec.recommender.isranking</ranking>
 		<class>rec.eval.classes</class>
 		<list-size>rec.recommender.ranking.topn</list-size>
-		<protected-feature>data.feature</protected-feature>
+		<protected-feature>data.protected.feature</protected-feature>
 	</metric>
 	<post action="no-parse"/>
 	<rerank action="no-parse"/>

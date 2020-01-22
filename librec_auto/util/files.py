@@ -43,7 +43,7 @@ class Files:
     _DEFAULT_CONFIG_DIR_NAME = "conf"
     _DEFAULT_RULES_DIR_NAME = "rules"
     _DEFAULT_RES_DIR_NAME = "result"
-    _DEFAULT_SPLIT_DIR_NAME = "split"
+    _DEFAULT_SPLIT_DIR_NAME = "data/split"
     _DEFAULT_JAR_DIR_NAME = "jar"
     _DEFAULT_POST_DIR_NAME = "post"
     _EXP_DIR_PATTERN = "exp{:05d}"
@@ -79,7 +79,7 @@ class Files:
 
     def get_exp_path(self): return self._exp_path
 
-    def get_split_path(self): return self._split_dir_path
+    def get_split_path(self): return self._exp_path / self._split_dir_path
 
     def get_config_path(self): return self._exp_path / self._config_dir_path / self._config_file_name
 

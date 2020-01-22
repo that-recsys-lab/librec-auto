@@ -1,6 +1,6 @@
 * librec-auto TODO
 
-- Upgrade to LibRec 3.0
+- Upgrade to LibRec 3.0 (harder than we thought)
 - clean up / document
 - platform-sensitive install (paths for Java, Python)
 - Separate LibRec install (or detect)
@@ -15,8 +15,6 @@
 - Prompt in purge command should be specific about what will be removed.
 
 * librec-auto BUGS
-- 
+- check command does not catch missing data file
 
 * librec-auto UNTESTED
-- Post scripts
-- Re-ranking

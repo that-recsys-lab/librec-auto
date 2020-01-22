@@ -1,20 +1,17 @@
 
 import argparse
-from pathlib import Path
 from librec_auto import read_config_file
-from librec_auto import ConfigCmd
-from librec_auto.util import LogFile, Status
-from librec_auto.util import SubPaths
-#import librec_auto.utils.util
-import sys
+from librec_auto.util import Status
+import webbrowser
 
 import matplotlib
 import matplotlib.pyplot as plt
 
 matplotlib.use('Agg')  # For non-windowed plotting
 
-viz_file_pattern_bar = "viz-bar-{}.pdf"
-viz_file_pattern_box = "viz-box-{}.pdf"
+viz_file_pattern_bar = "viz-bar-{}.jpg"
+viz_file_pattern_box = "viz-box-{}.jpg"
+viz_html_filename = "viz.html"
 exp_dir_pattern = "exp[0-9][0-9][0-9]"
 
 
@@ -53,10 +50,14 @@ def create_bar(path, metric_name, params, settings, metric_values):
     fig.savefig(str(filename))
     plt.close()
 
+    return filename
+
 
 def create_bars(path, metric_info):
     metric_names = list(metric_info.values())[0][2].get_metrics()
     # Nasim: add list to it because in python 3 it returns a view, so it doesn't have indexing, you can't access it.
+
+    bar_paths = []
 
     for metric in metric_names:
 
@@ -69,7 +70,9 @@ def create_bars(path, metric_info):
             settings.append('\n'.join(vals))
             metric_vals.append(float(log.get_metric_values(metric)[-1]))
 
-        create_bar(path, metric, param_string, settings, metric_vals)
+        bar_paths.append(create_bar(path, metric, param_string, settings, metric_vals))
+
+    return bar_paths
 
 
 def create_box(path, metric, params, settings, fold_values):
@@ -83,11 +86,14 @@ def create_box(path, metric, params, settings, fold_values):
 
     fig.savefig(str(filename))
     plt.close()
+    return filename
 
 
 def create_boxes(path, metric_info):
     metric_names = list(metric_info.values())[0][2].get_metrics()
     print(metric_names)
+
+    box_paths = []
     for metric in metric_names:
 
         param_string = ""
@@ -99,15 +105,42 @@ def create_boxes(path, metric_info):
             settings.append('\n'.join(vals))
             fold_vals.append([float(val) for val in log.get_metric_values(metric)[:-1]])
 
-        create_box(path, metric, param_string, settings, fold_vals)
+        box_paths.append(create_box(path, metric, param_string, settings, fold_vals))
+
+    return box_paths
+
+PAGE_TEMPLATE = '<html><h1>Study results</h1>{}</html>'
+METRIC_TEMPLATE = '<h2>Metric: {}</h2>{}'
+IMAGE_TEMPLATE = '<img src="{}" />'
+
+def create_html(path, metric_info, bars, boxes):
+    html = PAGE_TEMPLATE
+    metric_chunks = []
+    metric_names = list(metric_info.values())[0][2].get_metrics()
+    for name, bar, box in zip(metric_names, bars, boxes):
+        images = IMAGE_TEMPLATE.format(bar.name) + IMAGE_TEMPLATE.format(box.name)
+        metric_chunks.append(METRIC_TEMPLATE.format(name, images))
+
+    output = html.format('\n'.join(metric_chunks))
+
+    filename = path / viz_html_filename
+
+    with open(filename, 'w') as out_file:
+     out_file.write(output)
+
+    return filename
 
 
-def create_graphics(config):
+def create_graphics(config, display):
     files = config.get_files()
     metric_info = get_metric_info(config.get_files())
 
-    create_bars(files.get_post_path(), metric_info)
-    create_boxes(files.get_post_path(), metric_info)
+    bars = create_bars(files.get_post_path(), metric_info)
+    boxes = create_boxes(files.get_post_path(), metric_info)
+
+    if display:
+        html_file = create_html(files.get_post_path(), metric_info, bars, boxes)
+        webbrowser.open('file://' + str(html_file.absolute()), new=1, autoraise=True)
 
 
 def read_args():
@@ -118,6 +151,7 @@ def read_args():
     parser = argparse.ArgumentParser(description='Generic post-processing script')
     parser.add_argument('conf', help='Path to configuration file')
     parser.add_argument('target', help='Experiment target')
+    parser.add_argument('--browser', help='Show graphics in browser', choices=['True', 'False'])
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -129,4 +163,6 @@ if __name__ == '__main__':
 
     print(f"librec-auto: Creating summary visualizations for {args['target']}")
 
-    create_graphics(config)
+    display = args['browser'] == 'True'
+
+    create_graphics(config, display)

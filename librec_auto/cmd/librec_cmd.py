@@ -40,6 +40,7 @@ class LibrecCmd (Cmd):
 
         print(f"librec-auto: Running librec. {cmd}")
         log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
+
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -118,7 +119,7 @@ class LibrecCmd (Cmd):
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):
         split_path = self._config.get_files().get_split_path()
-        return any(os.scandir(split_path))
+        return split_path.exists() and any(os.scandir(split_path))
 
     # Checks for any contents of results directory, which would have been removed by purging
     def results_exist(self):
@@ -158,7 +159,7 @@ class LibrecCmd (Cmd):
 
         if self._command == 'eval':
             if self.results_exist():
-                return 're-eval'
+                return 'reRunEval'
             else:  # No result file present, Then check if split exists
                 if self.split_exists():
                     return 'exp-eval'
