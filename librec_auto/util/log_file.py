@@ -42,10 +42,10 @@ class LogFile:
         return self._kcv
 
     def parse_log(self):
-        eval_pattern_str = r'.*Evaluator info:(.*)Evaluator is (\d+.?\d+)'
+        eval_pattern_str = r'.*Evaluator info:(.*)Evaluator is (-?\d+.?\d+)'
         kcv_pattern_str = r'.*Splitting .* on fold (\d+)'
 #        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
-        final_pattern_str = r'.*Evaluator value:(.*)Evaluator is (\d+.?\d+)'
+        final_pattern_str = r'.*Evaluator value:(.*)Evaluator is (-?\d+.?\d+)'
 
         eval_pattern = re.compile(eval_pattern_str)
         kcv_pattern = re.compile(kcv_pattern_str)

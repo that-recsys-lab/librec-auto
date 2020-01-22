@@ -45,8 +45,9 @@ class LibrecCmd (Cmd):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         for line in p.stdout:
-            f.write(str(line, 'utf-8'))
-            print(str(line))
+            line_string = str(line, 'utf-8')
+            f.write(line_string)
+            print(line_string, end='')
         f.close()
 
         #p.wait()

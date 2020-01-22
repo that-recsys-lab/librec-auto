@@ -32,6 +32,7 @@ def get_metric_info(files):
 
             metric_info[status.m_name] = (params, vals, log)
 
+    print(metric_info)
     return metric_info
 
 
@@ -103,7 +104,8 @@ def create_boxes(path, metric_info):
         for params, vals, log in metric_info.values():
             param_string = ', '.join(params)
             settings.append('\n'.join(vals))
-            fold_vals.append([float(val) for val in log.get_metric_values(metric)[:-1]])
+            metric_vals = log.get_metric_values(metric)[:-1]
+            fold_vals.append([float(val) for val in metric_vals])
 
         box_paths.append(create_box(path, metric, param_string, settings, fold_vals))
 
