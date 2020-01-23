@@ -206,7 +206,7 @@
 		<protected>rec.fair.protected</protected>
 		
 		<!-- bn slim -->
-		<lambda3>rec.bnslim.regularization.l3</lambda3>
+		<l3-reg>rec.bnslim.regularization.l3</l3-reg>
 		<min-sim>rec.bnslim.minsimilarity</min-sim>
 		
 	</alg>
