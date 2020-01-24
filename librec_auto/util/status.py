@@ -35,7 +35,12 @@ class Status():
             self.m_status_xml = xml_load_from_path(status_path)
             self.m_message = extract_from_path(self.m_status_xml, ['librec-auto-status', 'message'])
             self.m_log = LogFile(self.m_subpaths)
-            self.process_params(force_list(extract_from_path(self.m_status_xml, ['librec-auto-status', 'param'])))
+            params = extract_from_path(self.m_status_xml, ['librec-auto-status', 'param'])
+            if params != None:
+                self.process_params(force_list(params))
+            else:
+                self.m_params = []
+                self.m_vals = []
 
     def __str__(self):
         params_string = self.get_params_string()
@@ -49,6 +54,8 @@ class Status():
         param_list = []
         val_list = []
 
+        print(param_xml)
+
         for pdict in param_xml:
             param_list.append(pdict['name'])
             val_list.append(pdict['value'])
@@ -58,6 +65,8 @@ class Status():
 
     def get_params_string(self):
         params_string = ''
+        if self.m_params == []:
+            return " No parameters"
         for param, val in zip(self.m_params, self.m_vals):
             params_string += f' {param}: {val}'
         return params_string
