@@ -6,8 +6,8 @@
 - Separate LibRec install (or detect)
 - sanity check on eval-only: has the config changed too much?
 - detect: item-based similarity vs user-based, detect ranking vs prediction metrics
-- P-Fairness metrics (LibRec)
-- C-Fairness metrics (LibRec)
+x P-Fairness metrics (LibRec)
+x C-Fairness metrics (LibRec)
 - Configuration includes
 - Interface to other systems: PSL
 - Sub-group metrics (long-tail, protected group, etc.)
@@ -15,6 +15,6 @@
 - Prompt in purge command should be specific about what will be removed.
 
 * librec-auto BUGS
-- check command does not catch missing data file
+- check command does not catch missing data file or missing metric class
 
 * librec-auto UNTESTED

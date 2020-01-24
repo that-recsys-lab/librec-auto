@@ -32,7 +32,6 @@ def get_metric_info(files):
 
             metric_info[status.m_name] = (params, vals, log)
 
-    print(metric_info)
     return metric_info
 
 
@@ -119,9 +118,15 @@ def create_html(path, metric_info, bars, boxes):
     html = PAGE_TEMPLATE
     metric_chunks = []
     metric_names = list(metric_info.values())[0][2].get_metrics()
-    for name, bar, box in zip(metric_names, bars, boxes):
-        images = IMAGE_TEMPLATE.format(bar.name) + IMAGE_TEMPLATE.format(box.name)
-        metric_chunks.append(METRIC_TEMPLATE.format(name, images))
+
+    if boxes is None:
+        for name, bar in zip(metric_names, bars):
+            images = IMAGE_TEMPLATE.format(bar.name)
+            metric_chunks.append(METRIC_TEMPLATE.format(name, images))
+    else:
+        for name, bar, box in zip(metric_names, bars, boxes):
+            images = IMAGE_TEMPLATE.format(bar.name) + IMAGE_TEMPLATE.format(box.name)
+            metric_chunks.append(METRIC_TEMPLATE.format(name, images))
 
     output = html.format('\n'.join(metric_chunks))
 
@@ -138,7 +143,11 @@ def create_graphics(config, display):
     metric_info = get_metric_info(config.get_files())
 
     bars = create_bars(files.get_post_path(), metric_info)
-    boxes = create_boxes(files.get_post_path(), metric_info)
+
+    if 'data.splitter.cv.number' in config.get_prop_dict():         # Box plot only makes sense for cross-validation
+        boxes = create_boxes(files.get_post_path(), metric_info)
+    else:
+        boxes = None
 
     if display:
         html_file = create_html(files.get_post_path(), metric_info, bars, boxes)

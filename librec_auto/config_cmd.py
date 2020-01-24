@@ -161,7 +161,8 @@ class ConfigCmd:
                     elif type(rules[key]) == list:          # There are multiple LibRec keys in which map to this
                                                             # LibRecAuto key. (e.g. 'l1-reg')
                         for libRecKey in rules[key]:
-                            self._prop_dict[libRecKey] = arg[key]
+                            if type(libRecKey) is str:            # Otherwise, it is a compound rule that doesn't match arg
+                                self._prop_dict[libRecKey] = arg[key]
                     else:
                         self._prop_dict[rules[key]] = arg[key]  # Set property translation and value
             # If the key isn't in the rules, ignore it but warn because it is probably an error.

@@ -54,8 +54,6 @@ class Status():
         param_list = []
         val_list = []
 
-        print(param_xml)
-
         for pdict in param_xml:
             param_list.append(pdict['name'])
             val_list.append(pdict['value'])
@@ -74,7 +72,7 @@ class Status():
     def get_log_info(self):
         kcv_count = self.m_log.get_kcv_count()
         if kcv_count is None:
-            return self.get_metric_info(self.m_log, 1)
+            return self.get_metric_info(self.m_log, 0)
         else:
             return self.get_metric_info(self.m_log, -1)
 
