@@ -8,7 +8,6 @@ import pandas as pd
 import numpy
 from librec_auto import read_config_file
 from pathlib import Path
-from librec_auto.cmd.rerank.calibrated_common_funcs import *
 
 class FarHelper:
     item_feature_df = None

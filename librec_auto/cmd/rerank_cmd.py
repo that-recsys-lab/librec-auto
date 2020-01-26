@@ -65,6 +65,3 @@ class RerankCmd(Cmd):
                      sub_paths.get_path('result').absolute().as_posix()] + param_spec
         print("    Parameters: " + str(proc_spec))
         subprocess.call(proc_spec)
-
-
-
