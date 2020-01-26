@@ -151,6 +151,7 @@
 		
 		<!-- gplsa -->
 		<smooth-weight>rec.recommender.smoothWeight</smooth-weight>
+		<num-topics>rec.topic.number</num-topics>
 		
 		<!-- llorma -->
 		<num-global-factors>rec.global.factors.num</num-global-factors>
@@ -160,7 +161,7 @@
 		<global-iterator-max>rec.global.iteration.maximum</global-iterator-max>
 		
 		<!-- svdp -->
-		<implict-reg>rec.impItem.regularization</implict-reg>
+		<implicit-reg>rec.impItem.regularization</implicit-reg>
 		
 		<!-- efm -->
 		<num-explicit-factors>rec.factor.explicit</num-explicit-factors>
