@@ -182,6 +182,7 @@ if __name__ == '__main__':
     helper.lam = float(args['lambda'])
     helper.max_length = int(args['max_len'])
     helper.binary = args['binary']=='True'
+    helper.protected = protected
 
     for file_name in result_files:
 
