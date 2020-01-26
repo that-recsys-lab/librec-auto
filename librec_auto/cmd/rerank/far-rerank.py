@@ -67,15 +67,17 @@ def rescore_prop(item, original_score, items_so_far, score_profile, helper):
     answer = original_score
     div_term = 0
 
-    # If there are both kind of items in the list, no re-ranking happens
     count_prot = helper.num_prot(items_so_far)
     count_items = len(items_so_far)
-    if helper.is_protected(item):
+    if count_items == 0:
         div_term = score_profile
-        div_term *= 1 - count_prot / count_items
     else:
-        div_term = (1 - score_profile)
-        div_term *= count_prot / count_items
+        if helper.is_protected(item):
+            div_term = score_profile
+            div_term *= 1 - count_prot / count_items
+        else:
+            div_term = (1 - score_profile)
+            div_term *= count_prot / count_items
 
     div_term *= helper.lam
     answer += div_term
