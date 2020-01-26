@@ -25,8 +25,8 @@ class FarHelper:
         return num_prot
 
 # Caches the protected items for quicker lookup
-def get_protected_set(item_features):
-    return set((item_features[(item_features['feature']=='foo') & (item_features['value']==1)].index).tolist())
+def get_protected_set(item_features, helper):
+    return set((item_features[(item_features['feature']==helper.protected) & (item_features['value']==1)].index).tolist())
 
 #def is_protected(itemid):
 #    item_entry = item_feature_df.loc[itemid]
@@ -178,7 +178,7 @@ if __name__ == '__main__':
         item_feature_df.set_index('itemid', inplace=True)
 
     helper = FarHelper()
-    helper.protected_set = get_protected_set(item_feature_df)
+    helper.protected_set = get_protected_set(item_feature_df, helper)
     helper.lam = float(args['lambda'])
     helper.max_length = int(args['max_len'])
     helper.binary = args['binary']=='True'
