@@ -41,7 +41,7 @@ def score_prot(user_profile, helper):
     user_items = user_profile['itemid'].tolist()
     if len(user_items)==0:
         return 0
-    return helper.num_prot(user_items) / len(user_items)
+    return helper.num_prot(user_items) * 1.0 / len(user_items)
 
 def rescore_binary(item, original_score, items_so_far, score_profile, helper):
     answer = original_score
@@ -178,11 +178,11 @@ if __name__ == '__main__':
         item_feature_df.set_index('itemid', inplace=True)
 
     helper = FarHelper()
+    helper.protected = protected
     helper.protected_set = get_protected_set(item_feature_df, helper)
     helper.lam = float(args['lambda'])
     helper.max_length = int(args['max_len'])
     helper.binary = args['binary']=='True'
-    helper.protected = protected
 
     for file_name in result_files:
 
