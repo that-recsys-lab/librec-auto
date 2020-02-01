@@ -1,7 +1,9 @@
 from collections import OrderedDict
-from librec_auto.util import xmltodict, Files, utils
+from librec_auto.util import xmltodict, Files, utils, xml_load_from_path
 import logging
 import itertools
+from pathlib import Path
+from librec_auto.config_lib import ConfigLibCollection, ConfigLib
 
 
 class ConfigCmd:
@@ -16,9 +18,12 @@ class ConfigCmd:
     _prop_dict = None
     _var_data = None
     _unparsed = None
-    var_params = None
+    _var_params = None
     _var_tuples = None
     _target = None
+    _libraries = None
+
+    IGNOREABLE_ATTRIBUTES = ['@ref', '@src', '@name']
 
     def __init__(self, config_file, target):
 
@@ -42,6 +47,8 @@ class ConfigCmd:
         self._var_params = []
 
         self._var_tuples = []
+
+        self._libraries = ConfigLibCollection()
 
     def get_target(self):
         return self._target
@@ -81,7 +88,7 @@ class ConfigCmd:
     def read_rules(self):
         rules_path = self._files.get_rules_path()
         if (rules_path.exists()):
-            rules_input = self._load_from_file(rules_path)
+            rules_input = xml_load_from_path(rules_path)
             return rules_input
         else:
             return None
@@ -89,7 +96,7 @@ class ConfigCmd:
     def read_xml(self, path_str):
         path = self._files.get_config_path()
         if (path.exists()):
-            xml_input = self._load_from_file(path)
+            xml_input = xml_load_from_path(path)
             return xml_input
         else:
             return None
@@ -100,40 +107,10 @@ class ConfigCmd:
             exp_count = 1
         self.get_files().ensure_sub_paths(exp_count)
 
-    def _load_from_file(self, path):
-        """
-        Loads the configuration file in a dictionary
-
-        This is the raw configuration. Prints a warning and returns an empty dictionary
-        if the file can't be read.
-        :param path: The file name
-        :return: A dictionary with the XML rules
-        """
-        try:
-            with path.open() as fd:
-                txt = fd.read()
-        except IOError as e:
-            print ("Error reading ", path)
-            print ("IO error({0}): {1}".format(e.errno, e.strerror))
-            logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
-            return None
-
-        return self._load_from_text(txt)
-
-    def _load_from_text(self, txt):
-        try:
-            conf_data = xmltodict.parse(txt)
-        except xmltodict.expat.ExpatError as e:
-            print ("Error parsing XML")
-            print ("Expat error in line: {0}".format(e.lineno))
-            # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
-            conf_data = {}
-
-        return conf_data
-
     def process_config(self):
         if type(self._xml_input) is OrderedDict:
             if type(self._rules_dict) is OrderedDict:
+                self.setup_libraries()
                 self.process_aux(self._xml_input['librec-auto'],
                                 self._rules_dict['librec-auto-element-rules'])
                 self.compute_value_tuples()
@@ -143,33 +120,50 @@ class ConfigCmd:
         else:
             logging.error(f"Error processing configuration file. Filename: {self._files.get_config_path().as_posix()}")
 
+    # Walk the configuration XML in tandem with the element rules to determine librec property translations for each
+    # part of the configuration.
     def process_aux(self, arg, rules):
         for key in arg:
-            if key in rules:                                # If the entry corresponds to a rule
-                if "@action" in rules[key] and rules[key]['@action'] == 'no-parse': # If labeled "no parse"
-                    self._unparsed[key] = arg[key]          # Add to unparsed collection
-                elif type(arg[key]) is OrderedDict:         # If the config file has subelements
+            if key in self.IGNOREABLE_ATTRIBUTES: # Skip bookkeeping attributes
+                continue
+            config_elem = self.augment_from_library(key, arg[key])
+            if key in rules:                            # If the entry corresponds to a rule
+                if "@action" in rules[key] and rules[key]['@action'] == 'no-parse': # If labeled "no parse" in rules
+                    self._unparsed[key] = config_elem  # Add to unparsed collection
+                elif type(config_elem) is OrderedDict:         # If the config file has subelements
                     if type(rules[key]) is OrderedDict:     # If the rules also have subelements
-                        self.process_aux(arg[key], rules[key]) # recursive call
+                        self.process_aux(config_elem, rules[key]) # recursive call
                     elif type(rules[key]) is list:          # If the rules have a list
-                        self._prop_dict = self.process_attr(arg[key], rules[key])  # We have an attribute
-                    elif 'value' in arg[key]:               # If the config file has a 'value' key
-                        self._var_data[rules[key]] = arg[key]['value'] # then we have variable data for multiple exps.
+                        self._prop_dict = self.process_attr(config_elem, rules[key])  # We have an attribute
+                    elif 'value' in config_elem:               # If the config file has a 'value' key
+                        self._var_data[rules[key]] = config_elem['value'] # then we have variable data for multiple exps.
                 elif key in rules:                          # Config file doesn't have subelements
-                    if type(arg[key]) is list:              # Some properties have comma-separated values
-                        self._prop_dict[rules[key]] = ','.join(arg[key])
+                    if type(config_elem) is list:              # Some properties have comma-separated values
+                        self._prop_dict[rules[key]] = ','.join(config_elem)
                     elif type(rules[key]) == list:          # There are multiple LibRec keys in which map to this
                                                             # LibRecAuto key. (e.g. 'l1-reg')
                         for libRecKey in rules[key]:
                             if type(libRecKey) is str:            # Otherwise, it is a compound rule that doesn't match arg
-                                self._prop_dict[libRecKey] = arg[key]
+                                self._prop_dict[libRecKey] = config_elem
                     else:
-                        self._prop_dict[rules[key]] = arg[key]  # Set property translation and value
+                        self._prop_dict[rules[key]] = config_elem  # Set property translation and value
             # If the key isn't in the rules, ignore it but warn because it is probably an error.
             else:
                 logging.warning("Key {} is not in element rules.", key)
 
         return
+
+    def augment_from_library(self, key, elem):
+        if '@ref' not in elem:
+            return elem
+        else:
+            ref = elem['@ref']
+            lib_elem = self._libraries.get_element(ref).copy() # Don't want to overwrite library. Overly cautious?
+            # Overwrite library entries with local
+            if type(elem) is OrderedDict:
+                for key,val in elem.items():
+                    lib_elem[key] = val
+            return lib_elem
 
     def get_string_rule(self, attr_rule):
         for item in attr_rule:
@@ -231,6 +225,31 @@ class ConfigCmd:
 
         return scripts
 
+    def setup_libraries(self):
+        if utils.safe_xml_path(self._xml_input, ['librec-auto', 'library']):
+            lib_elems = utils.force_list(utils.extract_from_path(self._xml_input, ['librec-auto', 'library']))
+            for lib in lib_elems:
+                lib_path = self.extract_library_path(lib)
+                lib = ConfigLib(lib_path)
+                self._libraries.append(lib)
+
+    def extract_library_path(self, lib_elem):
+        file_name = lib_elem['#text'] if type(lib_elem) is OrderedDict else lib_elem
+        file_path = Path(file_name)
+        path_prefix = None
+        if type(lib_elem) is OrderedDict:
+            if '@src' in lib_elem:
+                if 'system' == lib_elem['@src']:
+                    path_prefix = self._files.get_rules_path().parent
+                else:
+                    print(f'librec-auto: WARNING Path source {lib_elem["@src"]} is unknown. Possible values are: system')
+        else: # If library path is just as string without directory information, assume conf directory
+            if file_path.parent == Path('.'):
+                path_prefix = self._files.get_config_path().parent
+        if path_prefix is None:
+            return file_path
+        else:
+            return path_prefix / file_path
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)

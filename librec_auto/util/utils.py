@@ -2,6 +2,7 @@ from librec_auto.util import xmltodict
 from inspect import getsourcefile
 from os.path import abspath
 from pathlib import Path
+import logging
 
 def safe_xml_path(config, key_list):
     """
@@ -164,3 +165,36 @@ def get_script_path(script_xml, cmd_type):
 
 def create_param_spec(param_dict):
     return [f'--{key}={val}' for key, val in param_dict.items()]
+
+
+def xml_load_from_file(path):
+    """
+        Loads the configuration file in a dictionary
+
+        This is the raw configuration. Prints a warning and returns an empty dictionary
+        if the file can't be read.
+        :param path: The file name
+        :return: A dictionary with the XML rules
+        """
+    try:
+        with path.open() as fd:
+            txt = fd.read()
+    except IOError as e:
+        print("Error reading ", path)
+        print("IO error({0}): {1}".format(e.errno, e.strerror))
+        logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
+        return None
+
+    return xml_load_from_text(txt)
+
+
+def xml_load_from_text(txt):
+    try:
+        conf_data = xmltodict.parse(txt)
+    except xmltodict.expat.ExpatError as e:
+        print("Error parsing XML")
+        print("Expat error in line: {0}".format(e.lineno))
+        # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
+        conf_data = {}
+
+    return conf_data
