@@ -158,7 +158,7 @@ def get_script_path(script_xml, cmd_type):
         else:
             script_path = script_xml['@src']
     if 'script-name' in script_xml:
-        return script_path / script_xml['script-name']
+        return Path(script_path) / script_xml['script-name']
     else:
         return None
 
