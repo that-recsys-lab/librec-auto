@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The librec-auto project aims to automate recommender system experimens using Librec. 
+The librec-auto project aims to automate recommender system studies using Librec. 
 
 ## Workflow
 
-The workflow of an experiment involves identifying appropriate data, creating 
+The workflow of an study involves identifying appropriate data, creating 
 training / test splits, implementing or choosing algorithms, running experiments
 (possibly with a range of different parameters), and reporting on the results.
 
@@ -35,6 +35,4 @@ top-level
 	* Contains documentation for the project
 * /test
 	* Contains the unit tests (not many right now)
-
-	
 

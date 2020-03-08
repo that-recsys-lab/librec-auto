@@ -162,7 +162,7 @@ def read_args():
     parser = argparse.ArgumentParser(description='Generic post-processing script')
     parser.add_argument('conf', help='Path to configuration file')
     parser.add_argument('target', help='Experiment target')
-    parser.add_argument('--browser', help='Show graphics in browser', choices=['True', 'False'])
+    parser.add_argument('--browser', help='Show graphics in browser', choices=['true', 'false'])
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -174,6 +174,6 @@ if __name__ == '__main__':
 
     print(f"librec-auto: Creating summary visualizations for {args['target']}")
 
-    display = args['browser'] == 'True'
+    display = args['browser'] == 'true'
 
     create_graphics(config, display)
