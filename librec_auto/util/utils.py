@@ -156,7 +156,7 @@ def get_script_path(script_xml, cmd_type):
         if script_xml['@src'] == 'system':
             script_path = Path(abspath(getsourcefile(lambda:0))).parent.parent / 'cmd' / cmd_type
         else:
-            script_path = script_xml['@src']
+            script_path = force_path(script_xml['@src'])
     if 'script-name' in script_xml:
         return script_path / script_xml['script-name']
     else:
