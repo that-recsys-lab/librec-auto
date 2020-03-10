@@ -1,0 +1,3 @@
+include jar/*.jar
+include rules/*.xml
+include test/conf/*.xml
