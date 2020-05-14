@@ -7,8 +7,7 @@ Quickstart guide
 	
 The Code
 ========
-.. automodule:: librec_auto
-   :members: ConfigCmd
+	Detailed documentation here
 
 .. toctree::
    :maxdepth: 2
