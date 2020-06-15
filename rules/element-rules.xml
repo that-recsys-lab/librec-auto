@@ -6,6 +6,7 @@
 	 to the current algorithm will be retrieved. -->
 
 <librec-auto-element-rules>
+	<library action="no-parse"/>
 	<random-seed>rec.random.seed</random-seed>
 	<thread-count>rec.thread.count</thread-count>
 	<path>
