@@ -96,12 +96,11 @@ def purge_type (args):
     else:
         return 'none'
 
-
+# TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
+# and reranking. 
 def build_librec_commands(librec_action, args, config):
     librec_commands = [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
-    threads = 1
-    if 'rec.thread.count' in config.get_prop_dict():
-        threads = int(config.get_prop_dict()['rec.thread.count'])
+    threads = config.thread_count()
 
     if threads > 1 and not args['no_parallel']:
         return ParallelCmd(librec_commands, threads)
@@ -114,13 +113,8 @@ def setup_commands (args, config):
     purge_noask = args['quiet']
 
     # Create flags for optional steps
-    rerank_flag = False
-    if config.get_unparsed('rerank') is not None:
-        rerank_flag = True
-
-    post_flag = False
-    if config.get_unparsed('post') is not None:
-        post_flag = True
+    rerank_flag = config.has_rerank()
+    post_flag = config.has_post()
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
@@ -170,6 +164,7 @@ def setup_commands (args, config):
         cmd = SequenceCmd([cmd1, cmd2])
         if rerank_flag:
             cmd.add_command(RerankCmd())
+            cmd.add_command(build_librec_commands('eval', args, config))
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -202,7 +197,7 @@ if __name__ == '__main__':
     else:
         config = load_config(args)
 
-        if len(config.get_prop_dict()) > 0:
+        if config.is_valid():
             command = setup_commands(args, config)
             if isinstance(command, Cmd):
                 if args['dry_run']:

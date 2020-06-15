@@ -1,9 +1,10 @@
-from librec_auto.core.util import xmltodict
+from lxml import etree
 from inspect import getsourcefile
 from os.path import abspath
 from pathlib import Path
 import logging
 
+# TODO: Replace with XPath
 def safe_xml_path(config, key_list):
     """
     Checks that the list of keys in key_list can be used to navigate through
@@ -21,6 +22,7 @@ def safe_xml_path(config, key_list):
             return False
     return True
 
+# TODO: Replace with XPath
 def extract_from_path(config, key_list):
     """
     Retrieves element content by following the path in key_list.
@@ -138,12 +140,11 @@ def xml_load_from_path(path):
 
 def xml_load_from_text(txt):
     try:
-        xml_data = xmltodict.parse(txt)
-    except xmltodict.expat.ExpatError as e:
+        xml_data = etree.fromstring(txt)
+    except etree.XMLSyntaxError as e:
         print ("Error parsing XML")
-        print ("Expat error in line: {0}".format(e.lineno))
-        # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
-        xml_data = {}
+        print ("LXML error in line: {0}".format(e.lineno))
+        xml_data = None
 
     return xml_data
 
@@ -166,35 +167,12 @@ def get_script_path(script_xml, cmd_type):
 def create_param_spec(param_dict):
     return [f'--{key}={val}' for key, val in param_dict.items()]
 
-def xml_load_from_file(path):
-    """
-        Loads the configuration file in a dictionary
 
-        This is the raw configuration. Prints a warning and returns an empty dictionary
-        if the file can't be read.
-        :param path: The file name
-        :return: A dictionary with the XML rules
-        """
-    try:
-        with path.open() as fd:
-            txt = fd.read()
-    except IOError as e:
-        print("Error reading ", path)
-        print("IO error({0}): {1}".format(e.errno, e.strerror))
-        logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
-        return None
-
-    return xml_load_from_text(txt)
-
-
-def xml_load_from_text(txt):
-    try:
-        conf_data = xmltodict.parse(txt)
-    except xmltodict.expat.ExpatError as e:
-        print("Error parsing XML")
-        print("Expat error in line: {0}".format(e.lineno))
-        # logging.error("Error parsing XML. Expat error in line %d", e.lineno)
-        conf_data = {}
-
-    return conf_data
-
+def build_parent_path(elem, pathsofar=''):
+    nextpath = '/' + elem.tag + pathsofar
+    if (elem.getparent() == None):
+        return nextpath
+    elif (type(elem) is not etree._Element):
+        return nextpath
+    else:
+        return build_parent_path(elem.getparent(), nextpath)
