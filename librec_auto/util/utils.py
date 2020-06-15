@@ -157,7 +157,7 @@ def get_script_path(script_xml, cmd_type):
         if script_xml['@src'] == 'system':
             script_path = Path(abspath(getsourcefile(lambda:0))).parent.parent / 'cmd' / cmd_type
         else:
-            script_path = script_xml['@src']
+            script_path = force_path(script_xml['@src'])
     if 'script-name' in script_xml:
         return script_path / script_xml['script-name']
     else:
@@ -165,7 +165,6 @@ def get_script_path(script_xml, cmd_type):
 
 def create_param_spec(param_dict):
     return [f'--{key}={val}' for key, val in param_dict.items()]
-
 
 def xml_load_from_file(path):
     """
@@ -198,3 +197,4 @@ def xml_load_from_text(txt):
         conf_data = {}
 
     return conf_data
+

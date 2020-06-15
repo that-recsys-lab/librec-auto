@@ -27,7 +27,7 @@
 		There is no corresponding element in the config file to get the testset
 		value from, so it is embedded here in the rule.
 		-->
-		<test-file><prop>data.model.splitter</prop><value>kcv</value></test-file>
+		<test-file><prop>data.testset.path</prop><value>kcv</value></test-file>
 		<binarize-threshold>data.convert.binarize.threshold</binarize-threshold>
 	</data>
 	<features>

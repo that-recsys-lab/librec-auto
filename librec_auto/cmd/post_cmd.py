@@ -23,7 +23,10 @@ class PostCmd(Cmd):
         self._config = config
         print (f'librec-auto (DR): Running post command {self}')
         for script_path, params in config.collect_scripts('post'):
-            param_spec = utils.create_param_spec(params)
+            if params is not None:
+                param_spec = utils.create_param_spec(params)
+            else:
+                param_spec = []
             print (f'    Post script: {script_path}')
             print (f'\tParameters: {param_spec}')
 
