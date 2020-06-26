@@ -97,7 +97,7 @@ def purge_type (args):
         return 'none'
 
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
-# and reranking. 
+# and reranking. Note that re-ranking does not require execution if the results have already been computed.
 def build_librec_commands(librec_action, args, config):
     librec_commands = [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
     threads = config.thread_count()

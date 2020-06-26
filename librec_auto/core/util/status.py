@@ -18,37 +18,29 @@ class Status():
     _TEMPLATE_END = '</librec-auto-status>\n'
     _TEMPLATE_LINE = '<param><name>{}</name><value>{}</value></param>\n'
 
-    m_name = None
-    m_status_xml = None
-    m_message = None
-    m_params = None
-    m_vals = None
-    m_log = None
-    m_subpaths = None
-
     def __init__(self, sub_paths):
-        self.m_subpaths = sub_paths
-        status_path = self.m_subpaths.get_path('status')
+        self._subpaths = sub_paths
+        status_path = self._subpaths.get_path('status')
 
         if status_path.exists():
-            self.m_name = sub_paths.subexp_name
-            self.m_status_xml = xml_load_from_path(status_path)
-            self.m_message = extract_from_path(self.m_status_xml, ['librec-auto-status', 'message'])
-            self.m_log = LogFile(self.m_subpaths)
-            params = extract_from_path(self.m_status_xml, ['librec-auto-status', 'param'])
+            self._name = sub_paths.subexp_name
+            self._status_xml = xml_load_from_path(status_path)
+            self._message = extract_from_path(self._status_xml, ['librec-auto-status', 'message'])
+            self._log = LogFile(self._subpaths)
+            params = extract_from_path(self._status_xml, ['librec-auto-status', 'param'])
             if params != None:
                 self.process_params(force_list(params))
             else:
-                self.m_params = []
+                self._params = []
                 self.m_vals = []
 
     def __str__(self):
         params_string = self.get_params_string()
         results_string = self.get_log_info()
-        return f'Status({self.m_name}:{self.m_message}{params_string} Overall{results_string})'
+        return f'Status({self._name}:{self._message}{params_string} Overall{results_string})'
 
     def is_completed(self):
-        return self.m_message == 'Completed'
+        return self._message == 'Completed'
 
     def process_params(self, param_xml):
         param_list = []
@@ -58,23 +50,23 @@ class Status():
             param_list.append(pdict['name'])
             val_list.append(pdict['value'])
 
-        self.m_params = param_list
-        self.m_vals = val_list
+        self._params = param_list
+        self._vals = val_list
 
     def get_params_string(self):
         params_string = ''
-        if self.m_params == []:
+        if self._params == []:
             return " No parameters"
-        for param, val in zip(self.m_params, self.m_vals):
+        for param, val in zip(self._params, self.m_vals):
             params_string += f' {param}: {val}'
         return params_string
 
     def get_log_info(self):
-        kcv_count = self.m_log.get_kcv_count()
+        kcv_count = self._log.get_kcv_count()
         if kcv_count is None:
-            return self.get_metric_info(self.m_log, 0)
+            return self.get_metric_info(self._log, 0)
         else:
-            return self.get_metric_info(self.m_log, -1)
+            return self.get_metric_info(self._log, -1)
 
     def get_metric_info(self, log, idx):
         metric_info = ''

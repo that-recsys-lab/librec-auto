@@ -10,10 +10,6 @@ from pathlib import Path, WindowsPath
 class LibrecCmd (Cmd):
 
     _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
-    _command = None
-    _sub_no = -1
-    _config: ConfigCmd = None
-    _sub_path: SubPaths = None
 
     def __str__(self):
         return f'LibrecCmd(sub-exp: {self._sub_no}, command: {self._command})'
@@ -21,7 +17,8 @@ class LibrecCmd (Cmd):
     def __init__(self, command, sub_no):
         self._command = command
         self._sub_no = sub_no
-        self._config = None
+        self._config: ConfigCmd = None
+        self._sub_path: SubPaths = None
 
     def setup(self, args):
         pass

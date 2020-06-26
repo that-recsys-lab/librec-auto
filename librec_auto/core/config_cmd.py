@@ -1,5 +1,6 @@
 from collections import OrderedDict, defaultdict
-from librec_auto.core.util import Files, utils, build_parent_path
+from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
+    xml_load_from_path, Library, LibraryColl, merge_elements
 from lxml import etree
 import copy
 import logging
@@ -10,16 +11,10 @@ from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 
 class ConfigCmd:
     """
-    Loads the configuration file, identifies the parameter variations and creates separate configurations
+    Loads the configuration file, inserts appropriate library contents,
+    identifies the parameter variations and creates separate configurations
     for all combinations.
     """
-
-    _xml_input = None
-    _var_tuples = None
-    _target = None
-    _libraries = None
-
-    IGNOREABLE_ATTRIBUTES = ['@ref', '@src', '@name']
 
     def __init__(self, config_file, target):
 
@@ -30,12 +25,10 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_path())
-
         self._var_data = defaultdict(list)
-
         self._var_params = []
-
         self._var_tuples = []
+        self._libraries = LibraryColl()
 
         self._libraries = ConfigLibCollection()
 
@@ -46,10 +39,10 @@ class ConfigCmd:
         return self._var_data
 
     def get_value_tuple(self, subexp_no):
-        return self._value_tuples[subexp_no]
+        return self._var_tuples[subexp_no]
 
     def get_sub_exp_count(self):
-        exp_count = len(self._value_tuples)
+        exp_count = len(self._var_tuples)
         if exp_count == 0:
             return 1
         else:
@@ -66,26 +59,6 @@ class ConfigCmd:
         else:
             return None
 
-    def _load_from_file(self, path):
-        """
-        Loads the configuration file in a dictionary
-
-        This is the raw configuration. Prints a warning and returns None
-        if the file can't be read.
-        :param path: The file name
-        :return: A dictionary with the XML rules
-        """
-        try:
-            with path.open() as fd:
-                txt = fd.read()
-        except IOError as e:
-            print ("Error reading ", path)
-            print ("IO error({0}): {1}".format(e.errno, e.strerror))
-            logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
-            return None
-
-        return utils.xml_load_from_text(txt)
-
     def ensure_experiments(self):
         exp_count = len(self._var_tuples)
         if exp_count == 0:
@@ -93,12 +66,34 @@ class ConfigCmd:
         self.get_files().ensure_sub_paths(exp_count)
 
 
+    def load_libraries(self):
+        lib_paths = []
+        lib_elems = self._xml_input.xpath('/librec-auto/library')
+        for elem in lib_elems:
+            self._libraries.add_lib(Library(elem.text, elem.get('src'), self._files))
+
     # Process config takes the config file and produces a dictionary of the following form:
     # xpath-string => list of values
     # or xpath-string => (range-to, range-from) pair
     # Right now, we will assume the first
+    # Then it writes experiment-specific XML configurations to each exp directory
     def process_config(self):
         self._var_data = defaultdict(list)
+        self.substitute_library()
+        self.collect_vars()
+        self.ensure_experiments()
+        self.write_exp_configs()
+
+    def substitute_library(self):
+        ref_elems = self._xml_input.xpath('//*[@ref]')
+        for ref_elem in ref_elems:
+            ref_name = ref_elem.get('ref')
+            named_elem = self._libraries.get_elem(ref_name)
+            if named_elem is not None:
+                merged_elem = merge_elements(named_elem, ref_elem)
+                ref_elem.getparent().replace(ref_elem, merged_elem)
+
+    def collect_vars(self):
         value_elems = self._xml_input.xpath('//value')
         parents = [elem.getparent() for elem in value_elems]
         parents = list(set(parents))
@@ -107,8 +102,6 @@ class ConfigCmd:
             parent_path = build_parent_path(parent)
             self._var_data[parent_path] = vals
         self._var_tuples = list(itertools.product(*self._var_data.values()))
-        self.ensure_experiments()
-        self.write_exp_configs()
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
@@ -118,17 +111,21 @@ class ConfigCmd:
         for exp, tuple in configs:
             self.write_exp_config(exp, tuple)
 
+    # TODO: Remove library elements
     def write_exp_config(self, exp, tuple):
         new_xml = copy.deepcopy(self._xml_input)
         for parent_path, val in zip(self._var_data.keys(), iter(tuple)):
             var_elem = new_xml.xpath(parent_path)[0]
             var_elem.clear()
             var_elem.text = str(val)
+            var_elem.set("var", "true")
         new_xml.append(etree.Comment('This configuration file was automatically generated by librec-auto. ' +
                         'Editing may produce unpredictable results and is not recommended.'))
         outpath = exp.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
         logging.info('Writing config file ' + str(outpath))
         new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
+        props = LibrecProperties(new_xml)
+        #props.save(exp)
 
     def has_rerank(self):
         rerank_elems = self._xml_input.xpath('/librec-auto/rerank')
@@ -177,6 +174,7 @@ class ConfigCmd:
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)
     if config.is_valid():
+        config.load_libraries()
         config.process_config()
     return config
 

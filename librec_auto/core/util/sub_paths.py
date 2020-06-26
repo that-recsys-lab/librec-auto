@@ -17,16 +17,12 @@ class SubPaths:
     _LIBREC_PROPERTIES_FILE = 'librec.properties'
     DEFAULT_LOG_FILENAME = "librec.log"
 
-    _path_dict = None
-
     _prop_dict = {'log': 'dfs.log.dir',
 #                 'split': 'dfs.split.dir',
                  'result': 'dfs.result.dir',
                   'conf': 'dfs.config.dir'}
 
     _sub_dirs = ['conf', 'log', 'result', 'original']
-
-    subexp_name = None
 
     def __init__(self, base, subexp_name, create=True):
         self._path_dict = {}

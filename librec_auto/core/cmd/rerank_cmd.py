@@ -8,8 +8,9 @@ import subprocess
 
 class RerankCmd(Cmd):
 
-    _files = None
-    _config = None
+    def __init__(self):
+        self._files = None
+        self._config = None
 
     def __str__(self):
         return f'RerankCmd()'

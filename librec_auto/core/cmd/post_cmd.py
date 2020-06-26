@@ -11,7 +11,8 @@ class PostCmd(Cmd):
 
     POST_SCRIPT_PATH = "core/cmd/post"
 
-    _config = None
+    def __init__(self):
+        self._config = None
 
     def __str__(self):
         return f'PostCmd()'

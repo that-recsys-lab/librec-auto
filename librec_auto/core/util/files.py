@@ -26,19 +26,7 @@ class Files:
     NOTE: User directory is currently unused.
     """
 
-    _global_dir_path = None
-    _sub_path_dict = None
-    _config_dir_path = None
-    _rules_dir_path = None
-    _lib_dir_path = None
-    _split_dir_path = None
-    _jar_dir_path = None
-    _post_dir_path = None
-
-    _prop_file_name = None
-
-    _DEFAULT_GLOBAL_DIR_STR = inspect.getfile(librec_auto) # This needs to be tested.
-#    _DEFAULT_GLOBAL_DIR_STR = "."
+    _DEFAULT_GLOBAL_DIR_STR = inspect.getfile(librec_auto)
 
     _DEFAULT_CONFIG_DIR_NAME = "conf"
     _DEFAULT_RULES_DIR_NAME = "rules"
@@ -47,25 +35,24 @@ class Files:
     _DEFAULT_SPLIT_DIR_NAME = "data/split"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
     _DEFAULT_POST_DIR_NAME = "post"
+    _DEFAULT_LIBRARY_DIR_NAME = "lib"
     _EXP_DIR_PATTERN = "exp{:05d}"
 
     _DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
     _DEFAULT_LR_JAR = "librec.jar"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
-    LOG_PATH = "../log/librec.log"
-    DEFAULT_CONFIG_FILENAME = "config.xml"
 
-    # 2019-11-22 RB Do we use this anywhere?
-    # _DEFAULT_CACHE_FILENAME = ".cache"
+    DEFAULT_CONFIG_FILENAME = "config.xml"
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
-        self._rules_dir_path = Path(self._DEFAULT_RULES_DIR_NAME)
-        self._lib_dir_path = Path(self._DEFAULT_LIB_DIR_NAME)
+        #self._rules_dir_path = Path(self._DEFAULT_RULES_DIR_NAME)
+        #self._res_dir_path = Path(self._DEFAULT_RES_DIR_NAME)
         self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
+        self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
         self._sub_path_dict = OrderedDict()
 
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
@@ -76,13 +63,17 @@ class Files:
 
     def get_global_path(self): return self._global_path
 
-    def get_jar_path(self): return self._jar_dir_path
+    def get_jar_path(self): return self.get_global_path() / self._jar_dir_path
+
+    def get_lib_path(self): return self.get_global_path() / self._lib_dir_path
 
     def get_exp_path(self): return self._exp_path
 
     def get_split_path(self): return self._exp_path / self._split_dir_path
 
     def get_config_path(self): return self._exp_path / self._config_dir_path / self._config_file_name
+
+    def get_config_dir_path(self): return self._exp_path / self._config_dir_path
 
     def get_post_path(self): return self._exp_path / self._post_dir_path
 
@@ -104,7 +95,7 @@ class Files:
     def get_classpath (self):
         # return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
         #        (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
-        return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix()
+        return (self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix()
 
     def get_subexp_name (self, count):
         return self._EXP_DIR_PATTERN.format(count)
