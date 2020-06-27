@@ -2,9 +2,10 @@ from pathlib import Path
 import hashlib
 import inspect
 import librec_auto
-from librec_auto.core.util import SubPaths
-from librec_auto.core.util.utils import force_path
+from librec_auto.core.utils import force_path
 from collections import OrderedDict
+import glob
+import shutil
 
 class Files:
     """
@@ -38,7 +39,7 @@ class Files:
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
     _EXP_DIR_PATTERN = "exp{:05d}"
 
-    _DEFAULT_PROP_FILE_NAME = "librec.properties"
+    DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
     _DEFAULT_LR_JAR = "librec.jar"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
@@ -163,3 +164,87 @@ class Files:
             fl_bytes = fl_info.encode('utf-8')
             hasher.update(fl_bytes)
         return hasher.hexdigest()
+
+class SubPaths:
+    """
+    Represents the various directories and paths associated with a single sub-experiment
+
+    - log
+    - result
+    - original (for re-ranking)
+    - conf
+    """
+
+    _prop_dict = {'log': 'dfs.log.dir',
+#                 'split': 'dfs.split.dir',
+                 'result': 'dfs.result.dir',
+                  'conf': 'dfs.config.dir'}
+
+    _sub_dirs = ['conf', 'log', 'result', 'original']
+
+    def __init__(self, base, subexp_name, create=True):
+        self._path_dict = {}
+        self.subexp_name = subexp_name
+
+        subexp_path = base / subexp_name
+        self.set_path('subexp', subexp_path)
+
+        status_path = subexp_path / '.status'
+        self.set_path('status', status_path)
+
+        for subdir in self._sub_dirs:
+            subdir_path = subexp_path / subdir
+            self.set_path(subdir, subdir_path)
+
+        if create:
+            logging.info("Creating subexperiment: {}", subexp_name)
+            subexp_path.mkdir(exist_ok=True)
+            for subdir in self._sub_dirs:
+                self.get_path(subdir).mkdir(exist_ok=True)
+
+    def get_path(self, type):
+        if type in self._path_dict:
+            return self._path_dict[type]
+        else:
+            return None
+
+    def get_librec_properties_path(self):
+        return self.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
+
+    def get_path_str(self, type):
+        return self.get_path(type).as_posix()
+
+    def get_path_platform(self, type):
+        return str(self.get_path(type))
+
+    def get_path_prop(self, type):
+        return self._prop_dict[type]
+
+    def set_path(self, type, path):
+        self._path_dict[type] = path
+
+    def set_path_from_string(self, type, path_str):
+        self._path_dict[type] = Path(path_str)
+
+    # Assumes path is set up
+    def add_to_config(self, config, type):
+        prop_name = self.get_path_prop(type)
+        prop_val = self.get_path_str(type)
+        config[prop_name] = prop_val
+
+    def results2original(self):
+        original_path = self.get_path('original')
+        result_path = self.get_path('result')
+        shutil.rmtree(original_path)
+        original_path.mkdir()
+        files = glob.glob((result_path / '*').as_posix())
+        for file in files:
+            shutil.copy2(file, original_path)
+
+    def original2results(self):
+        original_path = self.get_path('original')
+        result_path = self.get_path('result')
+        files = glob.glob((original_path / '*').as_posix())
+        for file in files:
+            shutil.copy2(file, result_path)
+        shutil.rmtree(original_path)

@@ -1,4 +1,5 @@
 from lxml import etree
+from pathlib import Path
 import copy
 
 def build_parent_path(elem, pathsofar=''):

@@ -124,8 +124,8 @@ class ConfigCmd:
         outpath = exp.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
         logging.info('Writing config file ' + str(outpath))
         new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
-        props = LibrecProperties(new_xml)
-        #props.save(exp)
+        props = LibrecProperties(new_xml, self._files)
+        props.save(exp)
 
     def has_rerank(self):
         rerank_elems = self._xml_input.xpath('/librec-auto/rerank')

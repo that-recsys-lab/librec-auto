@@ -43,6 +43,9 @@ class Library:
         else:
             logging.warning(f'The library {self.lib_path} does not exist.')
 
+    def __str__(self):
+        return f'Library({self.lib_path.name})'
+
     def build_element_dict(self):
         for child in self._xml:
             name = child.get('name')
@@ -57,3 +60,4 @@ class Library:
             return self._elem_dict[name]
         else:
             return None
+

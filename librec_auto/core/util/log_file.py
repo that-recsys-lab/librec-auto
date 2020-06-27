@@ -1,4 +1,4 @@
-from librec_auto.core.util.sub_paths import SubPaths
+from librec_auto.core.util import SubPaths
 import re
 
 class LogFile:

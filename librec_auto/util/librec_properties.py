@@ -1,5 +1,5 @@
 from collections import OrderedDict, defaultdict
-from librec_auto.util import Files, utils, build_parent_path, xml_load_from_path
+from librec_auto.util import Files, utils, build_parent_path, xml_load_from_path, SubPaths
 from lxml import etree
 import copy
 import logging
@@ -14,147 +14,119 @@ class LibrecTranslation:
 
     def __new__(cls, files):
         if LibrecTranslation.__instance is None:
-                LibrecTranslation.__instance = object.__new__(cls)
+            LibrecTranslation.__instance = object.__new__(cls)
+            LibrecTranslation.files = files
         return LibrecTranslation.__instance
 
     def __init__(self, files):
-        self.read_rules(files)
+        self.xml = self.read_rules(files)
 
     def read_rules(self, files):
         rules_path = self.files.get_rules_path()
         if (rules_path.exists()):
-            rules_input = xml_load_from_file(rules_path)
+            rules_input = xml_load_from_path(rules_path)
             return rules_input
         else:
+            logging.warning(f'No translation rules read from {rules_path}.')
             return None
 
 class LibrecProperties:
 
-    def __init__(self, xml):
-        self.properties = None
-        self._xml_input = None
-        self._rules_input = None
-        self._xml_input = xml
-        self.process_xml()
+    def __init__(self, xml, files):
+        self.properties = {}
+        self._conf_xml = xml
+        self.process_config(files)
 
-    def process_xml(self):
-        logging.warning('Not implemented yet.')
-        return None
+    def process_config(self, files):
+        trans_rules = LibrecTranslation(files)
+        if type(self._conf_xml) is etree._Element:
+            if type(trans_rules.xml) is etree._Element:
+                self.process_aux(self._conf_xml, trans_rules.xml)
+            else:
+                logging.error("Element translations missing.")
+        else:
+            logging.error(f"Error processing experiment configuration file.")
+
+# ctree: configuration tree
+# rtree: rules tree
+# recursively walk the ctree and the rtree at the same time
+# if an element is labeled in the rules as "no-translate", that means it's contents are not passed to LibRec
+#     and it can be ignored
+#
+    def process_aux(self, conf_tree: etree._Element, rule_tree: etree._Element):
+        for conf_elem in conf_tree.iterchildren(tag=etree.Element):
+            conf_tag = conf_elem.tag
+            rule_elem = rule_tree.findall(conf_tag)
+            if len(rule_elem) > 0:                                  # If the entry corresponds to one or more rules
+                if len(rule_elem) == 1:
+                    rule_elem = rule_elem[0]
+                    action_attr = rule_elem.get('action', default=None)
+                    if action_attr is not None and action_attr=='no-translate': # If labeled "no translate", skip
+                        pass
+                    elif len(conf_elem) > 0:                            # If the config file has subelements
+                        if len(rule_elem) > 0:                      # If the rules also have subelements
+                            self.process_aux(conf_elem, rule_elem)  # recursive call
+                        else:                                       # If no corresponding elements in rules
+                            logging.warning(f'Mismatch between element contents: {conf_elem} and rule: {rule_elem}')
+                    else:                                               # Otherwise, it is a key-value pair
+                        self.add_property(rule_elem.text, conf_elem.text)
+
+                else:                           # If the rules have a list,
+                    self.process_multi(conf_elem, rule_elem)            # We are distinguishing cases based on attribute
+
+            else: # If the key isn't in the rules, ignore it but warn because it is probably an error.
+                logging.warning(f"Tag {conf_tag} is not in element rules.")
+
+    # Two cases:
+    # (a) We have multiple matching rules distinguished by attribute. For example,
+    # 		<data-file>data.input.path</data-file>
+    # 		<data-file format="*">data.model.format</data-file>
+    #     In this case, the non-attribute version is handled in the normal way, but a second property is
+    #     added, associating the associated attribute value with the key in that rule element.
+    # (b) We have multiple matching rules not distinguished by attribute. For example,
+    #       <l1-reg>rec.regularization.lambda1</l1-reg>
+    #       <l1-reg>rec.slim.regularization.l1</l1-reg>
+    #     In this case, we add all of the property mappings since unneeded ones are ignored by LibRec.
+    #     The alternative would be to rename these for each algorithm, which is a lot for experimenters to have
+    #     to remember.
+    # The only difference between these cases is whether the rule element has an attribute or not.
+    def process_multi(self, conf_elem, rule_elems):
+        for rule_elem in rule_elems:
+            key = rule_elem.text
+            if rule_elem.attrib:
+                attr = rule_elem.keys()[0]                      # Case a
+                val = conf_elem.get(attr)
+            else:
+                val = conf_elem.text
+            self.add_property(key, val)
 
 
-# 2019-11-25 RB Configuration elements that aren't passed to LibRec are left in original XML format and handled
-# later in a command-specific way. A better way might be to have "handler" mechanism so that each command can
-# be associated its own configuration element and have code that is called when that element is encountered in the
-# parse. Something to think about.
-# def get_unparsed(self, type):
-#    if type in self._unparsed:
-#        return self._unparsed[type]
-#    else:
-#        None
+    # Multiple adds mean that the property is list-valued
+    def add_property(self, key, val):
+        if key in self.properties:
+            old_val = utils.force_list(self.properties[key])
+            old_val.append(val)
+            self.properties[key] = old_val
+        else:
+            self.properties[key] = val
 
-# def get_rules_dict(self):
-#    return self._rules_dict
+    def get_property(self, key):
+        if key in self.properties:
+            val = self.properties[key]
+            if type(val) is list:
+                return ','.join(val)
+            else:
+                return val
+        else:
+            return None
+
+    def get_entries(self):
+        return [(key, self.get_property(key)) for key in self.properties.keys()]
+
+    def save(self, exp: SubPaths):
+        path = exp.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
+        with path.open('w') as fd:
+            for (key, val) in self.get_entries():
+                fd.write(f'{key}: {val}\n')
 
 
-
-# def process_config(self):
-#     if type(self._xml_input) is etree.ElementTree:
-#         if type(self._rules_dict) is etree.ElementTree:
-#             self.process_aux(self._xml_input.xpath('librec-auto'),
-#                              self._rules_dict.xpath('librec-auto-element-rules'))
-#             self.compute_value_tuples()
-#             self.ensure_sub_experiments()
-#         else:
-#             logging.error(f"Error processing element rules. Filename: {self._files.get_rules_path().as_posix()}")
-#     else:
-#         logging.error(f"Error processing configuration file. Filename: {self._files.get_config_path().as_posix()}")
-#
-# def process_aux(self, arg, rules):
-#     for key in arg:
-#         if key in rules:                                # If the entry corresponds to a rule
-#             if "@action" in rules[key] and rules[key]['@action'] == 'no-parse': # If labeled "no parse"
-#                 self._unparsed[key] = arg[key]          # Add to unparsed collection
-#             elif type(arg[key]) is OrderedDict:         # If the config file has subelements
-#                 if type(rules[key]) is OrderedDict:     # If the rules also have subelements
-#                     self.process_aux(arg[key], rules[key]) # recursive call
-#                 elif type(rules[key]) is list:          # If the rules have a list
-#                     self._prop_dict = self.process_attr(arg[key], rules[key])  # We have an attribute
-#                 elif 'value' in arg[key]:               # If the config file has a 'value' key
-#                     self._var_data[rules[key]] = arg[key]['value'] # then we have variable data for multiple exps.
-#             elif key in rules:                          # Config file doesn't have subelements
-#                 if type(arg[key]) is list:              # Some properties have comma-separated values
-#                     self._prop_dict[rules[key]] = ','.join(arg[key])
-#                 elif type(rules[key]) == list:          # There are multiple LibRec keys in which map to this
-#                     # LibRecAuto key. (e.g. 'l1-reg')
-#                     for libRecKey in rules[key]:
-#                         if type(libRecKey) is str:            # Otherwise, it is a compound rule that doesn't match arg
-#                             self._prop_dict[libRecKey] = arg[key]
-#                 else:
-#                     self._prop_dict[rules[key]] = arg[key]  # Set property translation and value
-#         # If the key isn't in the rules, ignore it but warn because it is probably an error.
-#         else:
-#             logging.warning("Key {} is not in element rules.", key)
-#
-#     return
-#
-# def get_string_rule(self, attr_rule):
-#     for item in attr_rule:
-#         if type(item) is str:
-#             return item
-#     return None
-#
-# # Assumes attribute name is first in ordered dictionary.
-# def collect_attributes(self, attr_rule):
-#     return [(list(item.keys())[0], item['#text'])
-#             for item in attr_rule if type(item) is OrderedDict]
-#
-# def process_attr(self, elem, attr_rule):
-#     # Scan rule for string
-#     # Associate with elem #text
-#     string_rule = self.get_string_rule(attr_rule)
-#     if 'value' in elem:                             # Variable rules
-#         self._var_data[string_rule] = elem['value']
-#     else:
-#         self._prop_dict[string_rule] = elem['#text']
-#     # Scan rule for all attributes
-#     # Assign
-#     attrib_pairs = self.collect_attributes(attr_rule)
-#     for attr_pair in attrib_pairs:
-#         self._prop_dict[attr_pair[1]] = elem[attr_pair[0]]
-#     return self._prop_dict
-#
-#     # TODO RB 2019-12-12 Should include some error-checking and better messages for badly-formed XML
-#     def collect_scripts(self, script_type):
-#         post_xml = self.get_unparsed(script_type)
-#         script_xml = post_xml['script']
-#         scripts = []
-#         for entry in utils.force_list(script_xml):
-#             script_path = utils.get_script_path(entry, script_type)
-#             if 'param' in entry:
-#                 param_dict = {}
-#                 for elem_dict in utils.force_list(entry['param']):
-#                     param_dict[elem_dict['@name']] = elem_dict['#text']
-#                 scripts.append((script_path, param_dict))
-#             else:
-#                 scripts.append((script_path, None))
-#
-#         return scripts
-#
-#
-#     def compute_value_tuples(self):
-#         self.var_params = self._var_data.keys()
-#         original_var_values = list(self._var_data.values())
-#         if (len(original_var_values) == 1):
-#             original_var_values = original_var_values[0]
-#         var_values = []
-#         for element in original_var_values:
-#             if type(element) is list:
-#                 # print(element)
-#                 var_values.append(element)
-#             else:
-#                 var_values.append([element])
-#         if len(self.var_params) == 1:
-#             self._value_tuples = var_values
-#         else:
-#             self._value_tuples = list(itertools.product(*var_values))
-#
