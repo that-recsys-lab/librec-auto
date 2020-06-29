@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="path-elem">
+    <element name="path">
+      <interleave>
+        <element name="data">
+          <text/>
+        </element>
+        <element name="result">
+          <text/>
+        </element>
+        <element name="log">
+          <text/>
+        </element>
+      </interleave>
+    </element>
+  </define>
+  <define name="data-elem">
+    <element name="data">
+      <element name="format">
+        <choice>
+          <value>UIR</value>
+          <value>UIRT</value>
+        </choice>
+      </element>
+      <choice>
+        <element name="data-file">
+          <attribute name="format">
+            <choice>
+              <value>text</value>
+              <value>aiff</value>
+            </choice>
+          </attribute>
+          <text/>
+        </element>
+        <interleave>
+          <element name="train-file">
+            <attribute name="format">
+              <choice>
+                <value>text</value>
+                <value>aiff</value>
+              </choice>
+            </attribute>
+            <text/>
+          </element>
+          <element name="test-file">
+            <attribute name="format">
+              <choice>
+                <value>text</value>
+                <value>aiff</value>
+              </choice>
+            </attribute>
+            <text/>
+          </element>
+        </interleave>
+      </choice>
+      <optional>
+        <element name="binarize-threshold">
+          <data type="float"/>
+        </element>
+      </optional>
+    </element>
+  </define>
+  <define name="features-elem">
+    <element name="features">
+      <element name="appender-class">
+        <text/>
+      </element>
+      <optional>
+        <element name="item-feature-file">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="user-feature-file">
+          <text/>
+        </element>
+      </optional>
+    </element>
+  </define>
+  <define name="splitter-elem">
+    <element name="splitter">
+      <element name="model">
+        <optional>
+          <attribute name="count">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <choice>
+          <value>kcv</value>
+          <value>loov</value>
+        </choice>
+      </element>
+      <element name="dim">
+        <choice>
+          <value>ratio</value>
+          <value>userfixed</value>
+        </choice>
+      </element>
+      <element name="ratio">
+        <data type="float"/>
+      </element>
+      <element name="save">
+        <choice>
+          <value>true</value>
+          <value>false</value>
+        </choice>
+      </element>
+    </element>
+  </define>
+  <define name="alg-elem">
+    <element name="alg">
+      <optional>
+        <attribute name="ref"/>
+      </optional>
+      <element name="class">
+        <text/>
+      </element>
+      <interleave>
+        <element name="learn-rate">
+          <ref name="value-float"/>
+        </element>
+        <element name="learn-rate-max">
+          <ref name="value-float"/>
+        </element>
+        <element name="learn-rate-decay">
+          <ref name="value-float"/>
+        </element>
+        <element name="bold-driver">
+          <ref name="value-boolean"/>
+        </element>
+        <element name="iterator-max">
+          <ref name="value-int"/>
+        </element>
+        <element name="user-reg">
+          <ref name="value-float"/>
+        </element>
+        <element name="item-reg">
+          <ref name="value-float"/>
+        </element>
+        <element name="bias-reg">
+          <ref name="value-float"/>
+        </element>
+        <element name="num-factors">
+          <ref name="value-int"/>
+        </element>
+      </interleave>
+    </element>
+  </define>
+  <define name="value-text">
+    <choice>
+      <text/>
+      <oneOrMore>
+        <element name="value">
+          <text/>
+        </element>
+      </oneOrMore>
+    </choice>
+  </define>
+  <define name="value-float">
+    <choice>
+      <data type="float"/>
+      <oneOrMore>
+        <element name="value">
+          <data type="float"/>
+        </element>
+      </oneOrMore>
+    </choice>
+  </define>
+  <define name="value-int">
+    <choice>
+      <data type="int"/>
+      <oneOrMore>
+        <element name="value">
+          <data type="int"/>
+        </element>
+      </oneOrMore>
+    </choice>
+  </define>
+  <define name="value-boolean">
+    <choice>
+      <choice>
+        <value>true</value>
+        <value>false</value>
+      </choice>
+      <oneOrMore>
+        <element name="value">
+          <choice>
+            <value>true</value>
+            <value>false</value>
+          </choice>
+        </element>
+      </oneOrMore>
+    </choice>
+  </define>
+  <define name="metric-elem">
+    <element name="metric">
+      <optional>
+        <attribute name="ref"/>
+      </optional>
+      <interleave>
+        <element name="ranking">
+          <choice>
+            <value>true</value>
+            <value>false</value>
+          </choice>
+        </element>
+        <element name="list-size">
+          <data type="int"/>
+        </element>
+        <element name="class">
+          <text/>
+        </element>
+        <optional>
+          <element name="protected-feature">
+            <text/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="rerank-elem">
+    <element name="rerank">
+      <optional>
+        <attribute name="ref"/>
+      </optional>
+      <attribute name="action">
+        <choice>
+          <value>no-parse</value>
+          <value>parse</value>
+        </choice>
+      </attribute>
+      <ref name="script-elem"/>
+    </element>
+  </define>
+  <define name="post-elem">
+    <element name="post">
+      <optional>
+        <attribute name="ref"/>
+      </optional>
+      <attribute name="action">
+        <choice>
+          <value>no-parse</value>
+          <value>parse</value>
+        </choice>
+      </attribute>
+      <ref name="script-elem"/>
+    </element>
+  </define>
+  <define name="script-elem">
+    <element name="script">
+      <attribute name="lang">
+        <value>python3</value>
+      </attribute>
+      <optional>
+        <attribute name="src">
+          <value>system</value>
+        </attribute>
+      </optional>
+      <element name="script-name">
+        <text/>
+      </element>
+      <zeroOrMore>
+        <element name="param">
+          <attribute name="name"/>
+          <text/>
+        </element>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="librec-auto-elem">
+    <element name="librec-auto">
+      <zeroOrMore>
+        <element name="library">
+          <attribute name="src">
+            <choice>
+              <value>system</value>
+              <value>local</value>
+            </choice>
+          </attribute>
+        </element>
+      </zeroOrMore>
+      <optional>
+        <element name="random-seed">
+          <data type="int"/>
+        </element>
+      </optional>
+      <optional>
+        <element name="thread-count">
+          <data type="int"/>
+        </element>
+      </optional>
+      <ref name="path-elem"/>
+      <ref name="data-elem"/>
+      <optional>
+        <ref name="features-elem"/>
+      </optional>
+      <ref name="splitter-elem"/>
+      <ref name="alg-elem"/>
+      <ref name="metric-elem"/>
+      <optional>
+        <ref name="rerank-elem"/>
+      </optional>
+      <optional>
+        <ref name="post-elem"/>
+      </optional>
+    </element>
+  </define>
+  <start>
+    <ref name="librec-auto-elem"/>
+  </start>
+</grammar>

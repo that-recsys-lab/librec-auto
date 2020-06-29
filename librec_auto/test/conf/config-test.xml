@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<librec-auto>
+	<random-seed>201807</random-seed>
+	<!-- PATH SECTION -->
+	<path>
+		<data>data</data>
+		<result>result</result>
+		<log>log</log>
+	</path>
+	<!-- DATA SECTION -->
+	<data>
+		<format>UIR</format>
+		<train-file format="text">filmtrust.txt</train-file>
+		<binarize-threshold>-1.0</binarize-threshold>
+	</data>
+	<!-- SPLITTER SECTION -->
+	<splitter>
+		<model count="5">kcv</model>
+		<dim>userfixed</dim>
+		<ratio>0.8</ratio>
+		<save>true</save>
+	</splitter>
+
+	<!-- ALGORITHM SECTION -->
+	<alg>
+		<class>biasedmf</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>
+			<value>0.005</value>
+			<value>0.01</value>
+		</user-reg>
+		<item-reg>
+			<value>0.005</value>
+			<value>0.01</value>
+		</item-reg>
+		<bias-reg>0.01</bias-reg>
+		<num-factors>
+			<value>10</value>
+			<value>20</value>
+		</num-factors>
+	</alg>
+
+	<!-- METRICS SECTION -->
+	<metric>
+		<ranking>true</ranking>
+		<class>recall</class>
+		<class>precision</class>
+		<class>ndcg</class>
+		<!-- ><class>ndcg</class> -->
+		<list-size>10</list-size>
+	</metric>
+
+	<!-- RERANKING SECTION -->
+	<rerank type="script">
+		<script lang="python3">reranker.py</script>
+	</rerank>
+
+	<!-- POST-PROCESSING SECTION -->
+	<post type="script">
+		<script lang="python3">viz1.py</script>
+        <script lang="python3">slack-post.py</script>
+	</post>
+
+</librec-auto>

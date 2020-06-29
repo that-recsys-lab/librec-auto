@@ -1,0 +1,196 @@
+## Ideas:
+## Top-level element can have ref (I think these are classes)
+## Value-bearing element can have values
+## Script elements can have action=no-parse
+## 
+
+## Limit to legal path and file names?
+path-elem = element path { 
+	element data { text } &
+	element result { text } &
+	element log { text }
+}
+	
+data-elem = element data {
+	element format { "UIR" | "UIRT" },
+	(
+		element data-file { 
+			attribute format { "text" | "aiff" },
+			text
+		} | 
+		(
+			element train-file { 
+				attribute format { "text" | "aiff" },
+				text
+				} &
+			element test-file { 
+				attribute format { "text" | "aiff" },
+				text
+			}
+		)
+	),
+	element binarize-threshold { xsd:float }?
+}
+
+features-elem = element features {
+	element appender-class { text },
+	element item-feature-file { text }?,
+	element user-feature-file { text }?
+}
+	
+splitter-elem = element splitter {
+	element model {
+		attribute count { xsd:integer }?,
+		( "kcv" | "loov" )
+	},
+	element dim { "ratio" | "userfixed" },
+	element ratio { xsd:float }, ## Range 0 - 1
+	element save { "true" | "false" }
+}
+
+alg-elem = element alg {
+	attribute ref { text }?,
+	element class { text },
+	(
+		element learn-rate { value-float }&
+		element learn-rate-max { value-float }&
+		element learn-rate-decay { value-float }&
+		element bold-driver { value-boolean }&
+		element iterator-max { value-int }&
+		element user-reg { value-float }&
+		element item-reg { value-float }&
+		element bias-reg { value-float }&
+		element num-factors { value-int }&
+		element learn-rate-alpha { value-float }&
+		element learn-rate-beta { value-float }&
+		element cache-spec { value-text }&
+		element early-stop { value-bool }&
+		element thread-count { value-int }&
+		element verbose { value-bool }&
+		element similarity {
+			attribute type { "user" | "item" },
+			value-text
+		}&
+		element neighborhood-size { value-int }&
+		element shrinkage { value-int }&
+		element num-topics { value-int }&
+		element alpha { value-float }&
+		element beta { value-float }&
+		element gamma { value-float }&
+		element sigma { value-float }&
+		element num-user-topics { value- }&
+		element num-item-topics { value- }&
+		element item-distribution-param { value-float }&
+		element user-reg { value-float }&
+		element item-reg { value-float }&
+		element confidence-weight { value-float }&
+		element judge { value-bool }&
+		element missing-data-weight { value-float }&
+		element significance-ratio { value-float }&
+		element rho { value-float }&
+		element user-bias-reg { value-float }&
+		element item-bias-reg { value-float }&
+		element group-size { value-int }&
+		element user-prior { value-float }&
+		element topic-prior { value-float }&
+		element no-self-estimate { value-bool }&
+		element adaptive-update { value-bool }&
+		element parallel-split-size { value-int }&
+		element support-weight { value-float }&
+		element l1-reg { value-float }&
+		element l2-reg { value-float }&
+		element bias-reg { value-float }&
+		element confidence-wt-coef { value-float }&
+		element user-mu { value-float }&
+		element user-beta { value-float }&
+		element user-wishart-scale { value-float }&
+		element item-mu { value-float }&
+		element item-beta { value-float }&
+		element item-wishart-scale { value-float }&
+		element sigma { value-float }&
+		element smooth-weight { value-float }&
+		element num-global-factors { value-int }&
+		element global-learnrate { value-float }&
+		element global-user-reg { value-float }&
+		element global-item-reg { value-float }&
+		element global-iterator-max { value-int }&
+		element implicit-reg { value-float }&
+		element num-explicit-factors { value-int }&
+		element lambdax { value-float }&
+		element lambday { value-float }&
+		element lambdau { value-float }&
+		element lambdah { value-float }&
+		element lambdav { value-float }&
+		element efm-explain { value-text }&
+		element efm-explain-features { value-text }&
+		element efm-explain-users { value-text }&
+		element lambda-user { value-float }&
+		element lambda-item { value-float }&
+		element lambdab { value-float }&
+		element init-mean { value-float }&
+		element init-std { value-float }&
+		element social-ratio { value-float }&
+		element social-reg { value-float }&
+		element user-social-reg { value-float }&
+		element rate-social-reg { value-float }&
+		element social-model { value-float }&
+		element sigma { value-float }&
+		element lambda { value-float }&
+		element protected { value-text }&
+		element l3-reg { value-float }&
+		element min-sim { value-float }&
+	)
+}
+
+value-text = text | element value { text }+
+value-float = xsd:float | element value { xsd:float }+
+value-int = xsd:int | element value { xsd:int }+
+value-boolean = ("true" | "false") | element value { "true" | "false"}+ 
+	
+metric-elem = element metric {
+	attribute ref { text }?,
+	(
+		element ranking { "true" | "false" }&
+		element list-size { xsd:int }&
+		element class { text }&
+		element protected-feature { text }?
+	)
+}
+	
+rerank-elem = element rerank { 
+	attribute ref { text }?,
+	attribute action { "no-parse" | "parse"},
+	script-elem
+}
+
+post-elem = element post {
+	attribute ref { text }?,
+	attribute action { "no-parse" | "parse" },
+	script-elem
+}
+
+script-elem = element script {
+	attribute lang { "python3" },
+	attribute src { "system" }?,
+	element script-name { text },
+	element param {
+		attribute name { text },
+		text
+	}*
+}
+
+librec-auto-elem = element librec-auto {
+	element library {attribute src { "system" | "local" }}*,
+	element random-seed { xsd:int }?,
+	element thread-count { xsd:int }?,
+	path-elem,
+	data-elem,
+	features-elem?,
+	splitter-elem,
+	alg-elem,
+	metric-elem,
+	rerank-elem?,
+	post-elem?
+}
+
+start = librec-auto-elem

@@ -1,3 +1,9 @@
-include jar/*.jar
-include rules/*.xml
-include test/conf/*.xml
+include librec_auto/*
+include librec_auto/librec_auto/*
+include librec_auto/librec_auto/cmd/*
+include librec_auto/librec_auto/cmd/post/*
+include librec_auto/librec_auto/cmd/rerank/*
+include librec_auto/librec_auto/util/*
+include librec_auto/jar/*.jar
+include librec_auto/rules/*.xml
+include librec_auto/test/conf/*.xml

@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 
-from librec_auto import read_config_file
-from librec_auto.util import Files
-from librec_auto.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
+from librec_auto.librec_auto import read_config_file
+from librec_auto.librec_auto.util import Files
+from librec_auto.librec_auto.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
 
 
@@ -13,7 +13,7 @@ def read_args():
     :return:
     '''
     parser = argparse.ArgumentParser(description='The librec-auto tool for running recommender systems experiments')
-    parser.add_argument('action',choices=['run','split', 'eval', 'rerank', 'post', 'purge', 'status', 'describe', 'check'])
+    parser.add_argument('action',choices=['run','split', 'eval', 'rerank', 'post', 'purge', 'status', 'describe', 'check', 'install'])
 
     parser.add_argument("target", help="Path to experiment directory")
 
@@ -187,6 +187,9 @@ def setup_commands (args, config):
         cmd = build_librec_commands('check', args, config)
         return cmd
 
+    if action == 'install':
+        cmd = InstallCmd()
+        return cmd
 
 # -------------------------------------
 

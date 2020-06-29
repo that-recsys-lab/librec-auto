@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="librec-auto",
-    version="0.1.4",
+    version="0.1.27",
 	scripts=['librec_auto\__main__.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
