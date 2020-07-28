@@ -30,7 +30,7 @@ class ConfigCmd:
         self._var_tuples = []
         self._libraries = LibraryColl()
 
-        self._libraries = ConfigLibCollection()
+        #self._libraries = ConfigLibCollection()
 
     def get_target(self):
         return self._target

@@ -1,5 +1,5 @@
 from collections import OrderedDict, defaultdict
-from librec_auto.util import Files, utils, build_parent_path, xml_load_from_path, SubPaths
+from librec_auto.core.util import Files, utils, build_parent_path, xml_load_from_path, SubPaths
 from lxml import etree
 import copy
 import logging

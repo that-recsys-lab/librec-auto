@@ -2,10 +2,11 @@ from pathlib import Path
 import hashlib
 import inspect
 import librec_auto
-from librec_auto.core.utils import force_path
+from librec_auto.core.util.utils import force_path
 from collections import OrderedDict
 import glob
 import shutil
+import logging
 
 class Files:
     """

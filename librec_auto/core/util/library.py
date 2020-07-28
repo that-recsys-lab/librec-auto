@@ -1,6 +1,5 @@
-from lxml import etree
 import logging
-from .xml_utils import xml_load_from_path
+from librec_auto.core.util.xml_utils import xml_load_from_path
 
 class LibraryColl:
 
