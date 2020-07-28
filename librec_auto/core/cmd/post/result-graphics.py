@@ -1,7 +1,7 @@
 
 import argparse
-from librec_auto.librec_auto import read_config_file
-from librec_auto.librec_auto.util import Status
+from librec_auto.core import read_config_file
+from librec_auto.core.util import Status
 import webbrowser
 
 import matplotlib

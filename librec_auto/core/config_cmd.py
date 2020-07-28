@@ -1,9 +1,9 @@
 from collections import OrderedDict
-from librec_auto.librec_auto.util import xmltodict, Files, utils, xml_load_from_path
+from librec_auto.core.util import xmltodict, Files, utils, xml_load_from_path
 import logging
 import itertools
 from pathlib import Path
-from librec_auto.librec_auto.config_lib import ConfigLibCollection, ConfigLib
+from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 
 
 class ConfigCmd:
@@ -240,7 +240,7 @@ class ConfigCmd:
         if type(lib_elem) is OrderedDict:
             if '@src' in lib_elem:
                 if 'system' == lib_elem['@src']:
-                    path_prefix = self._files.get_rules_path().parent
+                    path_prefix = self._files.get_lib_path()
                 else:
                     print(f'librec-auto: WARNING Path source {lib_elem["@src"]} is unknown. Possible values are: system')
         else: # If library path is just as string without directory information, assume conf directory

@@ -1,7 +1,7 @@
-from librec_auto.librec_auto.cmd import Cmd
-from librec_auto.librec_auto.util import Files, SubPaths
-from librec_auto.librec_auto import ConfigCmd
-from  librec_auto.librec_auto.util import confirm
+from librec_auto.core.cmd import Cmd
+from librec_auto.core.util import Files, SubPaths
+from librec_auto.core import ConfigCmd
+from  librec_auto.core.util import confirm
 import shutil
 import os
 

@@ -1,4 +1,4 @@
-from librec_auto.librec_auto.util import xmltodict
+from librec_auto.core.util import xmltodict
 from inspect import getsourcefile
 from os.path import abspath
 from pathlib import Path

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from librec_auto.librec_auto.util import Files, utils
+from librec_auto.core.util import Files, utils
 import logging
 import itertools
 from pathlib import Path
