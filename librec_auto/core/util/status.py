@@ -9,7 +9,7 @@ from librec_auto.core.util import xml_load_from_path, extract_from_path, force_l
 #    <param><name>rec.neighbors.knn.number</name><value>30</value></param>
 #    <date>June 28, 11:00 PM</date>
 # </librec-auto-status>
-
+# TODO: Rewrite with lxml. This is kind of embarrassing.
 
 class Status():
 
@@ -78,14 +78,21 @@ class Status():
 
     # Accept list of vars and tuples
     @staticmethod
-    def save_status(msg, exp_count, var_names, value_tuple, config, paths):
+    def save_status(msg, exp_count, config, paths):
         status_file = paths.get_path('status')
         status_front = Status._TEMPLATE_FRONT.format(msg, exp_count, datetime.datetime.now())
 
         status_params = ''
+        conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
+        var_elems = conf_xml.xpath("//*[@var='true']")
+        for var_elem in var_elems:
+            if var_elem.tag == 'param':
+                var_name = var_elem.get('name')
+            else:
+                var_name = var_elem.tag
+            var_value = var_elem.text
 
-        for var, val in zip(var_names, value_tuple):
-            status_params = status_params + Status._TEMPLATE_LINE.format(var, val)
+            status_params = status_params + Status._TEMPLATE_LINE.format(var_name, var_value)
 
         status_info = Status._HEADER + status_front + status_params + Status._TEMPLATE_END
 

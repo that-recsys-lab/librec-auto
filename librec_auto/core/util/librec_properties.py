@@ -36,6 +36,11 @@ class LibrecProperties:
         self.properties = {}
         self._conf_xml = xml
         self.process_config(files)
+        self.add_property_hacks()
+
+    def add_property_hacks(self):
+
+        self.properties['dfs.split.dir'] = "split"
 
     def process_config(self, files):
         trans_rules = LibrecTranslation(files)

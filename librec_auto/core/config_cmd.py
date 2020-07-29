@@ -27,12 +27,11 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_path())
-        self._var_data = defaultdict(list)
+        self._var_librec_data = defaultdict(list)
+        self._var_rerank_data = defaultdict(list)
         self._var_params = []
         self._var_tuples = []
         self._libraries = LibraryColl()
-
-        #self._libraries = ConfigLibCollection()
 
     def get_target(self):
         return self._target
@@ -96,15 +95,33 @@ class ConfigCmd:
             if named_elem is not None:
                 merged_elem = merge_elements(named_elem, ref_elem)
                 ref_elem.getparent().replace(ref_elem, merged_elem)
+            else:
+                logging.warning(f"No such element in library {ref_name}")
 
     def collect_vars(self):
-        value_elems = self._xml_input.xpath('//value')
+        self.collect_librec_vars()
+        self.collect_rerank_vars()
+        # Do the bookkeeping to prevent multiple LibRec runs
+        logging.warning("Re-ranking configuration not implemented.")
+
+    def collect_librec_vars(self):
+        value_elems = self._xml_input.xpath('/librec-auto/*[not(self::rerank)]/*/value')
         parents = [elem.getparent() for elem in value_elems]
         parents = list(set(parents))
         for parent in parents:
             vals = [elem.text for elem in parent.iterchildren(tag='value')]
             parent_path = build_parent_path(parent)
-            self._var_data[parent_path] = vals
+            self._var_librec_data[parent_path] = vals
+        self._var_tuples = list(itertools.product(*self._var_data.values()))
+
+    def collect_rerank_vars(self):
+        value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
+        parents = [elem.getparent() for elem in value_elems]
+        parents = list(set(parents))
+        for parent in parents:
+            vals = [elem.text for elem in parent.iterchildren(tag='value')]
+            parent_path = build_parent_path(parent)
+            self._var_rerank_data[parent_path] = vals
         self._var_tuples = list(itertools.product(*self._var_data.values()))
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
@@ -135,7 +152,9 @@ class ConfigCmd:
         outpath = exp.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
         logging.info('Writing config file ' + str(outpath))
         new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
+
         props = LibrecProperties(new_xml, self._files)
+        exp.add_to_config(props.properties, 'result')
         props.save(exp)
 
     def has_rerank(self):

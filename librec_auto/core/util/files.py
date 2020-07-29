@@ -3,6 +3,7 @@ import hashlib
 import inspect
 import librec_auto
 from librec_auto.core.util.utils import force_path
+from librec_auto.core.util.xml_utils import xml_load_from_path
 from collections import OrderedDict
 import glob
 import shutil
@@ -67,7 +68,7 @@ class Files:
 
     def get_jar_path(self): return self.get_global_path() / self._jar_dir_path
 
-    def get_lib_path(self): return self.get_global_path() / self._lib_dir_path
+    #def get_lib_path(self): return self.get_global_path() / self._lib_dir_path
 
     def get_exp_path(self): return self._exp_path
 
@@ -175,6 +176,7 @@ class SubPaths:
     - original (for re-ranking)
     - conf
     """
+    DEFAULT_LOG_FILENAME = 'librec.log'
 
     _prop_dict = {'log': 'dfs.log.dir',
 #                 'split': 'dfs.split.dir',
@@ -226,6 +228,11 @@ class SubPaths:
 
     def set_path_from_string(self, type, path_str):
         self._path_dict[type] = Path(path_str)
+
+    def get_exp_conf(self):
+        path = self.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
+        xml_input = xml_load_from_path(path)
+        return xml_input
 
     # Assumes path is set up
     def add_to_config(self, config, type):

@@ -65,54 +65,19 @@ class LibrecCmd (Cmd):
 
     def dry_run(self, config):
         self._config = config
-
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
 
-        var_params = config.var_params
-        value_tuple = config.get_value_tuple(self._sub_no-1)
 
         self.dry_run_librec()
-        for param, val in zip(var_params, value_tuple):
-            print (f'    {param}: {val}')
 
     def execute(self, config: ConfigCmd):
         self._config = config
-
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
-
-        var_params = config.var_params
-        # If all parameters are fixed, there's only one experiment
-        if len(var_params) == 0:
-            value_tuple = []
-        else:
-            value_tuple = config.get_value_tuple(self._sub_no)
-
-        self.save_properties_file(var_params, value_tuple)
-
         self.ensure_clean_log()
 
-        Status.save_status("Executing", self._sub_no, var_params, value_tuple, config, self._sub_path)
+        Status.save_status("Executing", self._sub_no, config, self._sub_path)
         self.execute_librec()
-        Status.save_status("Completed", self._sub_no, var_params, value_tuple, config, self._sub_path)
-
-    def save_properties_file(self, params, values):
-        properties = self._config.get_prop_dict().copy()
-        for key, value in zip(params, values):
-            properties[key] = value  # Loop over all variables, value pairs
-        # Various specific properties file hacks
-        self._sub_path.add_to_config(properties, 'result')
-        properties['dfs.split.dir'] = "split"
-
-        self.write_key_value(properties)
-
-    def write_key_value(self, prop_dict):
-        prop_path = self._sub_path.get_librec_properties_path()
-        with prop_path.open(mode="w") as fh:
-            fh.write(u'# DO NOT EDIT\n# Properties file created by librec-auto\n')
-            # for key, value in prop_dict.iteritems():
-            for key, value in prop_dict.items():
-                line = "{}:{}\n".format(key, value)  # type: str
-                fh.write(str(line))
+        Status.save_status("Completed", self._sub_no, config, self._sub_path)
 
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):
@@ -127,7 +92,7 @@ class LibrecCmd (Cmd):
 
     # log file appends by default
     def ensure_clean_log(self):
-        librec_log = Path(Files.LOG_PATH)
+        librec_log = log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
         if librec_log.is_file():
             librec_log.unlink()
 
