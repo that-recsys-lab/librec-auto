@@ -3,6 +3,8 @@ from pathlib import Path
 import copy
 
 def build_parent_path(elem, pathsofar=''):
+    if elem.tag == 'param':                     # params are distinguished by name attributes
+        pathsofar = f"[@name='{elem.get('name')}']"
     nextpath = '/' + elem.tag + pathsofar
     if (elem.getparent() == None):
         return nextpath
@@ -38,7 +40,8 @@ def xml_load_from_path(path):
 
 def xml_load_from_text(txt):
     try:
-        xml_data = etree.fromstring(txt)
+        parser = etree.XMLParser(remove_comments=True)
+        xml_data = etree.fromstring(txt, parser=parser)
     except etree.XMLSyntaxError as e:
         print ("Error parsing XML")
         print ("LXML error in line: {0}".format(e.lineno))
@@ -48,15 +51,25 @@ def xml_load_from_text(txt):
 
 # The idea is that we have a complete element lib_elem and a partial element mod_elem.
 # The mod_elem contents override those in lib_elem when they overlap.
+# Only works at the top-level of children in the element.
 def merge_elements(lib_elem, mod_elem):
-    print(lib_elem)
-    print(mod_elem)
     lib = copy.deepcopy(lib_elem)
     mod = copy.deepcopy(mod_elem)
+
+    lib_tags = [child.tag for child in lib.iterchildren(tag=etree.Element)]
+    mod_tags = [child.tag for child in mod.iterchildren(tag=etree.Element)]
+
+    mod_extra = list(set(mod_tags).difference(set(lib_tags)))
 
     for lchild in lib.iterchildren(tag=etree.Element):
         mchild_lst = [child for child in mod.iterchildren(lchild.tag)]
         if len(mchild_lst) > 0:
             lchild.clear()
             lchild.getparent().replace(lchild, mchild_lst[0])
+
+    for extra_tag in mod_extra:
+        matching = [child for child in mod.iterchildren(tag=extra_tag)]
+        lib.append(matching[0])
+
     return lib
+

@@ -10,7 +10,7 @@ class Cmd(ABC):
     STATUS_ERROR = -1
 
     def __init__(self):
-        self.status = STATUS_INIT
+        self.status = self.STATUS_INIT
 
     def __repr__(self):
         return "Cmd()"

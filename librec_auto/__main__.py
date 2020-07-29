@@ -1,9 +1,8 @@
 import argparse
 from pathlib import Path
-
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
 
 
@@ -139,9 +138,10 @@ def setup_commands (args, config):
     # Perform re-ranking on results, followed by evaluation and post-processing
     if action == 'rerank' and rerank_flag: # Runs a reranking script on the python side
         cmd1 = PurgeCmd('rerank', noask=purge_noask)
-        cmd2 = RerankCmd()
-        cmd3 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd2 = SetupCmd()
+        cmd3 = RerankCmd()
+        cmd4 = build_librec_commands('eval', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -154,15 +154,17 @@ def setup_commands (args, config):
     # re-run splits only
     if action == 'split':
         cmd1 = PurgeCmd('split', noask=purge_noask)
-        cmd2 = build_librec_commands('split', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('split', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         return cmd
 
     # re-run experiment and continue
     if action== 'run':
         cmd1 = PurgeCmd('results', noask=purge_noask)
-        cmd2 = build_librec_commands('full', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('full', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
@@ -173,8 +175,9 @@ def setup_commands (args, config):
     # eval-only
     if action == 'eval':
         cmd1 = PurgeCmd('post', noask=purge_noask)
-        cmd2 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('eval', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
