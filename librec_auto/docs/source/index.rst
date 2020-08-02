@@ -35,7 +35,7 @@ Since ''librec-auto'' uses ''Librec'' library for running the experiments, after
 
 ::
 	
-	python -m librec_auto install
+	$ python -m librec_auto install
 	
 Now, the installation is complete and you can run your experiments using ''librec-auto''.
 	
