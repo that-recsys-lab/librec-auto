@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib
 import inspect
 import librec_auto
-from librec_auto.librec_auto.util import SubPaths
-from librec_auto.librec_auto.util.utils import force_path
+from librec_auto.core.util import SubPaths
+from librec_auto.core.util.utils import force_path
 from collections import OrderedDict
 
 class Files:
@@ -30,7 +30,7 @@ class Files:
     _sub_path_dict = None
     _config_dir_path = None
     _rules_dir_path = None
-    #_res_dir_path = None
+    _lib_dir_path = None
     _split_dir_path = None
     _jar_dir_path = None
     _post_dir_path = None
@@ -42,6 +42,7 @@ class Files:
 
     _DEFAULT_CONFIG_DIR_NAME = "conf"
     _DEFAULT_RULES_DIR_NAME = "rules"
+    _DEFAULT_LIB_DIR_NAME = "librec_auto/library"
     _DEFAULT_RES_DIR_NAME = "result"
     _DEFAULT_SPLIT_DIR_NAME = "data/split"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
@@ -61,7 +62,7 @@ class Files:
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
         self._rules_dir_path = Path(self._DEFAULT_RULES_DIR_NAME)
-        #self._res_dir_path = Path(self._DEFAULT_RES_DIR_NAME)
+        self._lib_dir_path = Path(self._DEFAULT_LIB_DIR_NAME)
         self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
@@ -95,6 +96,9 @@ class Files:
 
     def get_rules_path (self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
+
+    def get_lib_path (self):
+        return self.get_global_path() / self._DEFAULT_LIB_DIR_NAME
 
     # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpaths here.
     def get_classpath (self):

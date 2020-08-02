@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from librec_auto.librec_auto.util import xml_load_from_path, extract_from_path, force_list, SubPaths, LogFile
+from librec_auto.core.util import xml_load_from_path, extract_from_path, force_list, SubPaths, LogFile
 
 # A .status file looks like this
 # <librec-auto-status>

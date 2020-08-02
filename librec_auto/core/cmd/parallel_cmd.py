@@ -1,6 +1,6 @@
-from librec_auto.librec_auto.cmd import Cmd
+from librec_auto.core.cmd import Cmd
 from multiprocessing.dummy import Pool as ThreadPool
-from librec_auto.librec_auto.util import Status
+from librec_auto.core.util import Status
 
 
 class ParallelCmd(Cmd):

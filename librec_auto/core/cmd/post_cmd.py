@@ -1,6 +1,6 @@
-from librec_auto.librec_auto.cmd import Cmd
-from librec_auto.librec_auto.util import Files, utils
-from librec_auto.librec_auto import ConfigCmd
+from librec_auto.core.cmd import Cmd
+from librec_auto.core.util import Files, utils
+from librec_auto.core import ConfigCmd
 from pathlib import Path
 import os
 import sys
@@ -9,7 +9,7 @@ import subprocess
 
 class PostCmd(Cmd):
 
-    POST_SCRIPT_PATH = "librec_auto/cmd/post"
+    POST_SCRIPT_PATH = "core/cmd/post"
 
     _config = None
 

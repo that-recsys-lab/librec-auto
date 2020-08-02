@@ -1,6 +1,6 @@
-from librec_auto.librec_auto.cmd import Cmd
-from librec_auto.librec_auto.util import Files
-from librec_auto.librec_auto import ConfigCmd
+from librec_auto.core.cmd import Cmd
+from librec_auto.core.util import Files
+from librec_auto.core import ConfigCmd
 import os
 import sys
 import librec_auto

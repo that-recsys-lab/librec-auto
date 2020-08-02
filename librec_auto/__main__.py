@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 
-from librec_auto.librec_auto import read_config_file
-from librec_auto.librec_auto.util import Files
-from librec_auto.librec_auto.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core import read_config_file
+from librec_auto.core.util import Files
+from librec_auto.core.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
 
 
@@ -82,7 +82,7 @@ May result in no action if all computations are up-to-date and no purge option i
 def print_description(args):
     act = args['target']
     if act in DESCRIBE_DICT:
-        print (f'librec_auto {act} <target>: {DESCRIBE_DICT[act]}')
+        print (f'core {act} <target>: {DESCRIBE_DICT[act]}')
     else:
         print(DESCRIBE_TEXT)
 
