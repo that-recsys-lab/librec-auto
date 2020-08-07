@@ -17,8 +17,7 @@ class Files:
     - global location: determined by the install location of librec-auto
     - rules-specific location: determined by the location of a rules directory [Not implemented]
     - user-specific location: associated with the user's home directory [Not implemented]
-    - experiment-specific location: in a directory associated with a specific experiment. See sub_paths.py for a class
-      that handles the sub-experiment-specific files.
+    - experiment-specific location: in a directory associated with a specific experiment.
 
     These are the types of files that are managed:
     - configuration files (XML). Stores information about how experiments are configured.
@@ -47,6 +46,7 @@ class Files:
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
+    DEFAULT_BASE_EXP_FILENAME = "base_exp.txt"
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
@@ -141,6 +141,12 @@ class Files:
         else:
             return None
 
+    def get_sub_paths_by_name(self, name):
+        for subp in self._sub_path_dict.values():
+            if subp.subexp_name == name:
+                return subp
+        return None
+
     def get_sub_paths_iterator(self):
         return self._sub_path_dict.values()
 
@@ -214,6 +220,9 @@ class SubPaths:
     def get_librec_properties_path(self):
         return self.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
 
+    def get_base_exp_flag_path(self):
+        return self.get_path('conf') / Files.DEFAULT_BASE_EXP_FILENAME
+
     def get_path_str(self, type):
         return self.get_path(type).as_posix()
 
@@ -233,6 +242,15 @@ class SubPaths:
         path = self.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
         xml_input = xml_load_from_path(path)
         return xml_input
+
+    def get_base_exp(self):
+        base_flag_file = self.get_base_exp_flag_path()
+        if base_flag_file.exists():
+            with base_flag_file.open() as fh:
+                exp_name = fh.readline()
+                return exp_name
+        else:
+            return None
 
     # Assumes path is set up
     def add_to_config(self, config, type):

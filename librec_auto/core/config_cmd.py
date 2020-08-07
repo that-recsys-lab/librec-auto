@@ -1,13 +1,13 @@
 from collections import OrderedDict, defaultdict
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
-    xml_load_from_path, Library, LibraryColl, merge_elements
+    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
 from lxml import etree
 import copy
 import logging
-import itertools
 from pathlib import Path
 from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 import re
+
 
 class ConfigCmd:
     """
@@ -27,23 +27,24 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_path())
-        self._var_librec_data = defaultdict(list)
-        self._var_rerank_data = defaultdict(list)
-        self._var_params = []
-        self._var_tuples = []
+        #self._var_librec_data = defaultdict(list)
+        #self._var_rerank_data = defaultdict(list)
+        #self._var_params = []
+        #self._var_tuples = []
+        self._var_coll = VarColl()
         self._libraries = LibraryColl()
 
     def get_target(self):
         return self._target
 
-    def get_var_data(self):
-        return self._var_data
+    # def get_var_data(self):
+    #     return self._var_data
 
-    def get_value_tuple(self, subexp_no):
-        return self._var_tuples[subexp_no]
+    def get_value_conf(self, subexp_no):
+        return self._var_coll.var_confs[subexp_no]
 
     def get_sub_exp_count(self):
-        exp_count = len(self._var_tuples)
+        exp_count = len(self._var_coll.var_confs)
         if exp_count == 0:
             return 1
         else:
@@ -61,7 +62,7 @@ class ConfigCmd:
             return None
 
     def ensure_experiments(self):
-        exp_count = len(self._var_tuples)
+        exp_count = len(self._var_coll.var_confs)
         if exp_count == 0:
             exp_count = 1
         self.get_files().ensure_sub_paths(exp_count)
@@ -81,6 +82,7 @@ class ConfigCmd:
         self.substitute_library()
         self.collect_vars()
         self.ensure_experiments()
+        # self.label_repeats()
 
     # Have to wait to writes experiment-specific XML configurations to each exp directory
     # in case a purge is happening.
@@ -101,8 +103,7 @@ class ConfigCmd:
     def collect_vars(self):
         self.collect_librec_vars()
         self.collect_rerank_vars()
-        # Do the bookkeeping to prevent multiple LibRec runs
-        logging.warning("Re-ranking configuration not implemented.")
+        self._var_coll.compute_var_configurations()
 
     def collect_librec_vars(self):
         value_elems = self._xml_input.xpath('/librec-auto/*[not(self::rerank)]/*/value')
@@ -111,8 +112,7 @@ class ConfigCmd:
         for parent in parents:
             vals = [elem.text for elem in parent.iterchildren(tag='value')]
             parent_path = build_parent_path(parent)
-            self._var_librec_data[parent_path] = vals
-        self._var_tuples = list(itertools.product(*self._var_data.values()))
+            self._var_coll.add_var('librec', parent_path, vals)
 
     def collect_rerank_vars(self):
         value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
@@ -121,31 +121,33 @@ class ConfigCmd:
         for parent in parents:
             vals = [elem.text for elem in parent.iterchildren(tag='value')]
             parent_path = build_parent_path(parent)
-            self._var_rerank_data[parent_path] = vals
-        self._var_tuples = list(itertools.product(*self._var_data.values()))
+            self._var_coll.add_var('rerank', parent_path, vals)
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
     def write_exp_configs(self):
-        configs = list(zip(self.get_files().get_sub_paths_iterator(), iter(self._var_tuples)))
+        configs = list(zip(self.get_files().get_sub_paths_iterator(),
+                           iter(self._var_coll.var_confs)))
+        i = 0
+        for exp, vconf in configs:
+            vconf.exp_no = i
+            vconf.exp_dir = exp.subexp_name
+            self.write_exp_config(exp, vconf)
 
-        for exp, tuple in configs:
-            self.write_exp_config(exp, tuple)
-
-    def write_exp_config(self, exp, tuple):
+    def write_exp_config(self, exp, vconf):
         new_xml = copy.deepcopy(self._xml_input)
         # Remove libraries. All substitutions have already happened.
         for lib in new_xml.xpath('/librec-auto/library'):
             lib.getparent().remove(lib)
 
         pat = re.compile(ConfigCmd._PARAM_NAME_PATH_RE)
-        for parent_path, val in zip(self._var_data.keys(), iter(tuple)):
-            var_elem = new_xml.xpath(parent_path)[0]
+        for vinfo in vconf.vars:
+            var_elem = new_xml.xpath(vinfo.path)[0]
             var_elem.clear()
-            var_elem.text = str(val)
+            var_elem.text = str(vinfo.val)
             var_elem.set("var", "true")
             if var_elem.tag == 'param':                     # params are distinguished by name attributes
-                mat = pat.match(parent_path)
+                mat = pat.match(vinfo.path)
                 var_elem.attrib['name'] = mat.group(1)
         new_xml.append(etree.Comment('This configuration file was automatically generated by librec-auto. ' +
                         'Editing may produce unpredictable results and is not recommended.'))
@@ -153,9 +155,15 @@ class ConfigCmd:
         logging.info('Writing config file ' + str(outpath))
         new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
 
-        props = LibrecProperties(new_xml, self._files)
-        exp.add_to_config(props.properties, 'result')
-        props.save(exp)
+        if vconf.base_config is None:
+            props = LibrecProperties(new_xml, self._files)
+            exp.add_to_config(props.properties, 'result')
+            props.save(exp)
+        else:
+            path = exp.get_base_exp_flag_path()
+            with path.open(mode='w') as fh:
+                fh.write(vconf.base_config.exp_dir)
+                fh.write('\n')
 
     def has_rerank(self):
         rerank_elems = self._xml_input.xpath('/librec-auto/rerank')
@@ -181,7 +189,7 @@ class ConfigCmd:
             for lib in lib_elems:
                 lib_path = self.extract_library_path(lib)
                 lib = ConfigLib(lib_path)
-                self._libraries.append(lib)
+                self._libraries.add_lib(lib)
 
     def extract_library_path(self, lib_elem):
         file_name = lib_elem['#text'] if type(lib_elem) is OrderedDict else lib_elem
