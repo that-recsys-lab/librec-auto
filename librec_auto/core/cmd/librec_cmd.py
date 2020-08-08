@@ -39,7 +39,7 @@ class LibrecCmd (Cmd):
             return
 
         print(f"librec-auto: Running librec. {cmd}")
-        log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
+        log_path = self._sub_path.get_log_path()
 
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

@@ -1,6 +1,8 @@
 from librec_auto.core.util.sub_paths import SubPaths
 import re
+import os
 
+# By default, the most recent one in the directory
 class LogFile:
 
     _metrics = None
@@ -15,9 +17,15 @@ class LogFile:
         self._metrics = []
         self._values = {}
 
-        self._log_path = paths.get_path('log')
+        self._log_path = self.newest_log(paths)
 
         self.parse_log()
+
+    def newest_log(self, paths):
+        log_dir = paths.get_path('log')
+        log_files = os.listdir(log_dir)
+        newest_file = sorted(log_files, reverse=True)[0]
+        return log_dir / newest_file
 
     def get_metric_values(self, metric):
         if metric in self._values:
@@ -51,7 +59,7 @@ class LogFile:
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
 
-        with open(str(self._log_path / SubPaths.DEFAULT_LOG_FILENAME), 'r', newline='\n') as fl:
+        with open(str(self._log_path), 'r', newline='\n') as fl:
 
             i = 0
             for ln in fl:

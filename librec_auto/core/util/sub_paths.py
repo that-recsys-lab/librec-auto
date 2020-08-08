@@ -3,6 +3,7 @@ import os
 import glob
 import shutil
 import logging
+from datetime import datetime
 
 class SubPaths:
     """
@@ -15,7 +16,7 @@ class SubPaths:
     """
 
     _LIBREC_PROPERTIES_FILE = 'librec.properties'
-    DEFAULT_LOG_FILENAME = "librec.log"
+    DEFAULT_LOG_PATTERN = "librec-{}.log"
 
     _path_dict = None
 
@@ -94,4 +95,10 @@ class SubPaths:
         for file in files:
             shutil.copy2(file, result_path)
         shutil.rmtree(original_path)
+
+    def get_log_path(self):
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = SubPaths.DEFAULT_LOG_PATTERN.format(stamp)
+        return self.get_path('log') / fname
+
 
