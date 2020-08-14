@@ -1,97 +1,60 @@
-from collections import OrderedDict
-from librec_auto.core.util import xmltodict, Files, utils, xml_load_from_path
+from collections import OrderedDict, defaultdict
+from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
+    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
+from lxml import etree
+import copy
 import logging
-import itertools
 from pathlib import Path
 from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
+import re
 
 
 class ConfigCmd:
     """
-    Loads the configuration file using the element rules. Elements labels as "unparsed" in the rules are added to the
-    _unparsed collection later processing.
-
+    Loads the configuration file, inserts appropriate library contents,
+    identifies the parameter variations and creates separate configurations
+    for all combinations.
     """
 
-    _xml_input = None
-    _rules_dict = None
-    _prop_dict = None
-    _var_data = None
-    _unparsed = None
-    _var_params = None
-    _var_tuples = None
-    _target = None
-    _libraries = None
-
-    IGNOREABLE_ATTRIBUTES = ['@ref', '@src', '@name']
+    _PARAM_NAME_PATH_RE = ".+\[@name='(.+)'\]"
 
     def __init__(self, config_file, target):
 
         self._files = Files()
         self._target = target
 
-        # files.set_global_path(Path(__file__).parent.absolute())
         self._files.set_exp_path(target)
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_path())
-
-        self._rules_dict = self.read_rules()
-
-        self._prop_dict = {}
-
-        self._var_data = {}
-
-        self._unparsed = {}
-
-        self._var_params = []
-
-        self._var_tuples = []
-
-        self._libraries = ConfigLibCollection()
+        #self._var_librec_data = defaultdict(list)
+        #self._var_rerank_data = defaultdict(list)
+        #self._var_params = []
+        #self._var_tuples = []
+        self._var_coll = VarColl()
+        self._libraries = LibraryColl()
 
     def get_target(self):
         return self._target
 
-    def get_prop_dict(self):
-        return self._prop_dict
+    def get_xml(self):
+        return self._xml_input
 
-    def get_var_data(self):
-        return self._var_data
+    # def get_var_data(self):
+    #     return self._var_data
 
-    def get_value_tuple(self, subexp_no):
-        return self._value_tuples[subexp_no]
+    def get_value_conf(self, subexp_no):
+        return self._var_coll.var_confs[subexp_no]
 
     def get_sub_exp_count(self):
-        exp_count = len(self._value_tuples)
+        exp_count = len(self._var_coll.var_confs)
         if exp_count == 0:
             return 1
         else:
             return exp_count
 
-    # 2019-11-25 RB Configuration elements that aren't passed to LibRec are left in original XML format and handled
-    # later in a command-specific way. A better way might be to have "handler" mechanism so that each command can
-    # be associated its own configuration element and have code that is called when that element is encountered in the
-    # parse. Something to think about.
-    def get_unparsed(self, type):
-        if type in self._unparsed:
-            return self._unparsed[type]
-        else:
-            None
-
-    def get_rules_dict(self):
-        return self._rules_dict
-
     def get_files(self):
         return self._files
-
-    def read_rules(self):
-        rules_path = self._files.get_rules_path()
-        if (rules_path.exists()):
-            rules_input = xml_load_from_path(rules_path)
-            return rules_input
-        else:
-            return None
 
     def read_xml(self, path_str):
         path = self._files.get_config_path()
@@ -101,129 +64,127 @@ class ConfigCmd:
         else:
             return None
 
-    def ensure_sub_experiments(self):
-        exp_count = len(self._value_tuples)
+    def ensure_experiments(self):
+        exp_count = len(self._var_coll.var_confs)
         if exp_count == 0:
             exp_count = 1
         self.get_files().ensure_sub_paths(exp_count)
 
+    def load_libraries(self):
+        lib_paths = []
+        lib_elems = self._xml_input.xpath('/librec-auto/library')
+        for elem in lib_elems:
+            self._libraries.add_lib(Library(elem.text, elem.get('src'), self._files))
+
+    # Process config takes the config file and produces a dictionary of the following form:
+    # xpath-string => list of values
+    # or xpath-string => (range-to, range-from) pair
+    # Right now, we will assume the first
     def process_config(self):
-        if type(self._xml_input) is OrderedDict:
-            if type(self._rules_dict) is OrderedDict:
-                self.setup_libraries()
-                self.process_aux(self._xml_input['librec-auto'],
-                                self._rules_dict['librec-auto-element-rules'])
-                self.compute_value_tuples()
-                self.ensure_sub_experiments()
+        self._var_data = defaultdict(list)
+        self.substitute_library()
+        self.collect_vars()
+        self.ensure_experiments()
+        # self.label_repeats()
+
+    # Have to wait to writes experiment-specific XML configurations to each exp directory
+    # in case a purge is happening.
+    def setup_exp_configs(self):
+        self.write_exp_configs()
+
+    def substitute_library(self):
+        ref_elems = self._xml_input.xpath('//*[@ref]')
+        for ref_elem in ref_elems:
+            ref_name = ref_elem.get('ref')
+            named_elem = self._libraries.get_elem(ref_name)
+            if named_elem is not None:
+                merged_elem = merge_elements(named_elem, ref_elem)
+                ref_elem.getparent().replace(ref_elem, merged_elem)
             else:
-                logging.error(f"Error processing element rules. Filename: {self._files.get_rules_path().as_posix()}")
+                logging.warning(f"No such element in library {ref_name}")
+
+    def collect_vars(self):
+        self.collect_librec_vars()
+        self.collect_rerank_vars()
+        self._var_coll.compute_var_configurations()
+
+    def collect_librec_vars(self):
+        value_elems = self._xml_input.xpath('/librec-auto/*[not(self::rerank)]/*/value')
+        parents = [elem.getparent() for elem in value_elems]
+        parents = list(set(parents))
+        for parent in parents:
+            vals = [elem.text for elem in parent.iterchildren(tag='value')]
+            parent_path = build_parent_path(parent)
+            self._var_coll.add_var('librec', parent_path, vals)
+
+    def collect_rerank_vars(self):
+        value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
+        parents = [elem.getparent() for elem in value_elems]
+        parents = list(set(parents))
+        for parent in parents:
+            vals = [elem.text for elem in parent.iterchildren(tag='value')]
+            parent_path = build_parent_path(parent)
+            self._var_coll.add_var('rerank', parent_path, vals)
+
+    # Write versions of the config file in which the parameters with multiple values are replaced with
+    # a single value
+    def write_exp_configs(self):
+        configs = list(zip(self.get_files().get_sub_paths_iterator(),
+                           iter(self._var_coll.var_confs)))
+        i = 0
+        for exp, vconf in configs:
+            vconf.exp_no = i
+            vconf.exp_dir = exp.subexp_name
+            self.write_exp_config(exp, vconf)
+
+    def write_exp_config(self, exp, vconf):
+        new_xml = copy.deepcopy(self._xml_input)
+        # Remove libraries. All substitutions have already happened.
+        for lib in new_xml.xpath('/librec-auto/library'):
+            lib.getparent().remove(lib)
+
+        pat = re.compile(ConfigCmd._PARAM_NAME_PATH_RE)
+        for vinfo in vconf.vars:
+            var_elem = new_xml.xpath(vinfo.path)[0]
+            var_elem.clear()
+            var_elem.text = str(vinfo.val)
+            var_elem.set("var", "true")
+            if var_elem.tag == 'param':                     # params are distinguished by name attributes
+                mat = pat.match(vinfo.path)
+                var_elem.attrib['name'] = mat.group(1)
+        new_xml.append(etree.Comment('This configuration file was automatically generated by librec-auto. ' +
+                        'Editing may produce unpredictable results and is not recommended.'))
+        outpath = exp.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
+        logging.info('Writing config file ' + str(outpath))
+        new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
+
+        if vconf.ref_config is None:
+            props = LibrecProperties(new_xml, self._files)
+            exp.add_to_config(props.properties, 'result')
+            props.save(exp)
         else:
-            logging.error(f"Error processing configuration file. Filename: {self._files.get_config_path().as_posix()}")
+            path = exp.get_ref_exp_flag_path()
+            with path.open(mode='w') as fh:
+                fh.write(vconf.ref_config.exp_dir)
+                fh.write('\n')
 
-    # Walk the configuration XML in tandem with the element rules to determine librec property translations for each
-    # part of the configuration.
-    def process_aux(self, arg, rules):
-        for key in arg:
-            if key in self.IGNOREABLE_ATTRIBUTES: # Skip bookkeeping attributes
-                continue
-            config_elem = self.augment_from_library(key, arg[key])
-            if key in rules:                            # If the entry corresponds to a rule
-                if "@action" in rules[key] and rules[key]['@action'] == 'no-parse': # If labeled "no parse" in rules
-                    self._unparsed[key] = config_elem  # Add to unparsed collection
-                elif type(config_elem) is OrderedDict:         # If the config file has subelements
-                    if type(rules[key]) is OrderedDict:     # If the rules also have subelements
-                        self.process_aux(config_elem, rules[key]) # recursive call
-                    elif type(rules[key]) is list:          # If the rules have a list
-                        self._prop_dict = self.process_attr(config_elem, rules[key])  # We have an attribute
-                    elif 'value' in config_elem:               # If the config file has a 'value' key
-                        self._var_data[rules[key]] = config_elem['value'] # then we have variable data for multiple exps.
-                elif key in rules:                          # Config file doesn't have subelements
-                    if type(config_elem) is list:              # Some properties have comma-separated values
-                        self._prop_dict[rules[key]] = ','.join(config_elem)
-                    elif type(rules[key]) == list:          # There are multiple LibRec keys in which map to this
-                                                            # LibRecAuto key. (e.g. 'l1-reg')
-                        for libRecKey in rules[key]:
-                            if type(libRecKey) is str:            # Otherwise, it is a compound rule that doesn't match arg
-                                self._prop_dict[libRecKey] = config_elem
-                    else:
-                        self._prop_dict[rules[key]] = config_elem  # Set property translation and value
-            # If the key isn't in the rules, ignore it but warn because it is probably an error.
-            else:
-                logging.warning("Key {} is not in element rules.", key)
+    def has_rerank(self):
+        rerank_elems = self._xml_input.xpath('/librec-auto/rerank')
+        return len(rerank_elems) > 0
 
-        return
+    def has_post(self):
+        post_elems = self._xml_input.xpath('/librec-auto/post')
+        return len(post_elems) > 0
 
-    def augment_from_library(self, key, elem):
-        if '@ref' not in elem:
-            return elem
+    def is_valid(self):
+        return self._xml_input is not None
+
+    def thread_count(self):
+        thread_elems = self._xml_input.xpath('/librec-auto/thread-count')
+        if len(thread_elems) == 0:
+            return 1
         else:
-            ref = elem['@ref']
-            lib_elem = self._libraries.get_element(ref).copy() # Don't want to overwrite library. Overly cautious?
-            # Overwrite library entries with local
-            if type(elem) is OrderedDict:
-                for key,val in elem.items():
-                    lib_elem[key] = val
-            return lib_elem
-
-    def get_string_rule(self, attr_rule):
-        for item in attr_rule:
-            if type(item) is str:
-                    return item
-        return None
-
-    # Assumes attribute name is first in ordered dictionary.
-    def collect_attributes(self, attr_rule):
-        return [(list(item.keys())[0], item['#text'])
-                for item in attr_rule if type(item) is OrderedDict]
-
-    def process_attr(self, elem, attr_rule):
-        # Scan rule for string
-        # Associate with elem #text
-        string_rule = self.get_string_rule(attr_rule)
-        if 'value' in elem:                             # Variable rules
-            self._var_data[string_rule] = elem['value']
-        else:
-            self._prop_dict[string_rule] = elem['#text']
-        # Scan rule for all attributes
-        # Assign
-        attrib_pairs = self.collect_attributes(attr_rule)
-        for attr_pair in attrib_pairs:
-            self._prop_dict[attr_pair[1]] = elem[attr_pair[0]]
-        return self._prop_dict
-
-    def compute_value_tuples(self):
-        self.var_params = self._var_data.keys()
-        original_var_values = list(self._var_data.values())
-        if (len(original_var_values) == 1):
-            original_var_values = original_var_values[0]
-        var_values = []
-        for element in original_var_values:
-            if type(element) is list:
-                # print(element)
-                var_values.append(element)
-            else:
-                var_values.append([element])
-        if len(self.var_params) == 1:
-            self._value_tuples = var_values
-        else:
-            self._value_tuples = list(itertools.product(*var_values))
-
-    # TODO RB 2019-12-12 Should include some error-checking and better messages for badly-formed XML
-    def collect_scripts(self, script_type):
-        post_xml = self.get_unparsed(script_type)
-        script_xml = post_xml['script']
-        scripts = []
-        for entry in utils.force_list(script_xml):
-            script_path = utils.get_script_path(entry, script_type)
-            if 'param' in entry:
-                param_dict = {}
-                for elem_dict in utils.force_list(entry['param']):
-                    param_dict[elem_dict['@name']] = elem_dict['#text']
-                scripts.append((script_path, param_dict))
-            else:
-                scripts.append((script_path, None))
-
-        return scripts
+            return int(thread_elems[0].text)
 
     def setup_libraries(self):
         if utils.safe_xml_path(self._xml_input, ['librec-auto', 'library']):
@@ -231,7 +192,7 @@ class ConfigCmd:
             for lib in lib_elems:
                 lib_path = self.extract_library_path(lib)
                 lib = ConfigLib(lib_path)
-                self._libraries.append(lib)
+                self._libraries.add_lib(lib)
 
     def extract_library_path(self, lib_elem):
         file_name = lib_elem['#text'] if type(lib_elem) is OrderedDict else lib_elem
@@ -253,5 +214,8 @@ class ConfigCmd:
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)
-    config.process_config()
+    if config.is_valid():
+        config.load_libraries()
+        config.process_config()
     return config
+

@@ -9,7 +9,8 @@ class Cmd(ABC):
     STATUS_COMPLETE = 3
     STATUS_ERROR = -1
 
-    status = STATUS_INIT
+    def __init__(self):
+        self.status = self.STATUS_INIT
 
     def __repr__(self):
         return "Cmd()"

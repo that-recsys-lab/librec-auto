@@ -6,7 +6,7 @@
 	 to the current algorithm will be retrieved. -->
 
 <librec-auto-element-rules>
-	<library action="no-parse"/>
+	<library action='no-translate'/>
 	<random-seed>rec.random.seed</random-seed>
 	<thread-count>rec.thread.count</thread-count>
 	<path>
@@ -220,8 +220,8 @@
 		<list-size>rec.recommender.ranking.topn</list-size>
 		<protected-feature>data.protected.feature</protected-feature>
 	</metric>
-	<post action="no-parse"/>
-	<rerank action="no-parse"/>
+	<post action="no-translate"/>
+	<rerank action="no-translate"/>
 
 	<!-- these algorithms can only be used for ranking -->
 	<alg-ranking>mostpopular bhfree bucm aobpr aspectmodelranking bpr climf 

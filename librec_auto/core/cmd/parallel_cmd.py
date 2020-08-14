@@ -5,15 +5,14 @@ from librec_auto.core.util import Status
 
 class ParallelCmd(Cmd):
 
-    _commands = []
-    _pool = None
-    _thread_count = 1
-
     def __init__(self, cmds, threads):
         self._thread_count = threads
         if len(cmds) > 0:
             self.set_commands(cmds)
             self.status = Cmd.STATUS_CONFIG
+        else:
+            self._commands = []
+        self._pool = None
 
     def __str__(self):
         return f'ParallelCmd({len(self._commands)} commands, {self._thread_count} threads)'

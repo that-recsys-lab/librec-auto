@@ -1,9 +1,8 @@
 import argparse
 from pathlib import Path
-
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
 
 
@@ -96,12 +95,12 @@ def purge_type (args):
     else:
         return 'none'
 
-
+# TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
+# and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
+# variation its own parameters.
 def build_librec_commands(librec_action, args, config):
     librec_commands = [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
-    threads = 1
-    if 'rec.thread.count' in config.get_prop_dict():
-        threads = int(config.get_prop_dict()['rec.thread.count'])
+    threads = config.thread_count()
 
     if threads > 1 and not args['no_parallel']:
         return ParallelCmd(librec_commands, threads)
@@ -114,13 +113,8 @@ def setup_commands (args, config):
     purge_noask = args['quiet']
 
     # Create flags for optional steps
-    rerank_flag = False
-    if config.get_unparsed('rerank') is not None:
-        rerank_flag = True
-
-    post_flag = False
-    if config.get_unparsed('post') is not None:
-        post_flag = True
+    rerank_flag = config.has_rerank()
+    post_flag = config.has_post()
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
@@ -144,9 +138,10 @@ def setup_commands (args, config):
     # Perform re-ranking on results, followed by evaluation and post-processing
     if action == 'rerank' and rerank_flag: # Runs a reranking script on the python side
         cmd1 = PurgeCmd('rerank', noask=purge_noask)
-        cmd2 = RerankCmd()
-        cmd3 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd2 = SetupCmd()
+        cmd3 = RerankCmd()
+        cmd4 = build_librec_commands('eval', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -159,17 +154,20 @@ def setup_commands (args, config):
     # re-run splits only
     if action == 'split':
         cmd1 = PurgeCmd('split', noask=purge_noask)
-        cmd2 = build_librec_commands('split', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('split', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         return cmd
 
     # re-run experiment and continue
     if action== 'run':
         cmd1 = PurgeCmd('results', noask=purge_noask)
-        cmd2 = build_librec_commands('full', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('full', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         if rerank_flag:
             cmd.add_command(RerankCmd())
+            cmd.add_command(build_librec_commands('eval', args, config))
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -177,8 +175,9 @@ def setup_commands (args, config):
     # eval-only
     if action == 'eval':
         cmd1 = PurgeCmd('post', noask=purge_noask)
-        cmd2 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2])
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('eval', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -202,7 +201,7 @@ if __name__ == '__main__':
     else:
         config = load_config(args)
 
-        if len(config.get_prop_dict()) > 0:
+        if config.is_valid():
             command = setup_commands(args, config)
             if isinstance(command, Cmd):
                 if args['dry_run']:

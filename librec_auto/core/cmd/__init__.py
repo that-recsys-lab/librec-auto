@@ -1,5 +1,6 @@
 
 from .cmd import Cmd, SequenceCmd
+from .setup_cmd import SetupCmd
 from .librec_cmd import LibrecCmd
 from .purge_cmd import PurgeCmd
 from .post_cmd import PostCmd

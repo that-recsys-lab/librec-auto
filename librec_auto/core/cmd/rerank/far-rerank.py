@@ -8,6 +8,7 @@ import pandas as pd
 import numpy
 from librec_auto.core import read_config_file
 from pathlib import Path
+from librec_auto.core.util.xml_utils import single_xpath
 
 class FarHelper:
     item_feature_df = None
@@ -162,9 +163,11 @@ if __name__ == '__main__':
     split_path = config.get_files().get_split_path()
     # split_names = os.listdir(split_path)
 
-    data_dir = config.get_prop_dict()['dfs.data.dir']
-    item_feature_file = config.get_prop_dict()['data.itemfeature.path']
-    protected = config.get_prop_dict()['data.protected.feature']
+    data_dir = single_xpath(config.get_xml(), '/librec-auto/path/data').text
+    item_feature_file = single_xpath(config.get_xml(),
+                                     '/librec-auto/features/item-feature-file').text
+    protected = single_xpath(config.get_xml(),
+                             '/librec-auto/metric/protected-feature').text
 
     item_feature_path = Path(data_dir) / item_feature_file
 

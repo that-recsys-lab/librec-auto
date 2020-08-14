@@ -1,14 +1,9 @@
-from librec_auto.core.util.sub_paths import SubPaths
+from librec_auto.core.util import SubPaths
 import re
 import os
 
 # By default, the most recent one in the directory
 class LogFile:
-
-    _metrics = None
-    _values = None
-    _kcv = None
-    _log_path = None
 
     def __str__(self):
         return f'LogFile({self._values}'
@@ -18,6 +13,7 @@ class LogFile:
         self._values = {}
 
         self._log_path = self.newest_log(paths)
+
 
         self.parse_log()
 
@@ -64,18 +60,18 @@ class LogFile:
             i = 0
             for ln in fl:
                 i += 1
-                m_eval = re.match(eval_pattern, ln)
-                m_kcv = re.match(kcv_pattern, ln)
-                m_final = re.match(final_pattern, ln)
+                eval = re.match(eval_pattern, ln)
+                kcv = re.match(kcv_pattern, ln)
+                final = re.match(final_pattern, ln)
 
                 # A little bit of a hack. The average summary value is added at the end of the list
-                if m_eval is not None or m_final is not None:
-                    if m_eval is None:
-                        m_eval = m_final
-                    metric_name = m_eval.group(1)
-                    metric_value = m_eval.group(2)
+                if eval is not None or final is not None:
+                    if eval is None:
+                        eval = final
+                    metric_name = eval.group(1)
+                    metric_value = eval.group(2)
                     self.add_metric_value(metric_name, metric_value)
 
-            if m_kcv is not None:
-                self._kcv = m_kcv.group(1)
+            if kcv is not None:
+                self._kcv = kcv.group(1)
 

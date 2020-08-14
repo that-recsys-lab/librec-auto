@@ -8,16 +8,13 @@ import os
 
 class PurgeCmd (Cmd):
 
-    _type = 'all'
-    _noask = False
-    _files: Files = None
-
     def __str__(self):
         return f'PurgeCmd({self._type})'
 
     def __init__(self, type, noask=False):
         self._type = type
         self._noask = noask
+        self._files = None
 
     def setup(self, args):
         pass
@@ -47,7 +44,6 @@ class PurgeCmd (Cmd):
                 self.purge_post()
         else:
             print("librec-auto: Skipping. No files deleted.")
-        config.ensure_sub_experiments()
         self.status = Cmd.STATUS_COMPLETE
 
     def purge_confirm(self):
