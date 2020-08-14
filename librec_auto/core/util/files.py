@@ -8,6 +8,7 @@ from collections import OrderedDict
 import glob
 import shutil
 import logging
+import re
 
 class Files:
     """
@@ -38,7 +39,8 @@ class Files:
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
     _DEFAULT_POST_DIR_NAME = "post"
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
-    _EXP_DIR_PATTERN = "exp{:05d}"
+    _EXP_DIR_FORMAT = "exp{:05d}"
+    _EXP_DIR_PATTERN = "exp(\d+)"
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
@@ -46,12 +48,10 @@ class Files:
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
-    DEFAULT_BASE_EXP_FILENAME = "base_exp.txt"
+    DEFAULT_REF_EXP_FILENAME = "ref_exp.txt"
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
-        #self._rules_dir_path = Path(self._DEFAULT_RULES_DIR_NAME)
-        #self._res_dir_path = Path(self._DEFAULT_RES_DIR_NAME)
         self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
@@ -60,15 +60,10 @@ class Files:
 
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
         self._global_path = module_init_path.parent
-        # maybe_user_path = Path(Files._DEFAULT_USER_PATH_STR)
-        # if maybe_user_path.is_dir():
-        #     self._user_path = maybe_user_path
 
     def get_global_path(self): return self._global_path
 
     def get_jar_path(self): return self.get_global_path() / self._jar_dir_path
-
-    #def get_lib_path(self): return self.get_global_path() / self._lib_dir_path
 
     def get_exp_path(self): return self._exp_path
 
@@ -101,7 +96,7 @@ class Files:
         return (self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix()
 
     def get_subexp_name (self, count):
-        return self._EXP_DIR_PATTERN.format(count)
+        return self._EXP_DIR_FORMAT.format(count)
 
     def detect_sub_path(self, exp_no):
         return (self.get_exp_path() / self.get_subexp_name(exp_no)).exists()
@@ -109,7 +104,7 @@ class Files:
     def detect_sub_paths (self, count=0):
         sub_count = 0
         while self.detect_sub_path(sub_count):
-            self._sub_path_dict[sub_count] = SubPaths(self.get_exp_path(), self.get_subexp_name(sub_count), create=False)
+            self._sub_path_dict[sub_count] = SubPaths(self, self.get_subexp_name(sub_count), create=False)
             sub_count += 1
         if sub_count != count:
             print(f'librec-auto: Expecting {count} existing experiment directories in {self.get_exp_path()}. Found {sub_count}.')
@@ -121,7 +116,7 @@ class Files:
             sub_exp_count = tuple_count
 
         for i in range(sub_exp_count):
-            self._sub_path_dict[i] = SubPaths(self.get_exp_path(), self.get_subexp_name(i), create=True)
+            self._sub_path_dict[i] = SubPaths(self, self.get_subexp_name(i), create=True)
 
     def ensure_sub_paths(self, exp_count):
         if self.detect_sub_path(0):
@@ -191,11 +186,12 @@ class SubPaths:
 
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
-    def __init__(self, base, subexp_name, create=True):
+    def __init__(self, files, subexp_name, create=True):
         self._path_dict = {}
         self.subexp_name = subexp_name
+        self.files = files
 
-        subexp_path = base / subexp_name
+        subexp_path = files.get_exp_path() / subexp_name
         self.set_path('subexp', subexp_path)
 
         status_path = subexp_path / '.status'
@@ -220,8 +216,8 @@ class SubPaths:
     def get_librec_properties_path(self):
         return self.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
 
-    def get_base_exp_flag_path(self):
-        return self.get_path('conf') / Files.DEFAULT_BASE_EXP_FILENAME
+    def get_ref_exp_flag_path(self):
+        return self.get_path('conf') / Files.DEFAULT_REF_EXP_FILENAME
 
     def get_path_str(self, type):
         return self.get_path(type).as_posix()
@@ -243,14 +239,21 @@ class SubPaths:
         xml_input = xml_load_from_path(path)
         return xml_input
 
-    def get_base_exp(self):
-        base_flag_file = self.get_base_exp_flag_path()
-        if base_flag_file.exists():
-            with base_flag_file.open() as fh:
+    def get_ref_exp_name(self):
+        ref_flag_file = self.get_ref_exp_flag_path()
+        if ref_flag_file.exists():
+            with ref_flag_file.open() as fh:
                 exp_name = fh.readline()
-                return exp_name
+                return exp_name.rstrip()
         else:
             return None
+
+    def get_ref_sub_path(self):
+        ref = self.get_ref_exp_name()
+        if not ref:
+            return None
+        else:
+            return self.files.get_sub_paths_by_name(ref)
 
     # Assumes path is set up
     def add_to_config(self, config, type):

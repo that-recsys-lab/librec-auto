@@ -73,3 +73,10 @@ def merge_elements(lib_elem, mod_elem):
 
     return lib
 
+def single_xpath(elem, path):
+    ans = elem.xpath(path)
+    if len(ans) > 0:
+        return ans[0]
+    else:
+        return None
+

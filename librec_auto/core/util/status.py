@@ -26,7 +26,10 @@ class Status():
             self._name = sub_paths.subexp_name
             self._status_xml = xml_load_from_path(status_path)
             self._message = extract_from_path(self._status_xml, ['librec-auto-status', 'message'])
-            self._log = LogFile(self._subpaths)
+            if self._subpaths.get_path('log').exists():
+                self._log = LogFile(self._subpaths)
+            else:
+                self._log = None
             params = extract_from_path(self._status_xml, ['librec-auto-status', 'param'])
             if params != None:
                 self.process_params(force_list(params))
@@ -36,7 +39,10 @@ class Status():
 
     def __str__(self):
         params_string = self.get_params_string()
-        results_string = self.get_log_info()
+        if self._log:
+            results_string = self.get_log_info()
+        else:
+            results_string = "No LibRec results"
         return f'Status({self._name}:{self._message}{params_string} Overall{results_string})'
 
     def is_completed(self):

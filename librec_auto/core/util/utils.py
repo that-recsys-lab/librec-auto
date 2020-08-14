@@ -3,6 +3,7 @@ from inspect import getsourcefile
 from os.path import abspath
 from pathlib import Path
 import logging
+from . import xml_utils
 
 # TODO: Replace with XPath
 def safe_xml_path(config, key_list):
@@ -115,19 +116,26 @@ def confirm(prompt=None, resp=False):
 
 def get_script_path(script_xml, cmd_type):
     script_path = '.'
-    if script_xml['@lang'] != 'python3':
-        print(f'librec-auto: Only Python3 scripts currently supported. Got {script_xml["@lang"]}.')
+    if script_xml.get('lang') != 'python3':
+        print(f'librec-auto: Only Python3 scripts currently supported. Got {script_xml.get("lang")}.')
         return None
-    if '@src' in script_xml:
-        if script_xml['@src'] == 'system':
+    if script_xml.get('src'):
+        if script_xml.get('src') == 'system':
             script_path = Path(abspath(getsourcefile(lambda:0))).parent.parent / 'cmd' / cmd_type
         else:
-            script_path = force_path(script_xml['@src'])
-    if 'script-name' in script_xml:
-        return script_path / script_xml['script-name']
+            script_path = force_path(script_xml.get('src'))
+    name_elem = xml_utils.single_xpath(script_xml, 'script-name')
+    if name_elem is not None:
+        return script_path / name_elem.text
     else:
         return None
 
-def create_param_spec(param_dict):
-    return [f'--{key}={val}' for key, val in param_dict.items()]
+def create_param_spec(script_xml):
+    params = script_xml.xpath('param')
+    param_list = []
+    for param in params:
+        key = param.get('name')
+        val = param.text
+        param_list.append(f'--{key}={val}')
+    return param_list
 

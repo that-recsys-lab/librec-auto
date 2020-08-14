@@ -10,6 +10,7 @@ import subprocess
 class PostCmd(Cmd):
 
     POST_SCRIPT_PATH = "core/cmd/post"
+    POST_ELEM_XPATH = '/librec-auto/post/script'
 
     def __init__(self):
         self._config = None
@@ -23,12 +24,14 @@ class PostCmd(Cmd):
     def dry_run(self, config):
         self._config = config
         print (f'librec-auto (DR): Running post command {self}')
-        for script_path, params in config.collect_scripts('post'):
-            if params is not None:
-                param_spec = utils.create_param_spec(params)
-            else:
-                param_spec = []
-            print (f'    Post script: {script_path}')
+
+        post_elems = config.get_xml().xpath(self.POST_ELEM_XPATH)
+
+        for post_elem in post_elems:
+            param_spec = utils.create_param_spec(post_elem)
+            script_path = utils.get_script_path(post_elem, 'post')
+
+            print (f'\tPost script: {script_path}')
             print (f'\tParameters: {param_spec}')
 
     def execute(self, config: ConfigCmd):
@@ -44,11 +47,12 @@ class PostCmd(Cmd):
             print('librec-auto: post directory missing. Creating. ', target)
             os.makedirs(str(post_path))
 
-        for script_path, params in config.collect_scripts('post'):
-            if params is not None:
-                param_spec = utils.create_param_spec(params)
-            else:
-                param_spec = []
+        post_elems = config.get_xml().xpath(self.POST_ELEM_XPATH)
+
+        for post_elem in post_elems:
+            param_spec = utils.create_param_spec(post_elem)
+            script_path = utils.get_script_path(post_elem, 'post')
+
             proc_spec = [sys.executable, script_path.absolute().as_posix(),
                          self._config.get_files().get_config_path().name,
                          config.get_target()] + param_spec

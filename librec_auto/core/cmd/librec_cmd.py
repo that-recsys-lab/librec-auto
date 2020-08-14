@@ -66,17 +66,22 @@ class LibrecCmd (Cmd):
     def dry_run(self, config):
         self._config = config
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
-
-
-        self.dry_run_librec()
+        link = self._sub_path.get_ref_exp_name()
+        if not link:
+            self.dry_run_librec()
+        else:
+            print(f'librec-auto (DR): Skipping librec. Getting results from {link}')
 
     def execute(self, config: ConfigCmd):
         self._config = config
         self._sub_path = config.get_files().get_sub_paths(self._sub_no)
-        self.ensure_clean_log()
+        if not self._sub_path.get_ref_exp_name():
+            self.ensure_clean_log()
 
-        Status.save_status("Executing", self._sub_no, config, self._sub_path)
-        self.execute_librec()
+            Status.save_status("Executing", self._sub_no, config, self._sub_path)
+            self.execute_librec()
+        else:
+            self.status = Cmd.STATUS_COMPLETE
         Status.save_status("Completed", self._sub_no, config, self._sub_path)
 
     # Checks for any contents of split directory, which would have been removed by purging

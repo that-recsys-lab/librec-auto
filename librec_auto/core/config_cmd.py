@@ -37,6 +37,9 @@ class ConfigCmd:
     def get_target(self):
         return self._target
 
+    def get_xml(self):
+        return self._xml_input
+
     # def get_var_data(self):
     #     return self._var_data
 
@@ -155,14 +158,14 @@ class ConfigCmd:
         logging.info('Writing config file ' + str(outpath))
         new_xml.getroottree().write(outpath.absolute().as_posix(), pretty_print=True)
 
-        if vconf.base_config is None:
+        if vconf.ref_config is None:
             props = LibrecProperties(new_xml, self._files)
             exp.add_to_config(props.properties, 'result')
             props.save(exp)
         else:
-            path = exp.get_base_exp_flag_path()
+            path = exp.get_ref_exp_flag_path()
             with path.open(mode='w') as fh:
-                fh.write(vconf.base_config.exp_dir)
+                fh.write(vconf.ref_config.exp_dir)
                 fh.write('\n')
 
     def has_rerank(self):

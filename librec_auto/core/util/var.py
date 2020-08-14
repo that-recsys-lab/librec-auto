@@ -19,7 +19,7 @@ class VarColl:
         configs = [self.get_type_conf(type) for type in rev_types]
         conf_product = list(itertools.product(*configs))
         self.var_confs = [self.conf_merge(conf_elem) for conf_elem in conf_product]
-        self.set_base_refs()
+        self.set_refs()
 
     def add_var(self, type, path, vals):
         if len(self.vars[type]) == 0:
@@ -45,16 +45,16 @@ class VarColl:
         for conf in confs[1:]:
             base.merge(conf)
         base.type = 'merged'
-        print(str(base.vars))
+        # print(str(base.vars))
         return base
 
-    def set_base_refs(self):
+    def set_refs(self):
         librec_factor = self.type_factor['librec']
         for i in range(0, len(self.var_confs)):
-            row = i / librec_factor
+            row = i // librec_factor
             col = i % librec_factor
             if row > 0:
-                self.var_confs[i].base_config = self.var_confs[col]
+                self.var_confs[i].ref_config = self.var_confs[col]
 
 
 class VarConfig:
@@ -63,7 +63,7 @@ class VarConfig:
         self.exp_dir = None
         self.type = type
         self.vars = vars
-        self.base_config = None
+        self.ref_config = None
 
     def __str__(self):
         return f'<VarConfig {self.type} Vars: {self.vars}'
