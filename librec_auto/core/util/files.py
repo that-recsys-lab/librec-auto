@@ -8,7 +8,7 @@ from collections import OrderedDict
 import glob
 import shutil
 import logging
-import re
+from datetime import datetime
 
 class Files:
     """
@@ -168,16 +168,21 @@ class Files:
             hasher.update(fl_bytes)
         return hasher.hexdigest()
 
+
 class SubPaths:
     """
     Represents the various directories and paths associated with a single sub-experiment
 
     - log
     - result
-    - original (for re-ranking)
+    - original (for re-ranking
     - conf
     """
-    DEFAULT_LOG_FILENAME = 'librec.log'
+
+    _LIBREC_PROPERTIES_FILE = 'librec.properties'
+    DEFAULT_LOG_PATTERN = "librec-{}.log"
+
+    _path_dict = None
 
     _prop_dict = {'log': 'dfs.log.dir',
 #                 'split': 'dfs.split.dir',
@@ -186,12 +191,15 @@ class SubPaths:
 
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
+    subexp_name = None
+
     def __init__(self, files, subexp_name, create=True):
         self._path_dict = {}
-        self.subexp_name = subexp_name
         self.files = files
+        base = files.get_exp_path()
+        self.subexp_name = subexp_name
 
-        subexp_path = files.get_exp_path() / subexp_name
+        subexp_path = base / subexp_name
         self.set_path('subexp', subexp_path)
 
         status_path = subexp_path / '.status'
@@ -218,6 +226,7 @@ class SubPaths:
 
     def get_ref_exp_flag_path(self):
         return self.get_path('conf') / Files.DEFAULT_REF_EXP_FILENAME
+
 
     def get_path_str(self, type):
         return self.get_path(type).as_posix()
@@ -277,3 +286,8 @@ class SubPaths:
         for file in files:
             shutil.copy2(file, result_path)
         shutil.rmtree(original_path)
+
+    def get_log_path(self):
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = SubPaths.DEFAULT_LOG_PATTERN.format(stamp)
+        return self.get_path('log') / fname
