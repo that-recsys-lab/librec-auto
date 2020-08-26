@@ -15,10 +15,10 @@ setuptools.setup(
     url="https://github.com/that-recsys-lab/librec-auto",
     packages=setuptools.find_packages(),
 	include_package_data=True,
-	install_requires=[
-          'matplotlib',
-		  'pandas',
-		  'numpy',		  
+	install_requires=['matplotlib',
+                      'pandas',
+                      'numpy',
+                      'progressbar'
     ],
 	classifiers=[
         "Programming Language :: Python :: 3",
