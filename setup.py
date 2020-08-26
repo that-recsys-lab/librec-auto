@@ -18,6 +18,7 @@ setuptools.setup(
     install_requires=[
         'matplotlib',
         'pandas',
+        'progressbar',
         'numpy',
     ],
     classifiers=[
