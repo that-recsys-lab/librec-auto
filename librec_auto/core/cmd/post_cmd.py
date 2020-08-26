@@ -23,7 +23,7 @@ class PostCmd(Cmd):
 
     def dry_run(self, config):
         self._config = config
-        print (f'librec-auto (DR): Running post command {self}')
+        print(f'librec-auto (DR): Running post command {self}')
 
         post_elems = config.get_xml().xpath(self.POST_ELEM_XPATH)
 
@@ -31,8 +31,8 @@ class PostCmd(Cmd):
             param_spec = utils.create_param_spec(post_elem)
             script_path = utils.get_script_path(post_elem, 'post')
 
-            print (f'\tPost script: {script_path}')
-            print (f'\tParameters: {param_spec}')
+            print(f'\tPost script: {script_path}')
+            print(f'\tParameters: {param_spec}')
 
     def execute(self, config: ConfigCmd):
         self._config = config
@@ -53,8 +53,11 @@ class PostCmd(Cmd):
             param_spec = utils.create_param_spec(post_elem)
             script_path = utils.get_script_path(post_elem, 'post')
 
-            proc_spec = [sys.executable, script_path.absolute().as_posix(),
-                         self._config.get_files().get_config_path().name,
-                         config.get_target()] + param_spec
-            print (f'librec-auto: Running post-processing script {proc_spec}')
+            proc_spec = [
+                sys.executable,
+                script_path.absolute().as_posix(),
+                self._config.get_files().get_config_path().name,
+                config.get_target()
+            ] + param_spec
+            print(f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)

@@ -9,8 +9,8 @@ import progressbar
 import urllib.request
 import time
 
-class InstallCmd(Cmd):
 
+class InstallCmd(Cmd):
     def __str__(self):
         return f'InstallCmd()'
 
@@ -19,17 +19,19 @@ class InstallCmd(Cmd):
 
     def dry_run(self, config):
         # self._config = config
-        print (f'librec-auto (DR): Running install command {self}')
+        print(f'librec-auto (DR): Running install command {self}')
         # for script_path, params in config.collect_scripts('post'):
         #     param_spec = utils.create_param_spec(params)
         #     print (f'    Post script: {script_path}')
         #     print (f'\tParameters: {param_spec}')
 
-
     def execute(self, config: ConfigCmd):
         jar_path = os.path.dirname(librec_auto.__file__) + '\\jar\\auto.jar'
         import urllib.request
-        urllib.request.urlretrieve('https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1', jar_path, self.show_progress)
+        urllib.request.urlretrieve(
+            'https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1',
+            jar_path, self.show_progress)
+
     # def execute(self, config: ConfigCmd):
     #     lib_path = os.path.dirname(librec_auto.__file__)
     #     jar_path = lib_path.partition("\\librec_auto")[0]
@@ -44,10 +46,15 @@ class InstallCmd(Cmd):
             return
         duration = time.time() - self.start_time
         progress_size = int(count * block_size)
-        speed = int(progress_size / (1024 * (int(duration) + 1))) # int(progress_size / (1024 * duration))
-        percent = min(int(count*block_size*100/total_size),100) # int(count * block_size * 100 / total_size)
+        speed = int(
+            progress_size /
+            (1024 *
+             (int(duration) + 1)))  # int(progress_size / (1024 * duration))
+        percent = min(int(count * block_size * 100 / total_size),
+                      100)  # int(count * block_size * 100 / total_size)
         sys.stdout.write("\r...%d%%, %d MB, %d KB/s, %d seconds passed" %
-                         (percent, progress_size / (1024 * 1024), speed, duration))
+                         (percent, progress_size /
+                          (1024 * 1024), speed, duration))
         sys.stdout.flush()
 
     # def show_progress(self, block_num, block_size, total_size):
