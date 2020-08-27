@@ -8,7 +8,8 @@ from collections import OrderedDict
 import glob
 import shutil
 import logging
-import re
+from datetime import datetime
+
 
 class Files:
     """
@@ -61,62 +62,79 @@ class Files:
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
         self._global_path = module_init_path.parent
 
-    def get_global_path(self): return self._global_path
+    def get_global_path(self):
+        return self._global_path
 
-    def get_jar_path(self): return self.get_global_path() / self._jar_dir_path
+    def get_jar_path(self):
+        return self.get_global_path() / self._jar_dir_path
 
-    def get_exp_path(self): return self._exp_path
+    def get_exp_path(self):
+        return self._exp_path
 
-    def get_split_path(self): return self._exp_path / self._split_dir_path
+    def get_split_path(self):
+        return self._exp_path / self._split_dir_path
 
-    def get_config_path(self): return self._exp_path / self._config_dir_path / self._config_file_name
+    def get_config_path(self):
+        return self._exp_path / self._config_dir_path / self._config_file_name
 
-    def get_config_dir_path(self): return self._exp_path / self._config_dir_path
+    def get_config_dir_path(self):
+        return self._exp_path / self._config_dir_path
 
-    def get_post_path(self): return self._exp_path / self._post_dir_path
+    def get_post_path(self):
+        return self._exp_path / self._post_dir_path
 
-    def set_global_path(self, path): self._global_path = Path(path)
+    def set_global_path(self, path):
+        self._global_path = Path(path)
 
-    def set_config_dir_path(self, path): self._config_dir_path = Path(path)
+    def set_config_dir_path(self, path):
+        self._config_dir_path = Path(path)
 
-    def set_exp_path(self, path): self._exp_path = Path(path)
+    def set_exp_path(self, path):
+        self._exp_path = Path(path)
 
-    def set_config_file(self, filename): self._config_file_name = Path(filename)
+    def set_config_file(self, filename):
+        self._config_file_name = Path(filename)
 
-    def get_rules_path (self):
+    def get_rules_path(self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
 
-    def get_lib_path (self):
+    def get_lib_path(self):
         return self.get_global_path() / self._DEFAULT_LIB_DIR_NAME
 
     # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpaths here.
-    def get_classpath (self):
+    def get_classpath(self):
         # return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
         #        (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
-        return (self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix()
+        return (self.get_jar_path() /
+                self._DEFAULT_LA_JAR).absolute().as_posix()
 
-    def get_subexp_name (self, count):
+    def get_subexp_name(self, count):
         return self._EXP_DIR_FORMAT.format(count)
 
     def detect_sub_path(self, exp_no):
         return (self.get_exp_path() / self.get_subexp_name(exp_no)).exists()
 
-    def detect_sub_paths (self, count=0):
+    def detect_sub_paths(self, count=0):
         sub_count = 0
         while self.detect_sub_path(sub_count):
-            self._sub_path_dict[sub_count] = SubPaths(self, self.get_subexp_name(sub_count), create=False)
+            self._sub_path_dict[sub_count] = SubPaths(
+                self, self.get_subexp_name(sub_count), create=False)
             sub_count += 1
         if sub_count != count:
-            print(f'librec-auto: Expecting {count} existing experiment directories in {self.get_exp_path()}. Found {sub_count}.')
+            print(
+                f'librec-auto: Expecting {count} existing experiment directories in {self.get_exp_path()}. Found {sub_count}.'
+            )
 
-    def create_sub_paths (self, tuple_count):
+    def create_sub_paths(self, tuple_count):
         if tuple_count == 0:
             sub_exp_count = 1
         else:
             sub_exp_count = tuple_count
 
         for i in range(sub_exp_count):
-            self._sub_path_dict[i] = SubPaths(self, self.get_subexp_name(i), create=True)
+            self._sub_path_dict[i] = SubPaths(self,
+                                              self.get_subexp_name(i),
+                                              create=True)
 
     def ensure_sub_paths(self, exp_count):
         if self.detect_sub_path(0):
@@ -124,9 +142,9 @@ class Files:
         else:
             self.create_sub_paths(exp_count)
 
-    def get_sub_count (self):
+    def get_sub_count(self):
         if len(self._sub_path_dict) > 0:
-            return max(self._sub_path_dict.keys())+1
+            return max(self._sub_path_dict.keys()) + 1
         else:
             return 0
 
@@ -168,30 +186,40 @@ class Files:
             hasher.update(fl_bytes)
         return hasher.hexdigest()
 
+
 class SubPaths:
     """
     Represents the various directories and paths associated with a single sub-experiment
 
     - log
     - result
-    - original (for re-ranking)
+    - original (for re-ranking
     - conf
     """
-    DEFAULT_LOG_FILENAME = 'librec.log'
 
-    _prop_dict = {'log': 'dfs.log.dir',
-#                 'split': 'dfs.split.dir',
-                 'result': 'dfs.result.dir',
-                  'conf': 'dfs.config.dir'}
+    _LIBREC_PROPERTIES_FILE = 'librec.properties'
+    DEFAULT_LOG_PATTERN = "librec-{}.log"
+
+    _path_dict = None
+
+    _prop_dict = {
+        'log': 'dfs.log.dir',
+        #                 'split': 'dfs.split.dir',
+        'result': 'dfs.result.dir',
+        'conf': 'dfs.config.dir'
+    }
 
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
+    subexp_name = None
+
     def __init__(self, files, subexp_name, create=True):
         self._path_dict = {}
-        self.subexp_name = subexp_name
         self.files = files
+        base = files.get_exp_path()
+        self.subexp_name = subexp_name
 
-        subexp_path = files.get_exp_path() / subexp_name
+        subexp_path = base / subexp_name
         self.set_path('subexp', subexp_path)
 
         status_path = subexp_path / '.status'
@@ -218,6 +246,7 @@ class SubPaths:
 
     def get_ref_exp_flag_path(self):
         return self.get_path('conf') / Files.DEFAULT_REF_EXP_FILENAME
+
 
     def get_path_str(self, type):
         return self.get_path(type).as_posix()
@@ -277,3 +306,8 @@ class SubPaths:
         for file in files:
             shutil.copy2(file, result_path)
         shutil.rmtree(original_path)
+
+    def get_log_path(self):
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = SubPaths.DEFAULT_LOG_PATTERN.format(stamp)
+        return self.get_path('log') / fname

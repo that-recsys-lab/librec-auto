@@ -1,13 +1,12 @@
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, SubPaths
 from librec_auto.core import ConfigCmd
-from  librec_auto.core.util import confirm
+from librec_auto.core.util import confirm
 import shutil
 import os
 
 
-class PurgeCmd (Cmd):
-
+class PurgeCmd(Cmd):
     def __str__(self):
         return f'PurgeCmd({self._type})'
 
@@ -51,49 +50,44 @@ class PurgeCmd (Cmd):
         prompt_str = f"This will perform a purge of type {self._type} experiments and/or file splits in directory {target}"
         return confirm(prompt=prompt_str, resp=False)
 
-
     def purge_subexperiments(self):
         target = self._files.get_exp_path()
 
-        print ("librec-auto: Purging sub-experiments ", target)
+        print("librec-auto: Purging sub-experiments ", target)
         if self._files.get_sub_count() > 0:
             for sub_paths in self._files.get_sub_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
-                print ("librec-auto: Deleting experiment directory: ", exp_str)
+                print("librec-auto: Deleting experiment directory: ", exp_str)
                 shutil.rmtree(exp_str)
         else:
-            print ("librec-auto: No experiments folders found in ", target)
+            print("librec-auto: No experiments folders found in ", target)
 
     def purge_splits(self):
         target = self._files.get_exp_path()
         split_path = self._files.get_split_path()
         if split_path.exists():
-            print ("librec-auto: Deleting split directories ", target)
+            print("librec-auto: Deleting split directories ", target)
             shutil.rmtree(split_path.as_posix())
         else:
-            print ("librec-auto: No split directories found in", target)
+            print("librec-auto: No split directories found in", target)
 
     def purge_post(self):
         target = self._files.get_exp_path()
         post_path = self._files.get_post_path()
 
         if post_path.exists():
-            print ("librec-auto: Deleting post directory files ", target)
+            print("librec-auto: Deleting post directory files ", target)
 
             files = post_path.glob('*')
             for f in files:
                 os.remove(str(f))
         else:
-            print ("librec-auto: Post directory missing ", target)
+            print("librec-auto: Post directory missing ", target)
 
     # TODO: 2019-12-06 RB The status file will be out of date.
     def purge_rerank(self):
         if self._files.get_sub_count() > 0:
             for sub_paths in self._files.get_sub_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
-                print ("librec-auto: Deleting reranked results: ", exp_str)
+                print("librec-auto: Deleting reranked results: ", exp_str)
                 sub_paths.results2original()
-
-
-
-

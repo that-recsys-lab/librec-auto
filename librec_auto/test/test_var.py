@@ -3,10 +3,9 @@ from librec_auto.core.util import var
 
 
 class MyTestCase(unittest.TestCase):
-
     def setUp(self):
         self.vcoll = var.VarColl()
-        self.vcoll.add_var('librec', 'path1', [10,20,30])
+        self.vcoll.add_var('librec', 'path1', [10, 20, 30])
         self.vcoll.add_var('librec', 'path2', [0.01, 0.02])
         self.vcoll.add_var('rerank', 'path3', [0.3, 0.6, 0.9])
         self.vcoll.compute_var_configurations()

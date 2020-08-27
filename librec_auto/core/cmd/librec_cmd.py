@@ -4,10 +4,11 @@ from librec_auto.core import ConfigCmd
 import os
 import subprocess
 import shlex
-import  time
+import time
 from pathlib import Path, WindowsPath
 
-class LibrecCmd (Cmd):
+
+class LibrecCmd(Cmd):
 
     _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
 
@@ -31,7 +32,9 @@ class LibrecCmd (Cmd):
         cmd = self.create_proc_spec()
 
         if len(cmd) == 0:
-            print ("librec-auto: Unknown command {self._command}. Skipping LibRec execution.")
+            print(
+                "librec-auto: Unknown command {self._command}. Skipping LibRec execution."
+            )
             self.status = Cmd.STATUS_ERROR
             return
 
@@ -39,7 +42,9 @@ class LibrecCmd (Cmd):
         log_path = self._sub_path.get_log_path()
 
         f = open(str(log_path), 'w+')
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
 
         for line in p.stdout:
             line_string = str(line, 'utf-8')
@@ -54,12 +59,13 @@ class LibrecCmd (Cmd):
         else:
             self.status = Cmd.STATUS_COMPLETE
 
-
     def dry_run_librec(self):
         cmd = self.create_proc_spec()
 
         proc_spec = ' '.join(cmd)
-        print (f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._sub_path.subexp_name}, exec: {proc_spec}')
+        print(
+            f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._sub_path.subexp_name}, exec: {proc_spec}'
+        )
         # Only for testing parallel function
         # time.sleep(1.0)
 
@@ -70,7 +76,9 @@ class LibrecCmd (Cmd):
         if not link:
             self.dry_run_librec()
         else:
-            print(f'librec-auto (DR): Skipping librec. Getting results from {link}')
+            print(
+                f'librec-auto (DR): Skipping librec. Getting results from {link}'
+            )
 
     def execute(self, config: ConfigCmd):
         self._config = config
@@ -78,7 +86,8 @@ class LibrecCmd (Cmd):
         if not self._sub_path.get_ref_exp_name():
             self.ensure_clean_log()
 
-            Status.save_status("Executing", self._sub_no, config, self._sub_path)
+            Status.save_status("Executing", self._sub_no, config,
+                               self._sub_path)
             self.execute_librec()
         else:
             self.status = Cmd.STATUS_COMPLETE
@@ -97,7 +106,7 @@ class LibrecCmd (Cmd):
 
     # log file appends by default
     def ensure_clean_log(self):
-        librec_log = log_path = self._sub_path.get_path('log') / SubPaths.DEFAULT_LOG_FILENAME
+        librec_log = log_path = self._sub_path.get_log_path()
         if librec_log.is_file():
             librec_log.unlink()
 
@@ -111,7 +120,9 @@ class LibrecCmd (Cmd):
         if java_command is None:
             return []
         else:
-            return ['java', '-cp', classpath, mainClass, confpath_str, java_command]
+            return [
+                'java', '-cp', classpath, mainClass, confpath_str, java_command
+            ]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):

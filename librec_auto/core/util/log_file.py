@@ -2,9 +2,9 @@ from librec_auto.core.util import SubPaths
 import re
 import os
 
+
 # By default, the most recent one in the directory
 class LogFile:
-
     def __str__(self):
         return f'LogFile({self._values}'
 
@@ -13,7 +13,6 @@ class LogFile:
         self._values = {}
 
         self._log_path = self.newest_log(paths)
-
 
         self.parse_log()
 
@@ -48,7 +47,7 @@ class LogFile:
     def parse_log(self):
         eval_pattern_str = r'.*Evaluator info:(.*)Evaluator is (-?\d+.?\d+)'
         kcv_pattern_str = r'.*Splitting .* on fold (\d+)'
-#        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
+        #        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
         final_pattern_str = r'.*Evaluator value:(.*)Evaluator is (-?\d+.?\d+)'
 
         eval_pattern = re.compile(eval_pattern_str)
@@ -74,4 +73,3 @@ class LogFile:
 
             if kcv is not None:
                 self._kcv = kcv.group(1)
-
