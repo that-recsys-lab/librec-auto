@@ -106,8 +106,7 @@ class LibrecCmd(Cmd):
 
     # log file appends by default
     def ensure_clean_log(self):
-        librec_log = log_path = self._sub_path.get_path(
-            'log') / SubPaths.DEFAULT_LOG_FILENAME
+        librec_log = log_path = self._sub_path.get_log_path()
         if librec_log.is_file():
             librec_log.unlink()
 
