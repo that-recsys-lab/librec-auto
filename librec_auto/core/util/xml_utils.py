@@ -2,8 +2,9 @@ from lxml import etree
 from pathlib import Path
 import copy
 
+
 def build_parent_path(elem, pathsofar=''):
-    if elem.tag == 'param':                     # params are distinguished by name attributes
+    if elem.tag == 'param':  # params are distinguished by name attributes
         pathsofar = f"[@name='{elem.get('name')}']"
     nextpath = '/' + elem.tag + pathsofar
     if (elem.getparent() == None):
@@ -12,6 +13,7 @@ def build_parent_path(elem, pathsofar=''):
         return nextpath
     else:
         return build_parent_path(elem.getparent(), nextpath)
+
 
 def read_xml_from_path_string(path_str):
     path = Path(path_str)
@@ -30,8 +32,8 @@ def xml_load_from_path(path):
         with path.open() as fd:
             txt = fd.read()
     except IOError as e:
-        print ("Error reading ", path)
-        print ("IO error({0}): {1}".format(e.errno, e.strerror))
+        print("Error reading ", path)
+        print("IO error({0}): {1}".format(e.errno, e.strerror))
         # logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
         return {}
 
@@ -43,11 +45,12 @@ def xml_load_from_text(txt):
         parser = etree.XMLParser(remove_comments=True)
         xml_data = etree.fromstring(txt, parser=parser)
     except etree.XMLSyntaxError as e:
-        print ("Error parsing XML")
-        print ("LXML error in line: {0}".format(e.lineno))
+        print("Error parsing XML")
+        print("LXML error in line: {0}".format(e.lineno))
         xml_data = None
 
     return xml_data
+
 
 # The idea is that we have a complete element lib_elem and a partial element mod_elem.
 # The mod_elem contents override those in lib_elem when they overlap.
@@ -73,10 +76,10 @@ def merge_elements(lib_elem, mod_elem):
 
     return lib
 
+
 def single_xpath(elem, path):
     ans = elem.xpath(path)
     if len(ans) > 0:
         return ans[0]
     else:
         return None
-

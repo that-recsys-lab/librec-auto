@@ -4,6 +4,7 @@ import logging
 import itertools
 from pathlib import Path
 
+
 class ConfigLib:
 
     _xml = None
@@ -34,15 +35,20 @@ class ConfigLib:
                     if name not in self._element_dict:
                         self._element_dict[name] = elem
                     else:
-                        print(f'librec-auto: WARNING: Name {name} is not unique in {self._source_path}')
+                        print(
+                            f'librec-auto: WARNING: Name {name} is not unique in {self._source_path}'
+                        )
                 else:
-                    print(f'librec-auto: WARNING: Element {elem} has no name in {self._source_path}')
+                    print(
+                        f'librec-auto: WARNING: Element {elem} has no name in {self._source_path}'
+                    )
 
     def exists_element(self, ref):
         return ref in self._element_dict
 
     def get_element(self, ref):
         return self._element_dict[ref]
+
 
 # Library are searched in inverse order from when they are added. Most recent have priority.
 class ConfigLibCollection:
@@ -64,6 +70,3 @@ class ConfigLibCollection:
                 return lib.get_element(ref)
         # Should probably throw a key not found error
         return None
-
-
-
