@@ -13,6 +13,7 @@ class LogFile:
         self._values = {}
 
         self._log_path = self.newest_log(paths)
+        self._kcv = None
 
         self.parse_log()
 

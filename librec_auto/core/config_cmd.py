@@ -1,6 +1,7 @@
 from collections import OrderedDict, defaultdict
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
     xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
+from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
 import copy
 import logging
@@ -183,6 +184,13 @@ class ConfigCmd:
     def has_post(self):
         post_elems = self._xml_input.xpath('/librec-auto/post')
         return len(post_elems) > 0
+
+    def cross_validation(self):
+        model_elem = single_xpath(self._xml_input, '/librec-auto/splitter/model')
+        if model_elem.text == 'kcv':
+            return int(model_elem.get('count'))
+        else:
+            return 1
 
     def is_valid(self):
         return self._xml_input is not None

@@ -18,18 +18,22 @@ exp_dir_pattern = "exp[0-9][0-9][0-9]"
 
 
 def get_metric_info(files):
-
     metric_info = {}
 
     for sub_paths in files.get_sub_paths_iterator():
+        print(f'sub_paths: {sub_paths.subexp_name}')
         status = Status(sub_paths)
+        print(status)
 
         if status.is_completed():
-            params = status.m_params
-            vals = status.m_vals
-            log = status.m_log
+            params = status._params
+            vals = status._vals
+            log = status._log
 
-            metric_info[status.m_name] = (params, vals, log)
+            metric_info[status._name] = (params, vals, log)
+            print(f'Params: {params}')
+            print(f'Vals: {vals}')
+            print(f'Log: {log}')
 
     return metric_info
 
@@ -144,12 +148,14 @@ def create_html(path, metric_info, bars, boxes):
 
 def create_graphics(config, display):
     files = config.get_files()
-    metric_info = get_metric_info(config.get_files())
+    metric_info = get_metric_info(files)
+
+    print("Post path")
+    print(files.get_post_path())
 
     bars = create_bars(files.get_post_path(), metric_info)
 
-    if 'data.splitter.cv.number' in config.get_prop_dict(
-    ):  # Box plot only makes sense for cross-validation
+    if config.cross_validation() > 1:       # Box plot only makes sense for cross-validation
         boxes = create_boxes(files.get_post_path(), metric_info)
     else:
         boxes = None
