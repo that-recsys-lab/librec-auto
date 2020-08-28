@@ -21,9 +21,7 @@ def get_metric_info(files):
     metric_info = {}
 
     for sub_paths in files.get_sub_paths_iterator():
-        print(f'sub_paths: {sub_paths.subexp_name}')
         status = Status(sub_paths)
-        print(status)
 
         if status.is_completed():
             params = status._params
@@ -31,9 +29,6 @@ def get_metric_info(files):
             log = status._log
 
             metric_info[status._name] = (params, vals, log)
-            print(f'Params: {params}')
-            print(f'Vals: {vals}')
-            print(f'Log: {log}')
 
     return metric_info
 
@@ -49,7 +44,6 @@ def create_bar(path, metric_name, params, settings, metric_values):
     ax.set_xticklabels(settings)
 
     filename = path / viz_file_pattern_bar.format(metric_name)
-    print(str(filename))
     fig.savefig(str(filename))
     plt.close()
 
@@ -95,7 +89,6 @@ def create_box(path, metric, params, settings, fold_values):
 
 def create_boxes(path, metric_info):
     metric_names = list(metric_info.values())[0][2].get_metrics()
-    print(metric_names)
 
     box_paths = []
     for metric in metric_names:
