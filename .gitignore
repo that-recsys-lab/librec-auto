@@ -35,6 +35,9 @@ build/
 dist/
 librec_auto.egg-info/
 
+## Documentation
+librec_auto/docs/build
+
 # Librec
 
 ## Experiments
