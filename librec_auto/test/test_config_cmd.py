@@ -6,7 +6,6 @@ from pathlib import Path
 
 
 class ConfigCmdTestCase(unittest.TestCase):
-
     def setUp(self):
         self.files = Files()
         self.files.set_exp_path('.')
@@ -28,14 +27,16 @@ class ConfigCmdTestCase(unittest.TestCase):
     def test_processConfig(self):
         config = ConfigCmd(self.files)
         config.process_config()
-        self.assertTrue(len(config.get_prop_dict())>0)
-        self.assertEqual(config.get_prop_dict()['rec.recommender.class'], 'biasedmf')
+        self.assertTrue(len(config.get_prop_dict()) > 0)
+        self.assertEqual(config.get_prop_dict()['rec.recommender.class'],
+                         'biasedmf')
 
     def test_processUnparsed(self):
         config = ConfigCmd(self.files)
         config.process_config()
         self.assertIsInstance(config.get_unparsed('rerank'), OrderedDict)
         self.assertTrue('script' in config.get_unparsed('rerank'))
+
 
 if __name__ == '__main__':
     unittest.main()

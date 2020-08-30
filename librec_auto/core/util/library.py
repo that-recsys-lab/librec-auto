@@ -1,12 +1,13 @@
 import logging
 from librec_auto.core.util.xml_utils import xml_load_from_path
 
+
 class LibraryColl:
 
     _libraries = []
 
     # Add to front so the last library listed is consulted first
-    def add_lib (self, lib):
+    def add_lib(self, lib):
         self._libraries.insert(0, lib)
 
     def get_elem(self, name):
@@ -16,6 +17,7 @@ class LibraryColl:
             if elem is not None:
                 return elem
         return None
+
 
 class Library:
 
@@ -29,8 +31,9 @@ class Library:
     def __init__(self, filename, source, files):
         if source and source == 'system':
             path = files.get_lib_path()
-        elif source: # But not 'system'
-            logging.warning(f'Only system src attribute supported. Got {source}')
+        elif source:  # But not 'system'
+            logging.warning(
+                f'Only system src attribute supported. Got {source}')
             path = files.get_config_dir_path()
         else:
             path = files.get_config_dir_path()
@@ -59,4 +62,3 @@ class Library:
             return self._elem_dict[name]
         else:
             return None
-

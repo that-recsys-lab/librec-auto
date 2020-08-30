@@ -9,6 +9,7 @@ import numpy as np
 from librec_auto.core import read_config_file
 from pathlib import Path
 
+
 class FarHelper:
     item_feature_df = None
     protected = None
@@ -46,6 +47,7 @@ def entropy_(labels, base=None):
 
     return ent
 
+
 def get_user_tolerance(user_profile, item_features, helper):
     # look through the items that the user has rated before
     # look through the item features and save a list of all these feature names in a file
@@ -53,12 +55,15 @@ def get_user_tolerance(user_profile, item_features, helper):
     user_items = user_profile['itemid'].tolist()
     if len(user_items) == 0:
         return 0
-    return entropy_(item_features.loc[item_features.index.isin(user_items), 'feature'].tolist())
+    return entropy_(item_features.loc[item_features.index.isin(user_items),
+                                      'feature'].tolist())
 
 
 # Caches the protected items for quicker lookup
 def get_protected_set(item_features, helper):
-    return set((item_features[(item_features['feature']==helper.protected) & (item_features['value']==1)].index).tolist())
+    return set((item_features[(item_features['feature'] == helper.protected)
+                              & (item_features['value'] == 1)].index).tolist())
+
 
 #def is_protected(itemid):
 #    item_entry = item_feature_df.loc[itemid]
@@ -69,20 +74,23 @@ def get_protected_set(item_features, helper):
 #     num_prot = [is_protected(itemid) for itemid in items].count(True)
 #     return num_prot
 
+
 def score_prot(user_profile, helper):
     user_items = user_profile['itemid'].tolist()
-    if len(user_items)==0:
+    if len(user_items) == 0:
         return 0
     return helper.num_prot(user_items) / len(user_items)
 
-def rescore_binary(item, original_score, items_so_far, score_profile, user_tol, helper):
+
+def rescore_binary(item, original_score, items_so_far, score_profile, user_tol,
+                   helper):
     answer = original_score
     div_term = 0
 
     # If there are both kind of items in the list, no re-ranking happens
     count_prot = helper.num_prot(items_so_far)
     if helper.is_protected(item):
-        if count_prot==0:
+        if count_prot == 0:
             div_term = score_profile
     else:
         if count_prot == len(items_so_far):
@@ -93,9 +101,11 @@ def rescore_binary(item, original_score, items_so_far, score_profile, user_tol, 
     answer += div_term
     return answer
 
+
 # Not in the original paper, but treats the P(\\bar{s)|d) as real-valued
 # See Abdollahpouri, Burke, and Mobasher. Managing popularity bias in recommender systems with personalized re-ranking. 2019
-def rescore_prop(item, original_score, items_so_far, score_profile, user_tol, helper):
+def rescore_prop(item, original_score, items_so_far, score_profile, user_tol,
+                 helper):
     answer = original_score
     div_term = 0
 
@@ -125,14 +135,17 @@ def pick_best(user_recs, user_profile, items_so_far, item_features, helper):
 
     for _, _, item, score in user_recs.itertuples():
         if helper.binary:
-            new_score = rescore_binary(item, score, items_so_far, score_profile, user_tol, helper)
+            new_score = rescore_binary(item, score, items_so_far,
+                                       score_profile, user_tol, helper)
         else:
-            new_score = rescore_prop(item, score, items_so_far, score_profile, user_tol, helper)
+            new_score = rescore_prop(item, score, items_so_far, score_profile,
+                                     user_tol, helper)
         if new_score > best_score:
             best_item = item
             best_score = new_score
 
     return (best_item, best_score)
+
 
 def rerank(userid, user_recs_df, user_profile, item_features, helper):
     output_data = []
@@ -140,23 +153,26 @@ def rerank(userid, user_recs_df, user_profile, item_features, helper):
 
     for i in range(0, helper.max_length):
 
-        item, score = pick_best(user_recs_df, user_profile, items_so_far, item_features, helper)
+        item, score = pick_best(user_recs_df, user_profile, items_so_far,
+                                item_features, helper)
 
         items_so_far.append(item)
         output_data.append((userid, item, score))
-        new_user_recs = user_recs_df[user_recs_df['itemid']!=item]
+        new_user_recs = user_recs_df[user_recs_df['itemid'] != item]
         user_recs_df = new_user_recs
 
     return pd.DataFrame(output_data, columns=['userid', 'itemid', 'score'])
+
 
 def execute(recoms_df, train_df, item_features, helper):
     result = []
 
     for userid in list(set(recoms_df['userid'])):
-#        print('list reranked for user #',userid)
-        result.append(rerank(userid, recoms_df[recoms_df['userid']==userid].copy(),
-                             train_df[train_df['userid']==userid], item_features,
-                             helper))
+        #        print('list reranked for user #',userid)
+        result.append(
+            rerank(userid, recoms_df[recoms_df['userid'] == userid].copy(),
+                   train_df[train_df['userid'] == userid], item_features,
+                   helper))
 
     rr_df = pd.concat(result)
     return rr_df
@@ -172,9 +188,14 @@ def read_args():
     parser.add_argument('target', help='Experiment target')
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
-    parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
+    parser.add_argument(
+        '--max_len',
+        help='The maximum number of items to return in each list',
+        default=10)
     parser.add_argument('--lambda', help='The weight for re-ranking.')
-    parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
+    parser.add_argument('--binary',
+                        help='Whether P(\\bar{s)|d) is binary or real-valued',
+                        default=True)
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -183,10 +204,12 @@ def read_args():
 RESULT_FILE_PATTERN = 'out-\d+.txt'
 INPUT_FILE_PATTERN = 'cv_\d+'
 
+
 def enumerate_results(result_path):
     files = os.listdir(result_path)
     pat = re.compile(RESULT_FILE_PATTERN)
     return [file for file in files if pat.match(file)]
+
 
 if __name__ == '__main__':
     args = read_args()
@@ -209,14 +232,15 @@ if __name__ == '__main__':
         print("Cannot locate item features. Path: " + item_feature_path)
         exit(-1)
     else:
-        item_feature_df = pd.read_csv(item_feature_path, names=['itemid', 'feature', 'value'])
+        item_feature_df = pd.read_csv(item_feature_path,
+                                      names=['itemid', 'feature', 'value'])
         item_feature_df.set_index('itemid', inplace=True)
 
     helper = FarHelper()
     helper.protected_set = get_protected_set(item_feature_df, helper)
     helper.lam = float(args['lambda'])
     helper.max_length = int(args['max_len'])
-    helper.binary = args['binary']=='True'
+    helper.binary = args['binary'] == 'True'
     helper.protected = protected
 
     for file_name in result_files:
@@ -225,18 +249,22 @@ if __name__ == '__main__':
         input_file_path = Path(args['original'] + '/' + file_name)
 
         # reading the training set
-        cv_path = str(split_path) + '/cv_' + re.findall('\d+', file_name)[0] + '/train.txt'
+        cv_path = str(split_path) + '/cv_' + re.findall(
+            '\d+', file_name)[0] + '/train.txt'
         tr_file_path = Path(cv_path)
 
         tr_df = None
         if tr_file_path.exists():
-            tr_df = pd.read_csv(tr_file_path, names=['userid', 'itemid', 'score'], sep='\t')
+            tr_df = pd.read_csv(tr_file_path,
+                                names=['userid', 'itemid', 'score'],
+                                sep='\t')
         else:
             print('Cannot locate training data: ' + tr_file_path)
             exit(-1)
 
         if input_file_path.exists():
-            recoms_df = pd.read_csv(input_file_path, names=['userid', 'itemid', 'score'])
+            recoms_df = pd.read_csv(input_file_path,
+                                    names=['userid', 'itemid', 'score'])
 
             reranked_df = execute(recoms_df, tr_df, item_feature_df, helper)
 

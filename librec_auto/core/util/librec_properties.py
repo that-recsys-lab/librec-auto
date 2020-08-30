@@ -30,8 +30,8 @@ class LibrecTranslation:
             logging.warning(f'No translation rules read from {rules_path}.')
             return None
 
-class LibrecProperties:
 
+class LibrecProperties:
     def __init__(self, xml, files):
         self.properties = {}
         self._conf_xml = xml
@@ -52,34 +52,45 @@ class LibrecProperties:
         else:
             logging.error(f"Error processing experiment configuration file.")
 
+
 # ctree: configuration tree
 # rtree: rules tree
 # recursively walk the ctree and the rtree at the same time
 # if an element is labeled in the rules as "no-translate", that means it's contents are not passed to LibRec
 #     and it can be ignored
 #
-    def process_aux(self, conf_tree: etree._Element, rule_tree: etree._Element):
+
+    def process_aux(self, conf_tree: etree._Element,
+                    rule_tree: etree._Element):
         for conf_elem in conf_tree.iterchildren(tag=etree.Element):
             conf_tag = conf_elem.tag
             rule_elem = rule_tree.findall(conf_tag)
-            if len(rule_elem) > 0:                                  # If the entry corresponds to one or more rules
+            if len(rule_elem
+                   ) > 0:  # If the entry corresponds to one or more rules
                 if len(rule_elem) == 1:
                     rule_elem = rule_elem[0]
                     action_attr = rule_elem.get('action', default=None)
-                    if action_attr is not None and action_attr=='no-translate': # If labeled "no translate", skip
+                    if action_attr is not None and action_attr == 'no-translate':  # If labeled "no translate", skip
                         pass
-                    elif len(conf_elem) > 0:                            # If the config file has subelements
-                        if len(rule_elem) > 0:                      # If the rules also have subelements
-                            self.process_aux(conf_elem, rule_elem)  # recursive call
-                        else:                                       # If no corresponding elements in rules
-                            logging.warning(f'Mismatch between element contents: {conf_elem} and rule: {rule_elem}')
-                    else:                                               # Otherwise, it is a key-value pair
+                    elif len(conf_elem
+                             ) > 0:  # If the config file has subelements
+                        if len(rule_elem
+                               ) > 0:  # If the rules also have subelements
+                            self.process_aux(conf_elem,
+                                             rule_elem)  # recursive call
+                        else:  # If no corresponding elements in rules
+                            logging.warning(
+                                f'Mismatch between element contents: {conf_elem} and rule: {rule_elem}'
+                            )
+                    else:  # Otherwise, it is a key-value pair
                         self.add_property(rule_elem.text, conf_elem.text)
 
-                else:                           # If the rules have a list,
-                    self.process_multi(conf_elem, rule_elem)            # We are distinguishing cases based on attribute
+                else:  # If the rules have a list,
+                    self.process_multi(
+                        conf_elem, rule_elem
+                    )  # We are distinguishing cases based on attribute
 
-            else: # If the key isn't in the rules, ignore it but warn because it is probably an error.
+            else:  # If the key isn't in the rules, ignore it but warn because it is probably an error.
                 logging.warning(f"Tag {conf_tag} is not in element rules.")
 
     # Two cases:
@@ -99,12 +110,11 @@ class LibrecProperties:
         for rule_elem in rule_elems:
             key = rule_elem.text
             if rule_elem.attrib:
-                attr = rule_elem.keys()[0]                      # Case a
+                attr = rule_elem.keys()[0]  # Case a
                 val = conf_elem.get(attr)
             else:
                 val = conf_elem.text
             self.add_property(key, val)
-
 
     # Multiple adds mean that the property is list-valued
     def add_property(self, key, val):
@@ -126,12 +136,11 @@ class LibrecProperties:
             return None
 
     def get_entries(self):
-        return [(key, self.get_property(key)) for key in self.properties.keys()]
+        return [(key, self.get_property(key))
+                for key in self.properties.keys()]
 
     def save(self, exp: SubPaths):
         path = exp.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
         with path.open('w') as fd:
             for (key, val) in self.get_entries():
                 fd.write(f'{key}: {val}\n')
-
-

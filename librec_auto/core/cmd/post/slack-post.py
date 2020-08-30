@@ -6,23 +6,33 @@ import argparse
 from pathlib2 import Path
 
 import matplotlib
-matplotlib.use('Agg') # For non-windowed plotting
+matplotlib.use('Agg')  # For non-windowed plotting
 import matplotlib.pyplot as plt
+
 
 def slack_send_message(message):
     #slack = Slacker('xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o')
     slack = Slacker(slack_cmd)
     slack.chat.post_message('#la_bot', message)
 
+
 #Zijun: This is function for auto send file and comments to slack
 def slack_send_file(rep, fil1, tit1):
     #client = sl.WebClient(token='xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o')
     client = sl.WebClient(token=slack_cmd)
     with open(rep, 'rb') as att:
-        r = client.api_call("files.upload", files={'file': att,},
-                            data={'channels': '#la_bot', 'filename': fil1, 'title': tit1, 'initial_comment': 'This is {}'.format(fil1),}
-                            )
+        r = client.api_call("files.upload",
+                            files={
+                                'file': att,
+                            },
+                            data={
+                                'channels': '#la_bot',
+                                'filename': fil1,
+                                'title': tit1,
+                                'initial_comment': 'This is {}'.format(fil1),
+                            })
     assert r.status_code == 200
+
 
 '''
 Zijun:
@@ -43,12 +53,11 @@ Zijun:
         
 '''
 
-
 if __name__ == '__main__':
     slack_cmd = str(sys.argv[2])
 
     if len(sys.argv) < 2:
-        print ("Argument input fail")
+        print("Argument input fail")
 
     parser = argparse.ArgumentParser()
 
@@ -65,5 +74,3 @@ if __name__ == '__main__':
     if dictargs["action"] == "file":
         file_directory = sys.argv[3]
         slack_send_file(file_directory, "The file is here", "Plot")
-
-
