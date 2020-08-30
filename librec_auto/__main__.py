@@ -11,8 +11,14 @@ def read_args():
     Parse command line arguments.
     :return:
     '''
-    parser = argparse.ArgumentParser(description='The librec-auto tool for running recommender systems experiments')
-    parser.add_argument('action',choices=['run','split', 'eval', 'rerank', 'post', 'purge', 'status', 'describe', 'check', 'install'])
+    parser = argparse.ArgumentParser(
+        description=
+        'The librec-auto tool for running recommender systems experiments')
+    parser.add_argument('action',
+                        choices=[
+                            'run', 'split', 'eval', 'rerank', 'post', 'purge',
+                            'status', 'describe', 'check', 'install'
+                        ])
 
     parser.add_argument("target", help="Path to experiment directory")
 
@@ -20,23 +26,37 @@ def read_args():
     # parser.add_argument("-ex","--exhome", help="stub")
     # parser.add_argument("-rs","--reset", help = "stub")
     # parser.add_argument("-rss","--revise-step", help="stub")
-    parser.add_argument("-c", "--conf", help="Use the specified configuration file")
+    parser.add_argument("-c",
+                        "--conf",
+                        help="Use the specified configuration file")
 
     # Flags
-    parser.add_argument("-dr","--dry_run",
-                        help = "Show sequence of command execution but do not execute commands",
-                        action ="store_true")
-    parser.add_argument("-q","--quiet",
-                        help = "Skip confirmation when purging",action ="store_true")
-    parser.add_argument("-np","--no_parallel",
-                        help = "Ignore thread-count directive and run all operations sequentially",
-                        action ="store_true")
-    parser.add_argument("-p", "--purge",
-                        help="Purge results of step given in <option> and all subsequent steps",
-                        choices=['all', 'split', 'results', 'rerank', 'post'], default='all')
-    parser.add_argument("-nc", "--no_cache",
-                        help="Do not cache any intermediate results (Not implemented)",
+    parser.add_argument(
+        "-dr",
+        "--dry_run",
+        help="Show sequence of command execution but do not execute commands",
+        action="store_true")
+    parser.add_argument("-q",
+                        "--quiet",
+                        help="Skip confirmation when purging",
                         action="store_true")
+    parser.add_argument(
+        "-np",
+        "--no_parallel",
+        help=
+        "Ignore thread-count directive and run all operations sequentially",
+        action="store_true")
+    parser.add_argument(
+        "-p",
+        "--purge",
+        help="Purge results of step given in <option> and all subsequent steps",
+        choices=['all', 'split', 'results', 'rerank', 'post'],
+        default='all')
+    parser.add_argument(
+        "-nc",
+        "--no_cache",
+        help="Do not cache any intermediate results (Not implemented)",
+        action="store_true")
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -44,9 +64,9 @@ def read_args():
 
 def load_config(args):
 
-    config_file =  Files.DEFAULT_CONFIG_FILENAME
+    config_file = Files.DEFAULT_CONFIG_FILENAME
 
-    if args['conf']:      # User requested a different configuration file
+    if args['conf']:  # User requested a different configuration file
         config_file = args['conf']
 
     target = args['target']
@@ -66,14 +86,16 @@ DESCRIBE_TEXT = 'Librec-auto automates recommender systems experimentation using
     'Run librec_auto describe <step> for additional information about each option.'
 
 DESCRIBE_DICT = {
-    'run': 'Run a complete librec-auto experiment. Re-uses cached results if any. \
+    'run':
+    'Run a complete librec-auto experiment. Re-uses cached results if any. \
 May result in no action if all computations are up-to-date and no purge option is specified.',
     'split': 'Run the training / test split only',
     'exp': 'Run the experiment, re-ranking, evaluation, and post-processing',
     'rerank': 'Run the re-ranking, evaluation and post-processing',
-    'eval' : 'Run the evaluation and post-processing',
+    'eval': 'Run the evaluation and post-processing',
     'post': 'Run post-processing steps',
-    'purge': 'Purge cached computations. Uses -p flag to determine what to purge',
+    'purge':
+    'Purge cached computations. Uses -p flag to determine what to purge',
     'status': 'Print out the status of the experiments'
 }
 
@@ -81,25 +103,28 @@ May result in no action if all computations are up-to-date and no purge option i
 def print_description(args):
     act = args['target']
     if act in DESCRIBE_DICT:
-        print (f'core {act} <target>: {DESCRIBE_DICT[act]}')
+        print(f'core {act} <target>: {DESCRIBE_DICT[act]}')
     else:
         print(DESCRIBE_TEXT)
 
 
-def purge_type (args):
+def purge_type(args):
     if 'purge' in args:
         return args['purge']
     # If no type specified and you're purging, purge everything
-    elif args['action']=='purge':
+    elif args['action'] == 'purge':
         return 'split'
     else:
         return 'none'
+
 
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
 # and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
 # variation its own parameters.
 def build_librec_commands(librec_action, args, config):
-    librec_commands = [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
+    librec_commands = [
+        LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
+    ]
     threads = config.thread_count()
 
     if threads > 1 and not args['no_parallel']:
@@ -107,8 +132,9 @@ def build_librec_commands(librec_action, args, config):
     else:
         return SequenceCmd(librec_commands)
 
+
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
-def setup_commands (args, config):
+def setup_commands(args, config):
     action = args['action']
     purge_noask = args['quiet']
 
@@ -132,11 +158,12 @@ def setup_commands (args, config):
         return cmd
     # No post scripts available
     if action == 'post' and not post_flag:
-        logging.warning("No post-processing scripts available for post command.")
+        logging.warning(
+            "No post-processing scripts available for post command.")
         return None
 
     # Perform re-ranking on results, followed by evaluation and post-processing
-    if action == 'rerank' and rerank_flag: # Runs a reranking script on the python side
+    if action == 'rerank' and rerank_flag:  # Runs a reranking script on the python side
         cmd1 = PurgeCmd('rerank', noask=purge_noask)
         cmd2 = SetupCmd()
         cmd3 = RerankCmd()
@@ -160,7 +187,7 @@ def setup_commands (args, config):
         return cmd
 
     # re-run experiment and continue
-    if action== 'run':
+    if action == 'run':
         cmd1 = PurgeCmd('results', noask=purge_noask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('full', args, config)
@@ -190,13 +217,13 @@ def setup_commands (args, config):
         cmd = InstallCmd()
         return cmd
 
-# -------------------------------------
 
+# -------------------------------------
 
 if __name__ == '__main__':
     args = read_args()
 
-    if args['action']=='describe':
+    if args['action'] == 'describe':
         print_description(args)
     else:
         config = load_config(args)

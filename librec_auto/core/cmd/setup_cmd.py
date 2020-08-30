@@ -1,13 +1,12 @@
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, SubPaths
 from librec_auto.core import ConfigCmd
-from  librec_auto.core.util import confirm
+from librec_auto.core.util import confirm
 import shutil
 import os
 
 
-class SetupCmd (Cmd):
-
+class SetupCmd(Cmd):
     def __str__(self):
         return 'SetupCmd()'
 

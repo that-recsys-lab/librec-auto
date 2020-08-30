@@ -5,6 +5,7 @@ from pathlib import Path
 import logging
 from . import xml_utils
 
+
 # TODO: Replace with XPath
 def safe_xml_path(config, key_list):
     """
@@ -22,6 +23,7 @@ def safe_xml_path(config, key_list):
         else:
             return False
     return True
+
 
 # TODO: Replace with XPath
 def extract_from_path(config, key_list):
@@ -53,6 +55,7 @@ def force_list(item):
     else:
         return [item]
 
+
 def force_path(item):
     """
     Ensures that an item is of Path type.
@@ -67,10 +70,10 @@ def force_path(item):
 
 
 def frange(start, stop, step):
-     x = start
-     while x < stop:
-         yield x
-         x += step
+    x = start
+    while x < stop:
+        yield x
+        x += step
 
 
 def confirm(prompt=None, resp=False):
@@ -106,7 +109,7 @@ def confirm(prompt=None, resp=False):
         if not ans:
             return resp
         if ans not in ['y', 'Y', 'n', 'N']:
-            print ('please enter y or n.')
+            print('please enter y or n.')
             continue
         if ans == 'y' or ans == 'Y':
             return True
@@ -117,11 +120,14 @@ def confirm(prompt=None, resp=False):
 def get_script_path(script_xml, cmd_type):
     script_path = '.'
     if script_xml.get('lang') != 'python3':
-        print(f'librec-auto: Only Python3 scripts currently supported. Got {script_xml.get("lang")}.')
+        print(
+            f'librec-auto: Only Python3 scripts currently supported. Got {script_xml.get("lang")}.'
+        )
         return None
     if script_xml.get('src'):
         if script_xml.get('src') == 'system':
-            script_path = Path(abspath(getsourcefile(lambda:0))).parent.parent / 'cmd' / cmd_type
+            script_path = Path(abspath(
+                getsourcefile(lambda: 0))).parent.parent / 'cmd' / cmd_type
         else:
             script_path = force_path(script_xml.get('src'))
     name_elem = xml_utils.single_xpath(script_xml, 'script-name')
@@ -129,6 +135,7 @@ def get_script_path(script_xml, cmd_type):
         return script_path / name_elem.text
     else:
         return None
+
 
 def create_param_spec(script_xml):
     params = script_xml.xpath('param')
@@ -138,4 +145,3 @@ def create_param_spec(script_xml):
         val = param.text
         param_list.append(f'--{key}={val}')
     return param_list
-

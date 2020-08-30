@@ -2,6 +2,7 @@ import itertools
 from collections import defaultdict
 import copy
 
+
 # type_factor stores the product of the counts of the values for that type of variable.
 # The product of all of the type factors is the total number of experiments. The
 # type_factor for the "librec" type gives the number of calls to LibRec.
@@ -18,7 +19,9 @@ class VarColl:
         rev_types.reverse()
         configs = [self.get_type_conf(type) for type in rev_types]
         conf_product = list(itertools.product(*configs))
-        self.var_confs = [self.conf_merge(conf_elem) for conf_elem in conf_product]
+        self.var_confs = [
+            self.conf_merge(conf_elem) for conf_elem in conf_product
+        ]
         self.set_refs()
 
     def add_var(self, type, path, vals):
@@ -71,8 +74,8 @@ class VarConfig:
     def merge(self, vconf):
         self.vars = vconf.vars + self.vars
 
-class VarInfo:
 
+class VarInfo:
     def __init__(self, type, path, vals):
         self.type = type
         self.path = path
@@ -81,11 +84,11 @@ class VarInfo:
     def __str__(self):
         return f'<VarInfo {self.type} {self.path} V: {self.val}>'
 
-    def __repr__(self): return self.__str__()
+    def __repr__(self):
+        return self.__str__()
 
     def flatten(self):
         if type(self.val) is list:
             return [VarInfo(self.type, self.path, val) for val in self.val]
         else:
             return self
-

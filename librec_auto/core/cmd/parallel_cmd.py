@@ -4,7 +4,6 @@ from librec_auto.core.util import Status
 
 
 class ParallelCmd(Cmd):
-
     def __init__(self, cmds, threads):
         self._thread_count = threads
         if len(cmds) > 0:
@@ -17,7 +16,7 @@ class ParallelCmd(Cmd):
     def __str__(self):
         return f'ParallelCmd({len(self._commands)} commands, {self._thread_count} threads)'
 
-    def setup (self, args):
+    def setup(self, args):
         for cmd in self._commands:
             cmd.setup(args)
 
@@ -32,7 +31,7 @@ class ParallelCmd(Cmd):
         return self._commands
 
     def dry_run(self, config):
-        print (f"librec-auto (DR): Executing parallel, command {self}")
+        print(f"librec-auto (DR): Executing parallel, command {self}")
         self.status = Cmd.STATUS_INPROC
         self._pool = ThreadPool(self._thread_count)
 
@@ -47,7 +46,7 @@ class ParallelCmd(Cmd):
                 return
         self.status = Cmd.STATUS_COMPLETE
 
-    def execute (self, config):
+    def execute(self, config):
         self.status = Cmd.STATUS_INPROC
         self._pool = ThreadPool(self._thread_count)
 
@@ -61,4 +60,3 @@ class ParallelCmd(Cmd):
                 self.status = Cmd.STATUS_ERROR
                 return
         self.status = Cmd.STATUS_COMPLETE
-
