@@ -24,6 +24,11 @@ target/
 # Librec experiments
 result/
 
+# setup.py build
+build/
+dist/
+librec_auto.egg-info/
+
 # Python compilation files
 *.pyc
 
