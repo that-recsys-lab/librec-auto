@@ -1,36 +1,52 @@
-# Eclipse
+# IDEs
+
+## Eclipse
 .classpath
 .project
 .settings/
 
-# Intellij
+## Intellij
 .idea/
 *.iml
 *.iws
 
-# PyCharm
+## PyCharm
 venv/
 
-# Mac
+# OS
+
+## Mac
 .DS_Store
 
-# Maven
+# Code
+
+## Maven
 log/
 target/
 
-# Java class files
+## Java class files
 *.class
 
-# Librec experiments
-result/
-
-# Python compilation files
+## Python compilation files
 *.pyc
 
+## setup.py install
+build/
+dist/
+librec_auto.egg-info/
+
+## Documentation
+librec_auto/docs/build
+
+# Librec
+
+## Experiments
+result/
+
+## Viz
 librec-auto/demo/viz/viz-01\.pdf
-
 librec-auto/demo/viz/viz-02\.pdf
-
 librec-auto/demo/viz/
 
+## Misc
 librec-auto/demo/data/split/
