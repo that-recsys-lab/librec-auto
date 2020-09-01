@@ -1,10 +1,4 @@
-=======================================
-Home
-=======================================
-
-.. include:: README.md
-..
-    include:: ../README.rst
+.. include:: ../../../README.rst
 
 Find a section
 =================
