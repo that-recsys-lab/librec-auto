@@ -13,6 +13,7 @@ Find a section
 
    installation
    quickstart
+   development
    howtos
 
 * :ref:`search`

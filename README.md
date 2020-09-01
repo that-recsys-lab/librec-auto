@@ -35,12 +35,3 @@ top-level
 	* Contains documentation for the project
 * /test
 	* Contains the unit tests (not many right now)
-
-## Code Formatting
-
-We use [yapf](https://github.com/google/yapf) for python code formatting.
-To format the whole codebase, run:
-
-```
-yapf . -i --recursive
-```
