@@ -5,7 +5,6 @@ Find a section
 .. toctree::
    :maxdepth: 2
 
-   installation
    quickstart
    development
    howtos
