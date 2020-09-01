@@ -2,7 +2,7 @@
 Home
 =======================================
 
-.. include:: README.rst
+.. include:: README.md
 ..
     include:: ../README.rst
 
