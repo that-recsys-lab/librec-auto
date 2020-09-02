@@ -19,7 +19,8 @@ setuptools.setup(
 	install_requires=['matplotlib',
                       'pandas',
                       'numpy',
-                      'progressbar'
+                      'progressbar',
+                      'lxml'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
