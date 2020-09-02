@@ -3,7 +3,7 @@ Development
 =============
 
 Documentation
-================
+=============
 ..
   todo add details about read the docs
 
@@ -17,7 +17,7 @@ To rebuild the docs:
 #. ``make clean && make html``.
 
 Code Formatting
-================
+===============
 
 ..
   todo add yapf installation instructions
@@ -30,3 +30,18 @@ To format the whole codebase, run:
 ::
 
     yapf . -i --recursive
+
+Docker
+======
+You can develop ``librec_auto`` in Docker.
+
+The root-level Dockerfile only installs ``librec_auto``.
+It does not actually run any experiments.
+You can extend this file with your own code to further develop ``librec_auto``.
+
+To use the Dockerfile, run the following in your bash terminal:
+
+::
+
+	docker build -t librec_auto:latest .
+	docker run librec_auto:latest
