@@ -8,5 +8,13 @@ Find a section
    quickstart
    development
    howtos
+   how-to-dropbox
+   how-to-slack
+   how-to-extract-params
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
 * :ref:`search`
