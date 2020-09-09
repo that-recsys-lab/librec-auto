@@ -20,6 +20,8 @@ In this document, I would like to introduce how to install slack-integration, se
 2.0. QuickStart Slack
 ---------------------
 
+::
+
    pip install slackclient
 
 2.1. Go to Slack Official Website
@@ -52,14 +54,12 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 2. Go to **Setting & Administration**.
 
-3. Go to **Management Apps**. See Figure1 below.
+3. Go to **Manage Apps**. See Figure1 below.
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images1.png
+.. figure:: images/slack-integration/1.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: Management Tools
+   :width: 800
+   :alt: Manage Apps on Slack Desktop
 
    *Figure1*
 
@@ -71,12 +71,10 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 2. Click the **Search Space**. And then, we input **Bots** word. See *Figure2* below
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/2.png
+.. figure:: images/slack-integration/2.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: API images
+   :width: 800
+   :alt: Search for "Bots" in Slack Apps
 
    *Figure2*
 
@@ -84,23 +82,19 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 4. We click the green button **Add to Slack**. After that, we will  See *Figure3* below.
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/3.png
+.. figure:: images/slack-integration/3.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: API images
+   :width: 800
+   :alt: Adding Bots to a Slack workspace
 
    *Figure3*
 
 5. It will show a page, it has Username informations has to be filled. This is the name for your Slack auto post robot's name. You can name anything you want. I name it as *test2*. See *Figure4* below.
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/4.png
+.. figure:: images/slack-integration/4.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: API images
+   :width: 800
+   :alt: Choosing a bot username on Slack
 
    *Figure4*
 
@@ -109,14 +103,12 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 2.2.3. Save you API key
 ~~~~~~~~~~~~~~~~~~~~~~~
-      After you follow the previous steps, you would success create an Slack API key. The **API Token** is the API key. And the **Customize Name** is Slack api bots name. See *Figure5* Please keep save for your slack API key. We would have another new feature called **secret-key** to encrypted your slack API, Dropbox API and etc. It would make your privacy more secure. 
+After you follow the previous steps, you would success create an Slack API key. The **API Token** is the API key. And the **Customize Name** is Slack api bots name. See *Figure5* Please keep save for your slack API key. We would have another new feature called **secret-key** to encrypted your slack API, Dropbox API and etc. It would make your privacy more secure. 
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/5.png
+.. figure:: images/slack-integration/5.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: API images
+   :width: 800
+   :alt: Slack API Token
 
    *Figure5*
 
@@ -132,23 +124,27 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 1. Please input your Slack API key into .txt file to encrypted. 
 
-2. Run */librec-auto-library/librec_auto/encrypt.py* to encrypted your slack api key. You need five files, repository for *key.key*, *Slack_API.txt*, *Slack_API_encrypted.txt.encrypted*, *Dropbox_API.txt* and *Dropbox_API_encrypted.txt.encrypted*to finish this steps. See *Figure6* and *Figure7*
+2. Run ``/librec-auto-library/librec_auto/encrypt.py`` to encrypted your slack api key. You need five files, repository for:
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/6.png
+* ``key.key``
+* ``Slack_API.txt``
+* ``Slack_API_encrypted.txt.encrypted``
+* ``Dropbox_API.txt``
+* ``Dropbox_API_encrypted.txt.encrypted``
+
+to finish this steps. See *Figure6* and *Figure7*
+
+.. figure:: images/slack-integration/6.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: image for repository of Encrypted files.
+   :width: 800
+   :alt: Image for repository of Encrypted files.
 
    *Figure6*
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/7.png
+.. figure:: images/slack-integration/7.png
+   :width: 800
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
-   :alt: image for repository of Encrypted files.
+   :alt: Image for repository of Encrypted files.
 
    *Figure7*
 
@@ -175,11 +171,9 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 i.e. See *Figure8*
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Slack-Integration/images/8.png
+.. figure:: images/slack-integration/8.png
+   :width: 800
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
    :alt: image for repository of Encrypted files.
 
    *Figure8*
