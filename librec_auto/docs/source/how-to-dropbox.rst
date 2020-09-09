@@ -1,8 +1,8 @@
 .. _DropboxIntegration:
 
-=============================================
-Librec-auto Dropbox Integration Documentation
-=============================================
+===================
+Dropbox Integration
+===================
 :Author:
 		Robin Burke, Zijun Liu
 :Version:
@@ -30,11 +30,9 @@ In this Document, I would like to introduce how to install Dropbox api and secre
 
 2. Click **Create apps** on the page. See Figure1 below.
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Dropbox-Integration/images/1.png
+.. figure:: images/dropbox-integration/1.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
+   :width: 600
    :alt: Management Tools
 
    *Figure1*
@@ -48,11 +46,9 @@ In this Document, I would like to introduce how to install Dropbox api and secre
 
 3. **Name your app**. Give a name for your Dropbox API app name. i.e. *test2*. See Figure2 below.
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Dropbox-Integration/images/2.png
+.. figure:: images/dropbox-integration/2.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
+   :width: 600
    :alt: Management Tools
 
    *Figure2*
@@ -64,11 +60,9 @@ In this Document, I would like to introduce how to install Dropbox api and secre
 
 2. See Figure3 below. Figure3 is the **OAuth 2** section. The **Generated access token** is space for your Dropbox API. 
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Dropbox-Integration/images/3.png
+.. figure:: images/dropbox-integration/3.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
+   :width: 600
    :alt: Management Tools
 
    *Figure2*
@@ -83,11 +77,9 @@ In this Document, I would like to introduce how to install Dropbox api and secre
 
 2. Run */librec-auto-library/librec_auto/encrypted.py* to encrypted your Dropbox api key. You need three files, repository for *key.key*, *Key_API_Dropbox.txt* and *Key_API_Dropbox.txt.encrypted*., to finish this steps. See *Figure4*
 
-.. figure:: https://github.com/walterscorpionblade/Documentation/tree/master/Dropbox-Integration/images/4.png
+.. figure:: images/dropbox-integration/4.png
    :align: center
-   :height: 13
-   :width: 25
-   :scale: 30
+   :width: 600
    :alt: image for repository of Encrypted files.
 
    *Figure4*
