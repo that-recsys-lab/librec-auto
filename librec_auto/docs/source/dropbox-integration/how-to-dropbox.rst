@@ -1,8 +1,8 @@
 .. _DropboxIntegration:
 
-=============================================
-Librec-auto Dropbox Integration Documentation
-=============================================
+===================
+Dropbox Integration
+===================
 :Author:
 		Robin Burke, Zijun Liu
 :Version:

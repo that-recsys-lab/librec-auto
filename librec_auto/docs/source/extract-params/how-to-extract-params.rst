@@ -1,8 +1,8 @@
 .. _ExtractParamIntegration:
 
-=====================================================================
-Librec-auto Extract Experimental Parameters Integration Documentation
-=====================================================================
+===============================
+Extract Experimental Parameters
+===============================
 :Author:
 		Robin Burke, Zijun Liu
 :Version:

@@ -1,6 +1,6 @@
-===========================================
-Librec-auto Slack Integration Documentation
-===========================================
+=================
+Slack Integration
+=================
 :Author:
 		Robin Burke, Zijun Liu
 :Version:
