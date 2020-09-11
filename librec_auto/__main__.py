@@ -13,7 +13,7 @@ def read_args():
     '''
     parser = argparse.ArgumentParser(
         description=
-        'The librec-auto tool for running recommender systems experiments')
+        'The librec-auto tool for running recommender systems experiments. TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/')
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
@@ -239,3 +239,4 @@ if __name__ == '__main__':
                 logging.error("Command instantiation failed.")
         else:
             logging.error("Configuration loading failed.")
+
