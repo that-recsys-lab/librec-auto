@@ -1,9 +1,12 @@
-=======================================
+================
 Quickstart guide
-=======================================
+================
 
 Installation
 ============
+
+pip
+---
 
 You can install ``librec-auto`` using pip command as follows:
 
@@ -13,7 +16,8 @@ You can install ``librec-auto`` using pip command as follows:
 
 You must be running Python 3.7+. (Run ``python --version`` to check your python version.)
 
-Since ``librec-auto`` uses ``Librec`` library for running the experiments, after installing ``librec-auto``, you will need to also download ``Librec`` library.
+Since ``librec-auto`` uses the ``Librec`` library for running the experiments,
+you will need to also download the ``Librec`` library after installing ``librec-auto``.
 
 You can use the helper ``install`` command from ``librec_auto``, like this:
 
@@ -21,11 +25,18 @@ You can use the helper ``install`` command from ``librec_auto``, like this:
 
 	$ python -m librec_auto install
 
-The installation is complete. You can now run your experiments using ``librec-auto``.
-
 Dependencies
 ------------
-You will need to install the Java Runtime Environment
+You will need to install the Java `Java Runtime Environment 8`_, since ``Librec`` is executed as a Java ``.jar``.
+
+.. _Java Runtime Environment 8: https://java.com/en/download/
+
+The installation is complete. You can now run your experiments with:
+
+::
+
+	$ python -m librec_auto
+
 
 Building from Source
 ====================
