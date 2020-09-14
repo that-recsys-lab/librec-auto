@@ -8,6 +8,7 @@ Find a section
    quickstart
    development
    howtos
+   run-a-study
    how-to-dropbox
    how-to-slack
    how-to-extract-params
