@@ -20,7 +20,8 @@ setuptools.setup(
                       'pandas',
                       'numpy',
                       'progressbar',
-                      'lxml'
+                      'lxml',
+                      'cryptography'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
