@@ -113,3 +113,5 @@ Let's consider a single experiment directory:
 * ``original`` can be used for re-ranking, without having to recompute the original recommendations. To use this feature:
     * Copy the results from ``results`` to ``original`` (since the new re-ranking results will soon live in ``results``).
     * Re-rank the results with ``python -m librec_auto rerank movies``
+
+.. include:: supported-algorithms.rst
