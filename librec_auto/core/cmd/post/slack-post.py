@@ -1,49 +1,21 @@
-import sys
 import slack as sl
-from slacker import Slacker
-
 import argparse
-from pathlib2 import Path
-
-import matplotlib
-
-matplotlib.use('Agg')  # For non-windowed plotting
-import matplotlib.pyplot as plt
-
-# This is decrypted function
-from cryptography.fernet import Fernet
+from librec_auto.core.util.encrypt import decrypt_from_file
+import getpass
 
 
 def slack_send_message(message, channel, slack_api):
-    # slack = Slacker('xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o')
-    slack = Slacker(slack_api)
-    slack.chat.post_message(channel, message)
-
-
-# Zijun: This is function for auto send file and comments to slack
-def slack_send_file(rep, fil1, tit1, channel, slack_api):
-    # client = sl.WebClient(token='xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o')
     client = sl.WebClient(token=slack_api)
-    with open(rep, 'rb') as att:
+    client.chat_postMessage(channel=channel, text=message)
+
+def slack_send_file(filename, message, channel, slack_api):
+    client = sl.WebClient(token=slack_api)
+    with open(filename, 'rb') as att:
         r = client.api_call("files.upload", files={'file': att, },
-                            data={'channels': channel, 'filename': fil1, 'title': tit1,
-                                  'initial_comment': 'This is {}'.format(fil1), }
+                            data={'channels': channel, 'filename': filename, 'title': f'File: {filename}',
+                                  'initial_comment': message}
                             )
     assert r.status_code == 200
-
-
-def decrypted_function(key1, encrypted_file, decrypted_file):
-    file = open(key1, "rb")
-    key = file.read()
-    file.close()
-
-    with open(encrypted_file, "rb") as api:
-        data = api.read()
-    fernet = Fernet(key)
-    encrypted = fernet.decrypt(data)
-    with open(decrypted_file, "wb") as decry:
-        decry.write(encrypted)
-
 
 '''
 Zijun:
@@ -71,10 +43,10 @@ def read_args():
     parser.add_argument('target', help='Experiment target')
     parser.add_argument("--option", help='Which actions you want to do', choices=["message", "file", "No"])
     parser.add_argument('--channel', help='Which channel you want to post')
-    parser.add_argument('--decrypted_file', help="repository of decrypted slack api key file")
-    parser.add_argument('--encrypted_file', help="repository of encrpyted slack api key file")
-    parser.add_argument('--key', help="repository of key file")
-    parser.add_argument('--information', help="What information you want to post to slack")
+    parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
+    parser.add_argument('--file', help="File to post")
+    parser.add_argument('--password', help="Password to encrypted API key")
+    parser.add_argument('--message', help="Message to post")
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -85,22 +57,21 @@ if __name__ == '__main__':
     action = args["option"]
 
     channel = args['channel']
-    decrypted_file = args['decrypted_file']
-    encrypted_file = args['encrypted_file']
-    key_file = args['key']
+    encrypted_file = args['encrypted_key']
+    filename = args['file']
+    message = args['message']
 
-    information = args['information']
+    pw = args['password']
+    if pw == None:
+        pw = getpass.getpass(f'Password for {encrypted_file}:')
+
+    api_key_bytes = decrypt_from_file(encrypted_file, pw)
+    api_key = api_key_bytes.decode('utf-8')
 
     if action == "message":
-        decrypted_function(key_file, encrypted_file, decrypted_file)
-        with open(decrypted_file, "r") as file:
-            slack_api = file.read()
-        slack_send_message(information, channel, slack_api)
+        slack_send_message(message, channel, api_key)
     elif action == "file":
-        decrypted_function(key_file, encrypted_file, decrypted_file)
-        with open(decrypted_file, "r") as file:
-            slack_api = file.read()
-        slack_send_file(information, "The file is here", "Plot", channel, slack_api)
+        slack_send_file(filename, message, channel, api_key)
     elif action == "No":
         exit()
 

@@ -1,12 +1,13 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="librec-auto",
     version="0.1.27",
-	scripts=['librec_auto/__main__.py'] ,
+	scripts=['librec_auto/__main__.py',
+             'librec_auto/core/cmd/post/result-graphics.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
     description=
@@ -21,7 +22,10 @@ setuptools.setup(
                       'numpy',
                       'progressbar',
                       'lxml',
-                      'cryptography'
+                      'cryptography',
+                      'slackclient',
+                      'slack',
+                      'slacker',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

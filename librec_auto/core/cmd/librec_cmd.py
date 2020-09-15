@@ -41,6 +41,8 @@ class LibrecCmd(Cmd):
         print(f"librec-auto: Running librec. {cmd}")
         log_path = self._sub_path.get_log_path()
 
+        # change working directory
+
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
@@ -53,6 +55,8 @@ class LibrecCmd(Cmd):
         f.close()
 
         #p.wait()
+
+        # change back
 
         if type(p.returncode) is 'int' and p.returncode < 0:
             self.status = Cmd.STATUS_ERROR

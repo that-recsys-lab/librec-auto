@@ -7,3 +7,4 @@ from .status import Status
 from .librec_properties import LibrecProperties
 from .library import Library, LibraryColl
 from .var import VarColl, VarInfo, VarConfig
+from .encrypt import encrypt, encrypt_string, decrypt, decrypt_string

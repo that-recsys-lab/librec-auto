@@ -95,7 +95,6 @@ class Status():
         date_elem = etree.SubElement(status_xml, "date")
         date_elem.text = str(datetime.datetime.now())
 
-        param_elem = etree.SubElement(status_xml, "param")
         conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
         var_elems = conf_xml.xpath("//*[@var='true']")
         for var_elem in var_elems:
@@ -105,6 +104,7 @@ class Status():
                 var_name = var_elem.tag
             var_value = var_elem.text
 
+            param_elem = etree.SubElement(status_xml, "param")
 
             name_elem = etree.SubElement(param_elem, "name")
             name_elem.text = var_name
