@@ -1,39 +1,24 @@
-import sys
-import slack as sl
-from slacker import Slacker
-
+import dropbox as db
 import argparse
-from pathlib2 import Path
+from librec_auto.core.util.encrypt import decrypt_from_file
+import getpass
+from pathlib import Path
 
-import matplotlib
+def dropbox_send_file(filepath, destpath, api_key):
+    dropbox_api = db.Dropbox(api_key)
+    filename = filepath.name
+    destname = destpath / filename
+    with open(filepath, "rb") as f:
+        dropbox_api.files_upload(f.read(), str(destname),
+                                 db.files.WriteMode.overwrite, mute=False)
 
-import dropbox
-import sys, os
-
-matplotlib.use('Agg')  # For non-windowed plotting
-import matplotlib.pyplot as plt
-
-# This is decrypted function
-from cryptography.fernet import Fernet
-
-def dropbox_send_file(rep, file_name, dropbox_api_2):
-    dropbox_api = dropbox.Dropbox(dropbox_api_2)
-    with open(rep, "rb") as f:
-        dropbox_api.files_upload(f.read(), file_name, mute=True)
-    print ("Done uploading plot")
-
-def decrypted_file_Dropbox(repo_key, repo_encrypted_Dropbox_file, repo_decrypted_Dropbox_file):
-    file = open(repo_key, "rb")
-    key = file.read()
-    file.close()
-
-    with open(repo_encrypted_Dropbox_file, "rb") as api:
-        data = api.read()
-    fernet = Fernet(key)
-    encrypted = fernet.decrypt(data)
-    with open(repo_decrypted_Dropbox_file,"wb") as decry:
-        decry.write(encrypted)
-
+def dropbox_send_folder(filepath, destpath, api_key):
+    dropbox_api = db.Dropbox(api_key)
+    for file in filepath.iterdir():
+        destname = destpath / file.name
+        with open(file) as f:
+            dropbox_api.files_upload(f.read(), str(destname),
+                                     db.files.WriteMode.overwrite, mute=True)
 
 '''
 Zijun:
@@ -53,10 +38,10 @@ def read_args():
     parser.add_argument('conf', help='Path to configuration file')
     parser.add_argument('target', help='Experiment target')
     parser.add_argument("--option", help='Which actions you want to do', choices=["file", "folder", "No"])
-    parser.add_argument('--decrypted_Dropbox_file', help="repository of decrypted Dropbox api key file")
-    parser.add_argument('--encrypted_Dropbox_file', help="repository of encrpyted Dropbox api key file")
-    parser.add_argument('--key', help="repository of key file")
-    parser.add_argument('--repository', help="What file you want to post to Dropbox")
+    parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
+    parser.add_argument('--path', help="File/folder to post")
+    parser.add_argument('--dest', help="Destination file/folder")
+    parser.add_argument('--password', help="Password to encrypted API key")
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -66,30 +51,23 @@ if __name__ == '__main__':
     args = read_args()
     action = args["option"]
 
-    decrypted_Dropbox_file = args['decrypted_Dropbox_file']
-    encrypted_Dropbox_file = args['encrypted_Dropbox_file']
-    key_file = args['key']
+    encrypted_file = args['encrypted_key']
+    filename = args['path']
+    destname = args['dest']
 
-    repository = args['repository']
+    pw = args['password']
+    if pw == None:
+        pw = getpass.getpass(f'Password for {encrypted_file}:')
+
+    api_key_bytes = decrypt_from_file(encrypted_file, pw)
+    api_key = api_key_bytes.decode('utf-8')
+
+    filepath = Path(filename)
+    destpath = Path(destname)
 
     if action == "file":
-        try:
-            decrypted_file_Dropbox(key_file, encrypted_Dropbox_file, decrypted_Dropbox_file)
-            with open(decrypted_Dropbox_file, "r") as file:
-                dropbox_api = file.read()
-            dropbox_send_file(repository, "/Recall.png", dropbox_api)
-        except Exception as err:
-            print("Failed to upload %s\n%s" % (file, err))
+        dropbox_send_file(filepath, destpath, api_key)
     elif action == "folder":
-        decrypted_file_Dropbox(key_file, encrypted_Dropbox_file, decrypted_Dropbox_file)
-        with open(decrypted_Dropbox_file, "r") as fold:
-            dropbox_api = fold.read()
-        for dir, dirs, files in os.walk(repository):
-            for file in files:
-                file_path = os.path.join(dir, file)
-                dest_path = os.path.join('/Librec-auto-folder-test', file)
-                print ('Uploading %s to %s' % (file_path, dest_path))
-                with open(file_path) as f:
-                    dropbox_send_file(file_path, dest_path, dropbox_api)
+        dropbox_send_folder(filepath, destpath, api_key)
     elif action == "No":
         exit()
