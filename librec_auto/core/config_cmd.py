@@ -35,6 +35,8 @@ class ConfigCmd:
         self._var_coll = VarColl()
         self._libraries = LibraryColl()
 
+        self._key_password = None
+
     def get_target(self):
         return self._target
 
@@ -43,6 +45,12 @@ class ConfigCmd:
 
     # def get_var_data(self):
     #     return self._var_data
+
+    def get_key_password(self):
+        return self._key_password
+
+    def set_key_password(self, pw):
+        self._key_password = pw
 
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]

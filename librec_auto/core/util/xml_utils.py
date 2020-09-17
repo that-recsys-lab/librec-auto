@@ -1,6 +1,7 @@
 from lxml import etree
 from pathlib import Path
 import copy
+import logging
 
 
 def build_parent_path(elem, pathsofar=''):
@@ -17,7 +18,11 @@ def build_parent_path(elem, pathsofar=''):
 
 def read_xml_from_path_string(path_str):
     path = Path(path_str)
-    return xml_load_from_path(path)
+    if path.exists():
+        return xml_load_from_path(path)
+    else:
+        logging.error(f'XML file {path_str} does not exist. Load failed.')
+        return None
 
 
 def xml_load_from_path(path):
@@ -35,7 +40,7 @@ def xml_load_from_path(path):
         print("Error reading ", path)
         print("IO error({0}): {1}".format(e.errno, e.strerror))
         # logging.error("Error reading %s. IO error: (%d) %s", path, e.errno, e.strerror)
-        return {}
+        return None
 
     return xml_load_from_text(txt)
 

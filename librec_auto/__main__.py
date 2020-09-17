@@ -58,6 +58,12 @@ def read_args():
         help="Do not cache any intermediate results (Not implemented)",
         action="store_true")
 
+    parser.add_argument(
+        "-k",
+        "--key_password",
+        help="Password for the API keys used by post-processing scripts"
+    )
+
     input_args = parser.parse_args()
     return vars(input_args)
 
@@ -141,6 +147,10 @@ def setup_commands(args, config):
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
     post_flag = config.has_post()
+
+    # Set the password in the configuration if we have it
+    if args['key_password']:
+        config.set_key_password(args['key_password'])
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':

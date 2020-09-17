@@ -1,5 +1,6 @@
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, utils
+from librec_auto.core.util.xml_utils import single_xpath
 from librec_auto.core import ConfigCmd
 from pathlib import Path
 import os
@@ -51,6 +52,7 @@ class PostCmd(Cmd):
 
         for post_elem in post_elems:
             param_spec = utils.create_param_spec(post_elem)
+            param_spec = self.handle_password(post_elem, config, param_spec)
             script_path = utils.get_script_path(post_elem, 'post')
 
             proc_spec = [
@@ -61,3 +63,11 @@ class PostCmd(Cmd):
             ] + param_spec
             print(f'librec-auto: Running post-processing script {proc_spec}')
             subprocess.call(proc_spec)
+
+    def handle_password(self, post_elem, config, param_spec):
+        print("handling password")
+        if single_xpath(post_elem, "//param[@name='password']") is not None:
+            val = config.get_key_password()
+            if val:
+                param_spec.append(f'--password={val}')
+        return param_spec

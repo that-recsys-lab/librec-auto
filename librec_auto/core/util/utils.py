@@ -142,6 +142,7 @@ def create_param_spec(script_xml):
     param_list = []
     for param in params:
         key = param.get('name')
-        val = param.text
-        param_list.append(f'--{key}={val}')
+        if param.text:
+            val = param.text
+            param_list.append(f'--{key}={val}')
     return param_list
