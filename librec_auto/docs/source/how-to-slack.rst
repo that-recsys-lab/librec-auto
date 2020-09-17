@@ -175,5 +175,5 @@ Use the ``-k`` or ``--key_password`` on the command line to provide the password
 
 ``python -m librec_auto -k my_password_here run``
 
-The password can be shared with collaborators via some secure channel. 
+The password can be shared with collaborators via some secure channel. The same password will be used for all scripts containing the empty ``<password/>`` element.
 
