@@ -89,7 +89,7 @@ The call will look like this:
 3.2. Add the script to the configuration file
 ------------------------------------------
 
-1. In order to add Dropbox integration to your experiment, you will need to add a ``script`` element to the post-processing portion of the configuration file. Here is an example:
+1. In order to add Dropbox integration to your study, you will need to add a ``script`` element to the post-processing portion of the configuration file. Here is an example:
 
 ``
 <script lang="python3" src="system">

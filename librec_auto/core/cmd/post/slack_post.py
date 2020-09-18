@@ -25,14 +25,14 @@ Zijun:
     message:
         Description: If you want to direct post a sentence in to the slack channel. 
         The command should like this:
-        python slack-post.py [action] [API-Token] ["Expression"]
-        eg: python slack-post.py message xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o "Hello World"
+        python slack_post.py [action] [API-Token] ["Expression"]
+        eg: python slack_post.py message xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o "Hello World"
 
     file: 
         Description: If you want to post file into slack.
         The command should like this:
-        python slack-post.py [action] [API-Token] /directory
-        eg: python slack-post.py file xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o /directory/---.py
+        python slack_post.py [action] [API-Token] /directory
+        eg: python slack_post.py file xoxb-625375728051-787189332448-Ufqx4usZgQUW9c3q3J0JsH7o /directory/---.py
 
 '''
 

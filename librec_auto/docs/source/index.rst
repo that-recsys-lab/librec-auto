@@ -10,7 +10,7 @@ Find a section
    howtos
    how-to-dropbox
    how-to-slack
-   how-to-extract-params
+   how-to-produce-csv
 
 Indices and tables
 ==================

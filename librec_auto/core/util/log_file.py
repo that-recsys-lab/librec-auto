@@ -13,6 +13,7 @@ class LogFile:
         self._values = {}
 
         self._log_path = self.newest_log(paths)
+        self._time_stamp = self.extract_time_stamp(self._log_path.name)
         self._kcv = None
 
         self.parse_log()
@@ -45,15 +46,29 @@ class LogFile:
     def get_kcv_count(self):
         return self._kcv
 
+    def get_time_stamp(self):
+        return self._time_stamp
+
+    def extract_time_stamp(self, filename):
+        file_pattern_str = r'librec-(\d+_\d+).log'
+        file_pattern = re.compile(file_pattern_str)
+        match = re.match(file_pattern, filename)
+        if match is not None:
+            return match.group(1)
+        else:
+            return None
+
     def parse_log(self):
         eval_pattern_str = r'.*Evaluator info:(.*)Evaluator is (-?\d+.?\d+)'
-        kcv_pattern_str = r'.*Splitting .* on fold (\d+)'
+        kcv_pattern_str = r'.*Splitting .* fold.*'
         #        kcv_pattern_str = r'.*Splitter info: .* times is (\d+)'
         final_pattern_str = r'.*Evaluator value:(.*)Evaluator is (-?\d+.?\d+)'
 
         eval_pattern = re.compile(eval_pattern_str)
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
+
+        kcv_count = 0
 
         with open(str(self._log_path), 'r', newline='\n') as fl:
 
@@ -64,6 +79,9 @@ class LogFile:
                 kcv = re.match(kcv_pattern, ln)
                 final = re.match(final_pattern, ln)
 
+                if kcv is not None:
+                    kcv_count += 1
+
                 # A little bit of a hack. The average summary value is added at the end of the list
                 if eval is not None or final is not None:
                     if eval is None:
@@ -72,5 +90,4 @@ class LogFile:
                     metric_value = eval.group(2)
                     self.add_metric_value(metric_name, metric_value)
 
-            if kcv is not None:
-                self._kcv = kcv.group(1)
+            self._kcv = kcv_count
