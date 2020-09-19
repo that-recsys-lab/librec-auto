@@ -20,7 +20,7 @@ def read_args():
                             'status', 'describe', 'check', 'install'
                         ])
 
-    parser.add_argument("target", help="Path to experiment directory")
+    parser.add_argument("-t", "--target", help="Path to experiment directory")
 
     # Optional with arguments
     # parser.add_argument("-ex","--exhome", help="stub")
@@ -75,7 +75,9 @@ def load_config(args):
     if args['conf']:  # User requested a different configuration file
         config_file = args['conf']
 
-    target = args['target']
+    target = ""
+    if (args['target'] != None):
+        target = args['target']
 
     return read_config_file(config_file, target)
 
@@ -143,6 +145,10 @@ def build_librec_commands(librec_action, args, config):
 def setup_commands(args, config):
     action = args['action']
     purge_noask = args['quiet']
+
+    if action == 'install':
+        cmd = InstallCmd()
+        return cmd
 
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
@@ -223,10 +229,6 @@ def setup_commands(args, config):
         cmd = build_librec_commands('check', args, config)
         return cmd
 
-    if action == 'install':
-        cmd = InstallCmd()
-        return cmd
-
 
 # -------------------------------------
 
@@ -238,7 +240,7 @@ if __name__ == '__main__':
     else:
         config = load_config(args)
 
-        if config.is_valid():
+        if config.is_valid() or args['action'] == 'install':
             command = setup_commands(args, config)
             if isinstance(command, Cmd):
                 if args['dry_run']:

@@ -5,9 +5,8 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="librec-auto",
-    version="0.1.27",
-	scripts=['librec_auto/__main__.py',
-             'librec_auto/core/cmd/post/result_graphics.py'] ,
+    version="0.1.39",
+	scripts=['librec_auto/__main__.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
     description=

@@ -42,11 +42,14 @@ class LibrecCmd(Cmd):
         log_path = self._sub_path.get_log_path()
 
         # change working directory
+        _files = self._config.get_files()
+        exp_path = Path(_files.get_exp_path())
 
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+                             stderr=subprocess.STDOUT,
+                             cwd=str(exp_path.absolute()))
 
         for line in p.stdout:
             line_string = str(line, 'utf-8')
@@ -55,8 +58,6 @@ class LibrecCmd(Cmd):
         f.close()
 
         #p.wait()
-
-        # change back
 
         if type(p.returncode) is 'int' and p.returncode < 0:
             self.status = Cmd.STATUS_ERROR

@@ -27,17 +27,16 @@ class InstallCmd(Cmd):
 
     def execute(self, config: ConfigCmd):
         jar_path = os.path.dirname(librec_auto.__file__) + '\\jar\\auto.jar'
-        import urllib.request
         urllib.request.urlretrieve(
-            'https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1',
+            'http://that-recsys-lab.net/downloads/auto.jar',
             jar_path, self.show_progress)
 
     # def execute(self, config: ConfigCmd):
-    #     lib_path = os.path.dirname(librec_auto.__file__)
-    #     jar_path = lib_path.partition("\\librec_auto")[0]
-    #     jar_path += '\\jar\\auto.jar'
+    #     jar_path = os.path.dirname(librec_auto.__file__) + '\\jar\\auto.jar'
     #     import urllib.request
-    #     urllib.request.urlretrieve('https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1', jar_path, self.show_progress)
+    #     urllib.request.urlretrieve(
+    #         'https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1',
+    #         jar_path, self.show_progress)
 
     def show_progress(self, count, block_size, total_size):
         # global start_time

@@ -209,7 +209,8 @@ class SubPaths:
         'conf': 'dfs.config.dir'
     }
 
-    _sub_dirs = ['conf', 'log', 'result', 'original']
+    # _sub_dirs = ['conf', 'log', 'result', 'original']
+    _sub_dirs = ['conf', 'log', 'original']
 
     subexp_name = None
 
@@ -224,6 +225,12 @@ class SubPaths:
 
         status_path = subexp_path / '.status'
         self.set_path('status', status_path)
+
+        librec_result_path = Path(subexp_name) / 'result'
+        self.set_path('result', librec_result_path)
+
+        librec_prop_path = Path(subexp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
+        self.set_path('librec_prop', librec_prop_path)
 
         for subdir in self._sub_dirs:
             subdir_path = subexp_path / subdir
@@ -242,7 +249,8 @@ class SubPaths:
             return None
 
     def get_librec_properties_path(self):
-        return self.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
+        return self.get_path('librec_prop')
+        # return self.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
 
     def get_ref_exp_flag_path(self):
         return self.get_path('conf') / Files.DEFAULT_REF_EXP_FILENAME
