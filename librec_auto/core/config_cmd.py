@@ -24,10 +24,10 @@ class ConfigCmd:
         self._files = Files()
         self._target = target
 
-        self._files.set_exp_path(target)
+        self._files.set_study_path(target)
         self._files.set_config_file(config_file)
 
-        self._xml_input = self.read_xml(self._files.get_config_path())
+        self._xml_input = self.read_xml(self._files.get_config_file_path())
         #self._var_librec_data = defaultdict(list)
         #self._var_rerank_data = defaultdict(list)
         #self._var_params = []
@@ -39,6 +39,9 @@ class ConfigCmd:
 
     def get_target(self):
         return self._target
+
+    def set_target(self, target):
+        self._target = target
 
     def get_xml(self):
         return self._xml_input
@@ -66,7 +69,7 @@ class ConfigCmd:
         return self._files
 
     def read_xml(self, path_str):
-        path = self._files.get_config_path()
+        path = self._files.get_config_file_path()
         if (path.exists()):
             xml_input = xml_load_from_path(path)
             return xml_input
@@ -77,7 +80,7 @@ class ConfigCmd:
         exp_count = len(self._var_coll.var_confs)
         if exp_count == 0:
             exp_count = 1
-        self.get_files().ensure_sub_paths(exp_count)
+        self.get_files().ensure_exp_paths(exp_count)
 
     def load_libraries(self):
         lib_paths = []
@@ -141,12 +144,12 @@ class ConfigCmd:
     # a single value
     def write_exp_configs(self):
         configs = list(
-            zip(self.get_files().get_sub_paths_iterator(),
+            zip(self.get_files().get_exp_paths_iterator(),
                 iter(self._var_coll.var_confs)))
         i = 0
         for exp, vconf in configs:
             vconf.exp_no = i
-            vconf.exp_dir = exp.subexp_name
+            vconf.exp_dir = exp.exp_name
             self.write_exp_config(exp, vconf)
 
     def write_exp_config(self, exp, vconf):
@@ -209,38 +212,6 @@ class ConfigCmd:
             return 1
         else:
             return int(thread_elems[0].text)
-
-    def setup_libraries(self):
-        if utils.safe_xml_path(self._xml_input, ['librec-auto', 'library']):
-            lib_elems = utils.force_list(
-                utils.extract_from_path(self._xml_input,
-                                        ['librec-auto', 'library']))
-            for lib in lib_elems:
-                lib_path = self.extract_library_path(lib)
-                lib = ConfigLib(lib_path)
-                self._libraries.add_lib(lib)
-
-    def extract_library_path(self, lib_elem):
-        file_name = lib_elem['#text'] if type(
-            lib_elem) is OrderedDict else lib_elem
-        file_path = Path(file_name)
-        path_prefix = None
-        if type(lib_elem) is OrderedDict:
-            if '@src' in lib_elem:
-                if 'system' == lib_elem['@src']:
-                    path_prefix = self._files.get_lib_path()
-                else:
-                    print(
-                        f'librec-auto: WARNING Path source {lib_elem["@src"]} is unknown. Possible values are: system'
-                    )
-        else:  # If library path is just as string without directory information, assume conf directory
-            if file_path.parent == Path('.'):
-                path_prefix = self._files.get_config_path().parent
-        if path_prefix is None:
-            return file_path
-        else:
-            return path_prefix / file_path
-
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)

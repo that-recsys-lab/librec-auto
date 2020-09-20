@@ -25,17 +25,17 @@ class RerankCmd(Cmd):
         self._config = config
 
         files = config.get_files()
-        if files.get_sub_count() > 0:
-            for i in range(0, files.get_sub_count()):
-                sub_path = files.get_sub_paths(i)
-                script_elem = single_xpath(sub_path.get_exp_conf(),
+        if files.get_exp_count() > 0:
+            for i in range(0, files.get_exp_count()):
+                sub_path = files.get_exp_paths(i)
+                script_elem = single_xpath(sub_path.get_study_conf(),
                                            '/librec-auto/rerank/script')
                 param_spec = create_param_spec(script_elem)
                 script_path = get_script_path(script_elem, 'rerank')
                 ref_path = sub_path.get_ref_exp_name()
 
                 print(
-                    f'librec-auto (DR): Running re-ranking command {self} for {sub_path.subexp_name}'
+                    f'librec-auto (DR): Running re-ranking command {self} for {sub_path.exp_name}'
                 )
                 print(f'\tRe-rank script: {script_path}')
                 print(f'\tParameters: {param_spec}')
@@ -49,13 +49,13 @@ class RerankCmd(Cmd):
         self._files = config.get_files()
         self._config = config
 
-        if self._files.get_sub_count() > 0:
-            for i in range(0, self._files.get_sub_count()):
-                sub_path = self._files.get_sub_paths(i)
+        if self._files.get_exp_count() > 0:
+            for i in range(0, self._files.get_exp_count()):
+                sub_path = self._files.get_exp_paths(i)
                 self.rerank(sub_path)
 
     def rerank(self, sub_path):
-        conf_xml = sub_path.get_exp_conf()
+        conf_xml = sub_path.get_study_conf()
         script_elems = conf_xml.xpath('/librec-auto/rerank/script')
         if len(script_elems) > 0:
             script_elem = script_elems[0]
@@ -73,12 +73,12 @@ class RerankCmd(Cmd):
                 sub_path.results2original()  # and there are results here
                 original_path = sub_path.get_path('original')
             else:  # If there is a ref, the results are in
-                ref_sub_path = sub_path.get_ref_sub_path(
+                ref_sub_path = sub_path.get_ref_exp_path(
                 )  # that experiment's directory
                 original_path = ref_sub_path.get_path('original')
 
             print(
-                f'librec-auto: Running re-ranking script {script_path} for {sub_path.subexp_name}'
+                f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
             )
             self.run_script(script_path, sub_path, original_path, param_spec)
 
@@ -94,8 +94,7 @@ class RerankCmd(Cmd):
         proc_spec = [
             sys.executable,
             script.as_posix(),
-            self._config.get_files().get_config_path().name,
-            self._config.get_target(),
+            self._config.get_files().get_config_file_path().name,
             original_path.absolute().as_posix(),
             sub_paths.get_path('result').absolute().as_posix()
         ] + param_spec

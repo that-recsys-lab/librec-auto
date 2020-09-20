@@ -30,6 +30,8 @@ class PostCmd(Cmd):
 
         for post_elem in post_elems:
             param_spec = utils.create_param_spec(post_elem)
+            if single_xpath(post_elem, "//param[@name='password']") is not None:
+                param_spec = param_spec + ['--password=<password hidden>']
             script_path = utils.get_script_path(post_elem, 'post')
 
             print(f'\tPost script: {script_path}')
@@ -40,7 +42,7 @@ class PostCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
         files = config.get_files()
 
-        target = files.get_exp_path()
+        target = files.get_study_path()
 
         post_path = files.get_post_path()
 
@@ -54,19 +56,18 @@ class PostCmd(Cmd):
             param_spec = utils.create_param_spec(post_elem)
             param_spec = self.handle_password(post_elem, config, param_spec)
             script_path = utils.get_script_path(post_elem, 'post')
+            exec_path = config.get_files().get_study_path()
 
             proc_spec = [
                 sys.executable,
                 script_path.absolute().as_posix(),
-                self._config.get_files().get_config_path().name,
-                config.get_target()
+                self._config.get_files().get_config_file_path().name
             ] + param_spec
             print(f'librec-auto: Running post-processing script {proc_spec}')
-            subprocess.call(proc_spec)
+            subprocess.call(proc_spec, cwd=str(exec_path.absolute()))
 
     def handle_password(self, post_elem, config, param_spec):
-        print("handling password")
-        if single_xpath(post_elem, "//param[@name='password']") is not None:
+        if single_xpath(post_elem, "param[@name='password']") is not None:
             val = config.get_key_password()
             if val:
                 param_spec.append(f'--password={val}')

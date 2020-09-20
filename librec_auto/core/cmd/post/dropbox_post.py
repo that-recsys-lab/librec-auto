@@ -36,7 +36,6 @@ Zijun:
 def read_args():
     parser = argparse.ArgumentParser(description="Dropbox Post-Processing script")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument("--option", help='Which actions you want to do', choices=["file", "folder", "No"])
     parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
     parser.add_argument('--path', help="File/folder to post")

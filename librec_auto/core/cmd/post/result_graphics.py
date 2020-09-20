@@ -20,7 +20,7 @@ exp_dir_pattern = "exp[0-9][0-9][0-9]"
 def get_metric_info(files):
     metric_info = {}
 
-    for sub_paths in files.get_sub_paths_iterator():
+    for sub_paths in files.get_exp_paths_iterator():
         status = Status(sub_paths)
 
         if status.is_completed():
@@ -169,7 +169,6 @@ def read_args():
     parser = argparse.ArgumentParser(
         description='Generic post-processing script')
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument('--browser',
                         help='Show graphics in browser',
                         choices=['true', 'false'])
@@ -180,9 +179,9 @@ def read_args():
 
 if __name__ == '__main__':
     args = read_args()
-    config = read_config_file(args['conf'], args['target'])
+    config = read_config_file(args['conf'], ".")
 
-    print(f"librec-auto: Creating summary visualizations for {args['target']}")
+    print(f"librec-auto: Creating summary visualizations")
 
     display = args['browser'] == 'true'
 
