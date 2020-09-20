@@ -8,9 +8,8 @@ Find a section
    quickstart
    development
    howtos
-   how-to-dropbox
-   how-to-slack
    how-to-produce-csv
+   integrations
 
 Indices and tables
 ==================
