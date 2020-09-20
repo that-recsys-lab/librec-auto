@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, SubPaths, Status
+from librec_auto.core.util import Files, ExpPaths, Status
 from librec_auto.core import ConfigCmd
 import os
 import subprocess
@@ -19,7 +19,7 @@ class LibrecCmd(Cmd):
         self._command = command
         self._sub_no = sub_no
         self._config: ConfigCmd = None
-        self._sub_path: SubPaths = None
+        self._sub_path: ExpPaths = None
 
     def setup(self, args):
         pass
@@ -43,7 +43,7 @@ class LibrecCmd(Cmd):
 
         # change working directory
         _files = self._config.get_files()
-        exp_path = Path(_files.get_exp_path())
+        exp_path = Path(_files.get_study_path())
 
         f = open(str(log_path), 'w+')
         p = subprocess.Popen(cmd,
@@ -69,14 +69,14 @@ class LibrecCmd(Cmd):
 
         proc_spec = ' '.join(cmd)
         print(
-            f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._sub_path.subexp_name}, exec: {proc_spec}'
+            f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._sub_path.exp_name}, exec: {proc_spec}'
         )
         # Only for testing parallel function
         # time.sleep(1.0)
 
     def dry_run(self, config):
         self._config = config
-        self._sub_path = config.get_files().get_sub_paths(self._sub_no)
+        self._sub_path = config.get_files().get_exp_paths(self._sub_no)
         link = self._sub_path.get_ref_exp_name()
         if not link:
             self.dry_run_librec()
@@ -87,7 +87,7 @@ class LibrecCmd(Cmd):
 
     def execute(self, config: ConfigCmd):
         self._config = config
-        self._sub_path = config.get_files().get_sub_paths(self._sub_no)
+        self._sub_path = config.get_files().get_exp_paths(self._sub_no)
         if not self._sub_path.get_ref_exp_name():
             self.ensure_clean_log()
 
@@ -105,7 +105,7 @@ class LibrecCmd(Cmd):
 
     # Checks for any contents of results directory, which would have been removed by purging
     def results_exist(self):
-        sub_paths = self._config.get_files().get_sub_paths(self._sub_no)
+        sub_paths = self._config.get_files().get_exp_paths(self._sub_no)
         results_path = sub_paths.get_path('results')
         return any(os.scandir(results_path))
 
@@ -131,7 +131,7 @@ class LibrecCmd(Cmd):
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):
-        expVal = self._sub_path.subexp_name
+        expVal = self._sub_path.exp_name
 
         if self._command == 'split':
             # check if split exists, if so split command doesn't make sense. Does not purge here.

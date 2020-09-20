@@ -1,6 +1,6 @@
 import datetime
 from pathlib import Path
-from librec_auto.core.util import xml_load_from_path, force_list, SubPaths, LogFile
+from librec_auto.core.util import xml_load_from_path, force_list, ExpPaths, LogFile
 from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
 
@@ -21,7 +21,7 @@ class Status():
         status_path = self._subpaths.get_path('status')
 
         if status_path.exists():
-            self._name = sub_paths.subexp_name
+            self._name = sub_paths.exp_name
             self._status_xml = xml_load_from_path(status_path)
             self._message = single_xpath(self._status_xml, '/librec-auto-status/message').text
 
@@ -95,7 +95,7 @@ class Status():
         date_elem = etree.SubElement(status_xml, "date")
         date_elem.text = str(datetime.datetime.now())
 
-        conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
+        conf_xml = config.get_files().get_exp_paths(exp_count).get_study_conf()
         var_elems = conf_xml.xpath("//*[@var='true']")
         for var_elem in var_elems:
             if var_elem.tag == 'param':
