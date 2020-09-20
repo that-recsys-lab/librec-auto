@@ -20,17 +20,17 @@ Files are stored in the ``post`` folder in the study directory.
 
 
 2. Configuration
-===============
+================
 
 1. In order to produce this output from your study, you will need to add a ``script`` element to the post-processing portion of the configuration file. Here is an example:
 
-``
-<script lang="python3" src="system">
-	<script-name>results_to_csv.py</script-name>
-		<param name="option">all</param>
-	</script> 
-</script>
-``
+::
+
+	<script lang="python3" src="system">
+		<script-name>results_to_csv.py</script-name>
+			<param name="option">all</param>
+		</script> 
+	</script>
 
 2. ``option`` parameter
 

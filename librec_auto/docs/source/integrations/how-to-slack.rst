@@ -63,7 +63,7 @@ We have to go to slack api official website. Here is the link: https://api.slack
 
 
 2.2.2. Set up Your API Bots
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. After we finish 2.2.1, we would go to **Management Apps** pages. The Top page, there is an search space.
 
@@ -112,10 +112,10 @@ After you follow the previous steps, you have successfully create an Slack API k
 
 
 3. Integrating with librec-auto
-=============
+===============================
 
 3.1. Encrypt your Slack API key
-----------------------------------------
+-------------------------------
 
 1. As above, your secret key should be stored in a secure location.
 
@@ -132,20 +132,20 @@ The call will look like this:
 
 
 3.2. Add the script to the configuration file
-------------------------------------------
+---------------------------------------------
 
 1. In order to add Slack integration to your experiment, you will need to add a ``script`` element to the post-processing portion of the configuration file. Here is an example:
 
-``
-<script lang="python3" src="system">
-	<script-name>slack-post.py</script-name>
-	<param name="option">message</param>
-	<param name="channel">librec_channel</param>
-	<param name="encrypted_key">keys/dropbox-api.enc</param>
-	<param name="message">The study is complete. Go look at the results.</param>
-	<param name="password"/>
-</script> 
-``
+::
+
+   <script lang="python3" src="system">
+   	<script-name>slack-post.py</script-name>
+   	<param name="option">message</param>
+   	<param name="channel">librec_channel</param>
+   	<param name="encrypted_key">keys/dropbox-api.enc</param>
+   	<param name="message">The study is complete. Go look at the results.</param>
+   	<param name="password"/>
+   </script> 
  
 The parameters are as follows:
 
@@ -157,17 +157,17 @@ The parameters are as follows:
 
 To post a file to Slack, the ``option`` element will contain the term ``file`` instead of ``message`` and there is an additional element ``file``, which gives the path to the file to be posted. Typically this will be experimental output stored in the ``post`` directory. The message will be used as a title for the file in the Slack channel. See example below:
 
-``
-<script lang="python3" src="system">
-	<script-name>slack-post.py</script-name>
-	<param name="option">file</param>
-	<param name="channel">librec_channel</param>
-	<param name="encrypted_key">keys/slack-api.enc</param>
-	<param name="file">post/viz-bar-NormalizedDCG.jpg</param>
-	<param name="message">NDCG for the experiment</param>
-	<param name="password"/>
-</script>
-``
+::
+
+   <script lang="python3" src="system">
+   	<script-name>slack-post.py</script-name>
+   	<param name="option">file</param>
+   	<param name="channel">librec_channel</param>
+   	<param name="encrypted_key">keys/slack-api.enc</param>
+   	<param name="file">post/viz-bar-NormalizedDCG.jpg</param>
+   	<param name="message">NDCG for the experiment</param>
+   	<param name="password"/>
+   </script>
 
 3.3. Provide the password when running librec-auto
 

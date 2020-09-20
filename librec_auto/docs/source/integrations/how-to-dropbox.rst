@@ -52,7 +52,7 @@ Dropbox Integration is based on the Dropbox API, and enables users to post files
    *Figure2*
 
 2.3. Save your Dropbox API key
----------------------------------------
+------------------------------
 
 1. After you finish section 2.2. Click the *Continue* button below. You have successfully created your Dropbox API app. 
 
@@ -63,11 +63,11 @@ Dropbox Integration is based on the Dropbox API, and enables users to post files
    :width: 600
    :alt: Management Tools
 
-   *Figure2*
+   *Figure3*
    
 
 3. Integrating with librec-auto
-=============
+===============================
 
 3.1. Encrypt your Dropbox API key
 ----------------------------------------
@@ -87,20 +87,20 @@ The call will look like this:
 
 
 3.2. Add the script to the configuration file
-------------------------------------------
+---------------------------------------------
 
 1. In order to add Dropbox integration to your study, you will need to add a ``script`` element to the post-processing portion of the configuration file. Here is an example:
 
-``
-<script lang="python3" src="system">
-	<script-name>dropbox-post.py</script-name>
-	<param name="option">file</param>
-	<param name="encrypted_key">keys/dropbox-api.enc</param>
-	<param name="path">post/cool-graphic.jpg</param>
-	<param name="dest">/app-folder-on-dropbox</param>
-	<param name="password"/>
-</script>
-``
+::
+
+   <script lang="python3" src="system">
+   	<script-name>dropbox-post.py</script-name>
+   	<param name="option">file</param>
+   	<param name="encrypted_key">keys/dropbox-api.enc</param>
+   	<param name="path">post/cool-graphic.jpg</param>
+   	<param name="dest">/app-folder-on-dropbox</param>
+   	<param name="password"/>
+   </script>
  
 The parameters are as follows:
 
@@ -120,4 +120,3 @@ Use the ``-k`` or ``--key_password`` on the command line to provide the password
 ``python -m librec_auto -k my_password_here run``
 
 The password can be shared with collaborators via some secure channel. The same password will be used for all scripts containing the empty ``<password/>`` element.
-

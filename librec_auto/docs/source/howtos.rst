@@ -53,7 +53,7 @@ All of the other parts of the algorithm specification would be unchanged.
 
 
 Producing graphical output
----------------
+--------------------------
 
 There is a post-processing script for producing basic summary plots of your study. Two types of visualization are produced:
 
@@ -64,11 +64,12 @@ The script can optionally pop up a browser window that contains the graphics.
 
 In order to use this script, you will need to add it to the post-processing portion of the configuration file. Here is an example:
 
-``
-<script lang="python3" src="system">
-	<script-name>result_graphics.py</script-name>
-	<param name="browser">true</param>
-</script> 
-``
+::
 
-The plots are stored in the ``post`` directory under the names ``viz-bar-``*metric*.jpg and ``viz-box-``*metric*.jpg where *metric* is the name of the LibRec metric that was calculated.
+	<script lang="python3" src="system">
+		<script-name>result_graphics.py</script-name>
+		<param name="browser">true</param>
+	</script> 
+
+The plots are stored in the ``post`` directory under the names ``viz-bar-`` *metric*.jpg and ``viz-box-`` *metric*.jpg where *metric*
+is the name of the LibRec metric that was calculated.
