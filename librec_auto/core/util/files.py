@@ -122,7 +122,7 @@ class Files:
             exp_count += 1
         if exp_count != count:
             print(
-                f'librec-auto: Expecting {count} existing experiment directories in {self.get_study_path()}. Found {sub_count}.'
+                f'librec-auto: Expecting {count} existing experiment directories in {self.get_study_path()}. Found {exp_count}.'
             )
 
     def create_exp_paths(self, tuple_count):
@@ -209,8 +209,8 @@ class ExpPaths:
         'conf': 'dfs.config.dir'
     }
 
-    _sub_dirs = ['conf', 'log', 'result', 'original']
-    # _sub_dirs = ['conf', 'log', 'original']
+ #   _sub_dirs = ['conf', 'log', 'result', 'original']
+    _sub_dirs = ['conf', 'log', 'original']
 
     exp_name = None
 
@@ -226,8 +226,8 @@ class ExpPaths:
         status_path = exp_path / '.status'
         self.set_path('status', status_path)
 
-#        librec_result_path = Path(exp_name) / 'result'
-#        self.set_path('result', librec_result_path)
+        librec_result_path = Path(exp_name) / 'result'
+        self.set_path('result', librec_result_path)
 
         librec_prop_path = Path(exp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
         self.set_path('librec_prop', librec_prop_path)

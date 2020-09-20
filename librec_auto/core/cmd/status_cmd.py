@@ -25,8 +25,8 @@ class StatusCmd(Cmd):
         if files.get_exp_count() == 0:
             print("librec-auto: No experiments found.")
         else:
-            for sub_paths in files.get_sub_paths_iterator():
-                status = Status(sub_paths)
+            for exp_paths in files.get_exp_paths_iterator():
+                status = Status(exp_paths)
                 print(status)
 
         self.status = Cmd.STATUS_COMPLETE

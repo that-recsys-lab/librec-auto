@@ -95,7 +95,6 @@ class RerankCmd(Cmd):
             sys.executable,
             script.as_posix(),
             self._config.get_files().get_config_file_path().name,
-            self._config.get_target(),
             original_path.absolute().as_posix(),
             sub_paths.get_path('result').absolute().as_posix()
         ] + param_spec

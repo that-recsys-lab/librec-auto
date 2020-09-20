@@ -56,15 +56,15 @@ class PostCmd(Cmd):
             param_spec = utils.create_param_spec(post_elem)
             param_spec = self.handle_password(post_elem, config, param_spec)
             script_path = utils.get_script_path(post_elem, 'post')
+            exec_path = config.get_files().get_study_path()
 
             proc_spec = [
                 sys.executable,
                 script_path.absolute().as_posix(),
-                self._config.get_files().get_config_file_path().name,
-                config.get_target()
+                self._config.get_files().get_config_file_path().name
             ] + param_spec
             print(f'librec-auto: Running post-processing script {proc_spec}')
-            subprocess.call(proc_spec)
+            subprocess.call(proc_spec, cwd=str(exec_path.absolute()))
 
     def handle_password(self, post_elem, config, param_spec):
         if single_xpath(post_elem, "param[@name='password']") is not None:

@@ -20,7 +20,6 @@ class LogFile:
 
     def newest_log(self, paths):
         log_dir = paths.get_path('log')
-        print(log_dir)
         log_files = os.listdir(log_dir)
         newest_file = sorted(log_files, reverse=True)[0]
         return log_dir / newest_file

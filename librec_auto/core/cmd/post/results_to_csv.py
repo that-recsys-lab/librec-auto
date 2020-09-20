@@ -7,6 +7,7 @@ import argparse
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Status
 from collections import defaultdict
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -71,7 +72,7 @@ def extract_summary_info(config):
 
 
 def save_data(df, choice, time_stamp):
-    save_path = config.get_files().get_post_path() / f'study-results-{choice}_{time_stamp}.csv'
+    save_path = Path('post') / f'study-results-{choice}_{time_stamp}.csv'
     df.to_csv(save_path, index=False)
 
 def read_args():
@@ -81,14 +82,13 @@ def read_args():
     """
     parser = argparse.ArgumentParser(description="Extract the experimental parameters")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument('--option', help='Type of csv', choices=['summary', 'full', 'all'])
     input_args = parser.parse_args()
     return vars(input_args)
 
 if __name__ == '__main__':
     args = read_args()
-    config = read_config_file(args['conf'], args['target'])
+    config = read_config_file(args['conf'], ".")
 
     choice = args['option']
 

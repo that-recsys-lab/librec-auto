@@ -40,6 +40,9 @@ class ConfigCmd:
     def get_target(self):
         return self._target
 
+    def set_target(self, target):
+        self._target = target
+
     def get_xml(self):
         return self._xml_input
 
@@ -209,38 +212,6 @@ class ConfigCmd:
             return 1
         else:
             return int(thread_elems[0].text)
-
-    def setup_libraries(self):
-        if utils.safe_xml_path(self._xml_input, ['librec-auto', 'library']):
-            lib_elems = utils.force_list(
-                utils.extract_from_path(self._xml_input,
-                                        ['librec-auto', 'library']))
-            for lib in lib_elems:
-                lib_path = self.extract_library_path(lib)
-                lib = ConfigLib(lib_path)
-                self._libraries.add_lib(lib)
-
-    def extract_library_path(self, lib_elem):
-        file_name = lib_elem['#text'] if type(
-            lib_elem) is OrderedDict else lib_elem
-        file_path = Path(file_name)
-        path_prefix = None
-        if type(lib_elem) is OrderedDict:
-            if '@src' in lib_elem:
-                if 'system' == lib_elem['@src']:
-                    path_prefix = self._files.get_lib_path()
-                else:
-                    print(
-                        f'librec-auto: WARNING Path source {lib_elem["@src"]} is unknown. Possible values are: system'
-                    )
-        else:  # If library path is just as string without directory information, assume conf directory
-            if file_path.parent == Path('.'):
-                path_prefix = self._files.get_config_file_path().parent
-        if path_prefix is None:
-            return file_path
-        else:
-            return path_prefix / file_path
-
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)

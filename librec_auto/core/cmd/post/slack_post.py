@@ -1,15 +1,15 @@
-import slack as sl
+from slack import WebClient
 import argparse
 from librec_auto.core.util.encrypt import decrypt_from_file
 import getpass
 
 
 def slack_send_message(message, channel, slack_api):
-    client = sl.WebClient(token=slack_api)
+    client = WebClient(token=slack_api)
     client.chat_postMessage(channel=channel, text=message)
 
 def slack_send_file(filename, message, channel, slack_api):
-    client = sl.WebClient(token=slack_api)
+    client = WebClient(token=slack_api)
     with open(filename, 'rb') as att:
         r = client.api_call("files.upload", files={'file': att, },
                             data={'channels': channel, 'filename': filename, 'title': f'File: {filename}',
@@ -40,7 +40,6 @@ Zijun:
 def read_args():
     parser = argparse.ArgumentParser(description="Slack Post-Processing script")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument("--option", help='Which actions you want to do', choices=["message", "file", "No"])
     parser.add_argument('--channel', help='Which channel you want to post')
     parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
