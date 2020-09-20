@@ -80,7 +80,11 @@ class RerankCmd(Cmd):
             print(
                 f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
             )
-            self.run_script(script_path, sub_path, original_path, param_spec)
+            ret_val = self.run_script(script_path, sub_path, original_path, param_spec)
+
+            if ret_val != 0:
+                logging.warning('Reranking script failed.')
+                self.status = Cmd.STATUS_ERROR
 
             if len(script_elems) > 1:
                 logging.warning(
@@ -90,6 +94,7 @@ class RerankCmd(Cmd):
         # TODO: RB If rerank only, then leave original folder alone and delete results files
         # TODO: RB If config file is in a non-standard place, I think this will fail. Maybe the sub-scripts
         # should get passed the same information as the original script when invoked?
+        exec_path = self._config.get_files().get_study_path()
 
         proc_spec = [
             sys.executable,
@@ -99,4 +104,4 @@ class RerankCmd(Cmd):
             sub_paths.get_path('result').absolute().as_posix()
         ] + param_spec
         print("    Parameters: " + str(proc_spec))
-        subprocess.call(proc_spec)
+        return subprocess.call(proc_spec, cwd=str(exec_path.absolute()))

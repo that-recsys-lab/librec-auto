@@ -11,7 +11,7 @@
 	<thread-count>rec.thread.count</thread-count>
 
 	<data>
-		<data>dfs.data.dir</data>
+		<data-dir>dfs.data.dir</data-dir>
 		<format>data.column.format</format>
 		<data-file>data.input.path</data-file>
 		<data-file format="*">data.model.format</data-file>
