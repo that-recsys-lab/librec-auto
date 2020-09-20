@@ -63,7 +63,7 @@ Dropbox Integration is based on the Dropbox API, and enables users to post files
    :width: 600
    :alt: Management Tools
 
-   *Figure2*
+   *Figure3*
    
 
 3. Integrating with librec-auto
