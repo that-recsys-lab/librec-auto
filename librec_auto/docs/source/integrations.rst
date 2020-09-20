@@ -5,5 +5,5 @@ Integrations
 .. toctree::
    :maxdepth: 2
 
-   how-to-dropbox
-   how-to-slack
+   integrations/how-to-dropbox
+   integrations/how-to-slack
