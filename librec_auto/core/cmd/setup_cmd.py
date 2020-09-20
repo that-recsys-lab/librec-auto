@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, SubPaths
+from librec_auto.core.util import Files, ExpPaths
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util import confirm
 import shutil

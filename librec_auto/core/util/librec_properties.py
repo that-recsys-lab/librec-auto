@@ -1,5 +1,5 @@
 from collections import OrderedDict, defaultdict
-from librec_auto.core.util import Files, utils, build_parent_path, xml_load_from_path, SubPaths
+from librec_auto.core.util import Files, utils, build_parent_path, xml_load_from_path, ExpPaths
 from lxml import etree
 import copy
 import logging
@@ -11,6 +11,10 @@ import itertools
 class LibrecTranslation:
 
     __instance = None
+
+    fixed_param_dict = {'dfs.result.dir': 'result',
+                        'dfs.log.dir': 'log',
+                        'dfs.split.dir': 'split'}
 
     def __new__(cls, files):
         if LibrecTranslation.__instance is None:
@@ -33,14 +37,9 @@ class LibrecTranslation:
 
 class LibrecProperties:
     def __init__(self, xml, files):
-        self.properties = {}
+        self.properties = LibrecTranslation.fixed_param_dict.copy()
         self._conf_xml = xml
         self.process_config(files)
-        self.add_property_hacks()
-
-    def add_property_hacks(self):
-
-        self.properties['dfs.split.dir'] = "split"
 
     def process_config(self, files):
         trans_rules = LibrecTranslation(files)
@@ -59,7 +58,6 @@ class LibrecProperties:
 # if an element is labeled in the rules as "no-translate", that means it's contents are not passed to LibRec
 #     and it can be ignored
 #
-
     def process_aux(self, conf_tree: etree._Element,
                     rule_tree: etree._Element):
         for conf_elem in conf_tree.iterchildren(tag=etree.Element):
@@ -72,10 +70,8 @@ class LibrecProperties:
                     action_attr = rule_elem.get('action', default=None)
                     if action_attr is not None and action_attr == 'no-translate':  # If labeled "no translate", skip
                         pass
-                    elif len(conf_elem
-                             ) > 0:  # If the config file has subelements
-                        if len(rule_elem
-                               ) > 0:  # If the rules also have subelements
+                    elif len(conf_elem) > 0:  # If the config file has subelements
+                        if len(rule_elem) > 0:  # If the rules also have subelements
                             self.process_aux(conf_elem,
                                              rule_elem)  # recursive call
                         else:  # If no corresponding elements in rules
@@ -139,7 +135,7 @@ class LibrecProperties:
         return [(key, self.get_property(key))
                 for key in self.properties.keys()]
 
-    def save(self, exp: SubPaths):
+    def save(self, exp: ExpPaths):
         path = exp.get_path('conf') / Files.DEFAULT_PROP_FILE_NAME
         with path.open('w') as fd:
             for (key, val) in self.get_entries():

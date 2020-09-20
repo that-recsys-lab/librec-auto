@@ -20,7 +20,7 @@ exp_dir_pattern = "exp[0-9][0-9][0-9]"
 def get_metric_info(files):
     metric_info = {}
 
-    for sub_paths in files.get_sub_paths_iterator():
+    for sub_paths in files.get_exp_paths_iterator():
         status = Status(sub_paths)
 
         if status.is_completed():

@@ -45,7 +45,6 @@ class Files:
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
-    _DEFAULT_LR_JAR = "librec.jar"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
@@ -57,43 +56,17 @@ class Files:
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
-        self._sub_path_dict = OrderedDict()
+        self._exp_path_dict = OrderedDict()
 
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
         self._global_path = module_init_path.parent
 
+    # Paths related to the librec installation
     def get_global_path(self):
         return self._global_path
 
-    def get_jar_path(self):
-        return self.get_global_path() / self._jar_dir_path
-
-    def get_exp_path(self):
-        return self._exp_path
-
-    def get_split_path(self):
-        return self._exp_path / self._split_dir_path
-
-    def get_config_path(self):
-        return self._exp_path / self._config_dir_path / self._config_file_name
-
-    def get_config_dir_path(self):
-        return self._exp_path / self._config_dir_path
-
-    def get_post_path(self):
-        return self._exp_path / self._post_dir_path
-
     def set_global_path(self, path):
         self._global_path = Path(path)
-
-    def set_config_dir_path(self, path):
-        self._config_dir_path = Path(path)
-
-    def set_exp_path(self, path):
-        self._exp_path = Path(path)
-
-    def set_config_file(self, filename):
-        self._config_file_name = Path(filename)
 
     def get_rules_path(self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
@@ -101,67 +74,94 @@ class Files:
     def get_lib_path(self):
         return self.get_global_path() / self._DEFAULT_LIB_DIR_NAME
 
-    # 2019-11-23 RB TODO: Separate librec.jar and auto.jar files. Then restore the two jar classpaths here.
+    def get_jar_path(self):
+        return self.get_global_path() / self._jar_dir_path
+
     def get_classpath(self):
-        # return (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LA_JAR).absolute().as_posix() + ";" + \
-        #        (self.get_global_path() / self.get_jar_path() / self._DEFAULT_LR_JAR).absolute().as_posix()
         return (self.get_jar_path() /
                 self._DEFAULT_LA_JAR).absolute().as_posix()
 
-    def get_subexp_name(self, count):
+    # Paths related to the current study
+    def get_study_path(self):
+        return self._study_path
+
+    def get_split_path(self):
+        return self._study_path / self._split_dir_path
+
+    def get_config_file_path(self):
+        return self._study_path / self._config_dir_path / self._config_file_name
+
+    def get_config_dir_path(self):
+        return self._study_path / self._config_dir_path
+
+    def get_post_path(self):
+        return self._study_path / self._post_dir_path
+
+    def set_config_dir_path(self, path):
+        self._config_dir_path = Path(path)
+
+    def set_study_path(self, path):
+        self._study_path = Path(path)
+
+    def set_config_file(self, filename):
+        self._config_file_name = Path(filename)
+
+    # Access to experiments within the current study
+
+    def get_exp_name(self, count):
         return self._EXP_DIR_FORMAT.format(count)
 
-    def detect_sub_path(self, exp_no):
-        return (self.get_exp_path() / self.get_subexp_name(exp_no)).exists()
+    def detect_exp_path(self, exp_no):
+        return (self.get_study_path() / self.get_exp_name(exp_no)).exists()
 
-    def detect_sub_paths(self, count=0):
-        sub_count = 0
-        while self.detect_sub_path(sub_count):
-            self._sub_path_dict[sub_count] = SubPaths(
-                self, self.get_subexp_name(sub_count), create=False)
-            sub_count += 1
-        if sub_count != count:
+    def detect_exp_paths(self, count=0):
+        exp_count = 0
+        while self.detect_exp_path(exp_count):
+            self._exp_path_dict[exp_count] = ExpPaths(
+                self, self.get_exp_name(exp_count), create=False)
+            exp_count += 1
+        if exp_count != count:
             print(
-                f'librec-auto: Expecting {count} existing experiment directories in {self.get_exp_path()}. Found {sub_count}.'
+                f'librec-auto: Expecting {count} existing experiment directories in {self.get_study_path()}. Found {sub_count}.'
             )
 
-    def create_sub_paths(self, tuple_count):
+    def create_exp_paths(self, tuple_count):
         if tuple_count == 0:
             sub_exp_count = 1
         else:
             sub_exp_count = tuple_count
 
         for i in range(sub_exp_count):
-            self._sub_path_dict[i] = SubPaths(self,
-                                              self.get_subexp_name(i),
+            self._exp_path_dict[i] = ExpPaths(self,
+                                              self.get_exp_name(i),
                                               create=True)
 
-    def ensure_sub_paths(self, exp_count):
-        if self.detect_sub_path(0):
-            self.detect_sub_paths(count=exp_count)
+    def ensure_exp_paths(self, exp_count):
+        if self.detect_exp_path(0):
+            self.detect_exp_paths(count=exp_count)
         else:
-            self.create_sub_paths(exp_count)
+            self.create_exp_paths(exp_count)
 
-    def get_sub_count(self):
-        if len(self._sub_path_dict) > 0:
-            return max(self._sub_path_dict.keys()) + 1
+    def get_exp_count(self):
+        if len(self._exp_path_dict) > 0:
+            return max(self._exp_path_dict.keys()) + 1
         else:
             return 0
 
-    def get_sub_paths(self, count):
-        if count in self._sub_path_dict:
-            return self._sub_path_dict[count]
+    def get_exp_paths(self, count):
+        if count in self._exp_path_dict:
+            return self._exp_path_dict[count]
         else:
             return None
 
-    def get_sub_paths_by_name(self, name):
-        for subp in self._sub_path_dict.values():
-            if subp.subexp_name == name:
-                return subp
+    def get_exp_paths_by_name(self, name):
+        for exp in self._exp_path_dict.values():
+            if exp.exp_name == name:
+                return exp
         return None
 
-    def get_sub_paths_iterator(self):
-        return self._sub_path_dict.values()
+    def get_exp_paths_iterator(self):
+        return self._exp_path_dict.values()
 
     @staticmethod
     def dir_hash(maybe_path):
@@ -187,7 +187,7 @@ class Files:
         return hasher.hexdigest()
 
 
-class SubPaths:
+class ExpPaths:
     """
     Represents the various directories and paths associated with a single sub-experiment
 
@@ -209,36 +209,36 @@ class SubPaths:
         'conf': 'dfs.config.dir'
     }
 
-    # _sub_dirs = ['conf', 'log', 'result', 'original']
-    _sub_dirs = ['conf', 'log', 'original']
+    _sub_dirs = ['conf', 'log', 'result', 'original']
+    # _sub_dirs = ['conf', 'log', 'original']
 
-    subexp_name = None
+    exp_name = None
 
-    def __init__(self, files, subexp_name, create=True):
+    def __init__(self, files, exp_name, create=True):
         self._path_dict = {}
         self.files = files
-        base = files.get_exp_path()
-        self.subexp_name = subexp_name
+        base = files.get_study_path()
+        self.exp_name = exp_name
 
-        subexp_path = base / subexp_name
-        self.set_path('subexp', subexp_path)
+        exp_path = base / exp_name
+        self.set_path('subexp', exp_path)
 
-        status_path = subexp_path / '.status'
+        status_path = exp_path / '.status'
         self.set_path('status', status_path)
 
-        librec_result_path = Path(subexp_name) / 'result'
-        self.set_path('result', librec_result_path)
+#        librec_result_path = Path(exp_name) / 'result'
+#        self.set_path('result', librec_result_path)
 
-        librec_prop_path = Path(subexp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
+        librec_prop_path = Path(exp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
         self.set_path('librec_prop', librec_prop_path)
 
         for subdir in self._sub_dirs:
-            subdir_path = subexp_path / subdir
+            subdir_path = exp_path / subdir
             self.set_path(subdir, subdir_path)
 
         if create:
-            logging.info("Creating subexperiment: {}", subexp_name)
-            subexp_path.mkdir(exist_ok=True)
+            logging.info("Creating experiment: {}", exp_name)
+            exp_path.mkdir(exist_ok=True)
             for subdir in self._sub_dirs:
                 self.get_path(subdir).mkdir(exist_ok=True)
 
@@ -271,7 +271,7 @@ class SubPaths:
     def set_path_from_string(self, type, path_str):
         self._path_dict[type] = Path(path_str)
 
-    def get_exp_conf(self):
+    def get_study_conf(self):
         path = self.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
         xml_input = xml_load_from_path(path)
         return xml_input
@@ -285,12 +285,12 @@ class SubPaths:
         else:
             return None
 
-    def get_ref_sub_path(self):
+    def get_ref_exp_path(self):
         ref = self.get_ref_exp_name()
         if not ref:
             return None
         else:
-            return self.files.get_sub_paths_by_name(ref)
+            return self.files.get_exp_paths_by_name(ref)
 
     # Assumes path is set up
     def add_to_config(self, config, type):
@@ -317,5 +317,5 @@ class SubPaths:
 
     def get_log_path(self):
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        fname = SubPaths.DEFAULT_LOG_PATTERN.format(stamp)
+        fname = ExpPaths.DEFAULT_LOG_PATTERN.format(stamp)
         return self.get_path('log') / fname

@@ -8,7 +8,7 @@ from pathlib import Path
 class ConfigCmdTestCase(unittest.TestCase):
     def setUp(self):
         self.files = Files()
-        self.files.set_exp_path('.')
+        self.files.set_study_path('.')
         self.files.set_config_file('config-test.xml')
         self.files.set_global_path('..')
 

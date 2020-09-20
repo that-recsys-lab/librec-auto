@@ -1,4 +1,4 @@
-from librec_auto.core.util import SubPaths
+from librec_auto.core.util import ExpPaths
 import re
 import os
 
@@ -8,7 +8,7 @@ class LogFile:
     def __str__(self):
         return f'LogFile({self._values}'
 
-    def __init__(self, paths: SubPaths):
+    def __init__(self, paths: ExpPaths):
         self._metrics = []
         self._values = {}
 
@@ -20,6 +20,7 @@ class LogFile:
 
     def newest_log(self, paths):
         log_dir = paths.get_path('log')
+        print(log_dir)
         log_files = os.listdir(log_dir)
         newest_file = sorted(log_files, reverse=True)[0]
         return log_dir / newest_file

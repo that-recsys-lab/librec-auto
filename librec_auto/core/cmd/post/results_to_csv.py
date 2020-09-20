@@ -15,7 +15,7 @@ extract_params_format = "extract_{}_params"
 
 def get_metric_info(files):
     metric_info = {}
-    for sub_paths in files.get_sub_paths_iterator():
+    for sub_paths in files.get_exp_paths_iterator():
         status = Status(sub_paths)
         if status.is_completed():
             params = status._params
