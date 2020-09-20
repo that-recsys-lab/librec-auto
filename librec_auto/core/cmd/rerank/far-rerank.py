@@ -147,7 +147,6 @@ def read_args():
     """
     parser = argparse.ArgumentParser(description='Generic re-ranking script')
     parser.add_argument('conf', help='Name of configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
     parser.add_argument(
@@ -176,13 +175,13 @@ def enumerate_results(result_path):
 if __name__ == '__main__':
     args = read_args()
     #print(args)
-    config = read_config_file(args['conf'], args['target'])
+    config = read_config_file(args['conf'], ".")
     result_files = enumerate_results(args['original'])
 
     split_path = config.get_files().get_split_path()
     # split_names = os.listdir(split_path)
 
-    data_dir = single_xpath(config.get_xml(), '/librec-auto/path/data').text
+    data_dir = single_xpath(config.get_xml(), '/librec-auto/data/data-dir').text
     item_feature_file = single_xpath(
         config.get_xml(), '/librec-auto/features/item-feature-file').text
     protected = single_xpath(config.get_xml(),
@@ -223,7 +222,7 @@ if __name__ == '__main__':
                                 names=['userid', 'itemid', 'score'],
                                 sep='\t')
         else:
-            print('Cannot locate training data: ' + tr_file_path)
+            print('Cannot locate training data: ' + str(tr_file_path.absolute()))
             exit(-1)
 
         if input_file_path.exists():
