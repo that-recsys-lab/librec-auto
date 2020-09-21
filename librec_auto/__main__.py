@@ -237,8 +237,9 @@ if __name__ == '__main__':
     args = read_args()
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
-    if not jar_path.is_file():
+    if not jar_path.is_file() and args['action'] != 'install':
         print("Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again.")
+
     else:
         if args['action'] == 'describe':
             print_description(args)
