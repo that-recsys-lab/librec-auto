@@ -237,7 +237,7 @@ if __name__ == '__main__':
     args = read_args()
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
-    if not jar_path.is_file():
+    if not jar_path.is_file() and args['action'] != 'install' :
         print("You missed the second step of the installation! Run 'python -m librec_auto install' and then try to run librec_auto again.")
     else:
         if args['action'] == 'describe':
