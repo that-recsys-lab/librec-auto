@@ -4,6 +4,7 @@ from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
+import librec_auto
 
 
 def read_args():
@@ -235,19 +236,23 @@ def setup_commands(args, config):
 if __name__ == '__main__':
     args = read_args()
 
-    if args['action'] == 'describe':
-        print_description(args)
+    jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
+    if not jar_path.is_file():
+        print("You missed the second step of the installation! Run 'python -m librec_auto install' and then try to run librec_auto again.")
     else:
-        config = load_config(args)
-
-        if config.is_valid() or args['action'] == 'install':
-            command = setup_commands(args, config)
-            if isinstance(command, Cmd):
-                if args['dry_run']:
-                    command.dry_run(config)
-                else:
-                    command.execute(config)
-            else:
-                logging.error("Command instantiation failed.")
+        if args['action'] == 'describe':
+            print_description(args)
         else:
-            logging.error("Configuration loading failed.")
+            config = load_config(args)
+
+            if config.is_valid() or args['action'] == 'install':
+                command = setup_commands(args, config)
+                if isinstance(command, Cmd):
+                    if args['dry_run']:
+                        command.dry_run(config)
+                    else:
+                        command.execute(config)
+                else:
+                    logging.error("Command instantiation failed.")
+            else:
+                logging.error("Configuration loading failed.")

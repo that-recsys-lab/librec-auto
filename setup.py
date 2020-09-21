@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="librec-auto",
-    version="0.1.39",
+    version="0.1.47",
 	scripts=['librec_auto/__main__.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
@@ -22,7 +22,7 @@ setuptools.setup(
                       'progressbar',
                       'lxml',
                       'cryptography',
-                      'slackclient',
+                      'slackclient>=2.0',
                       'slack',
                       'slacker',
     ],
