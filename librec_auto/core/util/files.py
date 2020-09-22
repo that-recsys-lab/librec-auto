@@ -36,7 +36,7 @@ class Files:
     _DEFAULT_RULES_DIR_NAME = "rules"
     _DEFAULT_LIB_DIR_NAME = "librec_auto/library"
     _DEFAULT_RES_DIR_NAME = "result"
-    _DEFAULT_SPLIT_DIR_NAME = "data/split"
+#    _DEFAULT_SPLIT_DIR_NAME = "split"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
     _DEFAULT_POST_DIR_NAME = "post"
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
@@ -52,7 +52,7 @@ class Files:
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
-        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
+#        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
@@ -85,8 +85,8 @@ class Files:
     def get_study_path(self):
         return self._study_path
 
-    def get_split_path(self):
-        return self._study_path / self._split_dir_path
+#    def get_split_path(self):
+#        return self._study_path / self._split_dir_path
 
     def get_config_file_path(self):
         return self._study_path / self._config_dir_path / self._config_file_name

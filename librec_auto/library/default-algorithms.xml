@@ -2,6 +2,20 @@
 
 <librec-auto-library>
 
+	<alg name="alg:userknn">
+		<class>userknn</class>
+		<similarity type="user">pcc</similarity>
+		<neighborhood-size>20</neighborhood-size>
+		<shrinkage>10</shrinkage>
+	</alg>
+
+	<alg name="alg:itemknn">
+		<class>itemknn</class>
+		<similarity type="item">pcc</similarity>
+		<neighborhood-size>50</neighborhood-size>
+		<shrinkage>10</shrinkage>
+	</alg>
+
 	<alg name="alg:biasedmf">
 		<class>biasedmf</class>
 		<learn-rate>0.01</learn-rate>
