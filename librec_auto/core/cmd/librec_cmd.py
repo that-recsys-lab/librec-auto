@@ -40,6 +40,7 @@ class LibrecCmd(Cmd):
 
         print(f"librec-auto: Running librec. {cmd}")
         log_path = self._exp_path.get_log_path()
+        print(f"librec-auto: Logging to {log_path}.")
 
         # change working directory
         _files = self._config.get_files()
@@ -78,24 +79,28 @@ class LibrecCmd(Cmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
         link = self._exp_path.get_ref_exp_name()
-        if not link:
-            self.dry_run_librec()
-        else:
+        if link and self._command == 'run':         # If the results are stored elsewhere
+                                                    # then we don't execute librec to generate
+                                                    # results
             print(
                 f'librec-auto (DR): Skipping librec. Getting results from {link}'
             )
+        else:                                       # We are running librec normally or we have
+                                                    # a link but we are evaluating the results
+            self.dry_run_librec()
 
     def execute(self, config: ConfigCmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
-        if not self._exp_path.get_ref_exp_name():
+        link = self._exp_path.get_ref_exp_name()
+        if link and self._command == 'run':
+            self.status = Cmd.STATUS_COMPLETE
+        else:
             self.ensure_clean_log()
 
             Status.save_status("Executing", self._sub_no, config,
                                self._exp_path)
             self.execute_librec()
-        else:
-            self.status = Cmd.STATUS_COMPLETE
         Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
     # Checks for any contents of split directory, which would have been removed by purging

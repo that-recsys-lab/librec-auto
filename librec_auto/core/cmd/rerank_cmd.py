@@ -63,20 +63,17 @@ class RerankCmd(Cmd):
             script_path = get_script_path(script_elem, 'rerank')
             result_path = sub_path.get_path('result')
 
-            if not result_path.exists():
-                print('librec-auto: No results. Cannot rerank ',
-                      self._config.get_target())
-                return
-
-            if not sub_path.get_ref_exp_name(
-            ):  # If there is no ref, then LibRec was run
+            if not sub_path.get_ref_exp_name():  # If there is no ref, then LibRec was run
+                if not result_path.exists():
+                    print('librec-auto: No results. Cannot rerank ',
+                          self._config.get_target())
+                    return
                 sub_path.results2original()  # and there are results here
                 original_path = sub_path.get_path('original')
             else:  # If there is a ref, the results are in
-                ref_sub_path = sub_path.get_ref_exp_path(
-                )  # that experiment's directory
+                ref_sub_path = sub_path.get_ref_exp_path()  # that experiment's directory
                 original_path = ref_sub_path.get_path('original')
-
+                result_path.mkdir(exist_ok=True)            # script needs a place for results
             print(
                 f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
             )

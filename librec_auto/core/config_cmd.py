@@ -178,11 +178,11 @@ class ConfigCmd:
         new_xml.getroottree().write(outpath.absolute().as_posix(),
                                     pretty_print=True)
 
-        if vconf.ref_config is None:
-            props = LibrecProperties(new_xml, self._files)
-            exp.add_to_config(props.properties, 'result')
-            props.save(exp)
-        else:
+        props = LibrecProperties(new_xml, self._files)
+        exp.add_to_config(props.properties, 'result')
+        props.save(exp)
+
+        if vconf.ref_config:
             path = exp.get_ref_exp_flag_path()
             with path.open(mode='w') as fh:
                 fh.write(vconf.ref_config.exp_dir)

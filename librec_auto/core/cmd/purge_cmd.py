@@ -87,7 +87,7 @@ class PurgeCmd(Cmd):
     # TODO: 2019-12-06 RB The status file will be out of date.
     def purge_rerank(self):
         if self._files.get_exp_count() > 0:
-            for sub_paths in self._files.get_sub_paths_iterator():
+            for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
                 print("librec-auto: Deleting reranked results: ", exp_str)
                 sub_paths.results2original()
