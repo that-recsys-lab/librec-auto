@@ -4,7 +4,6 @@
 import argparse
 import re
 import pandas as pd
-import numpy
 from librec_auto.core import read_config_file
 from pathlib import Path
 from librec_auto.core.util.xml_utils import single_xpath
@@ -64,6 +63,8 @@ def rescore_binary(item, original_score, items_so_far, score_profile, helper):
 
     div_term *= helper.lam
     answer += div_term
+
+    # answer = original_score + lambda * div_term
     return answer
 
 

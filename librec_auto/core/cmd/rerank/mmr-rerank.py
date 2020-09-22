@@ -9,23 +9,20 @@ import pandas as pd
 from scipy.spatial import distance
 from sklearn.preprocessing import MinMaxScaler
 import argparse
-from librec_auto import read_config_file
+from librec_auto.core import read_config_file
 import os
 import re
 from pathlib import Path
+from librec_auto.core.util.xml_utils import single_xpath
 import warnings
 warnings.filterwarnings('ignore')
 
 
-def Similarity(feature1, feature2, method):
+def similarity(feature1, feature2, method):
     if method == 'jaccard':
-        if len(feature1) == 0:
-            feature1 = ['new']
-        if len(feature2) == 0:
-            feature2 = ['new']
-        set1 = set(feature1[0])
-        set2 = set(feature2[0])
-        return len(set1.intersection(set2)) / len(set1.union(set2))
+
+        return np.count_nonzero(np.logical_and(feature1, feature2)) / \
+               np.count_nonzero(np.logical_or(feature1, feature2))
 
     if method == 'cosine':
         try:
@@ -45,8 +42,11 @@ def Similarity(feature1, feature2, method):
     # if method == 'dot':
     #    return np.mean(feature1 * feature2)
 
-
+# RB 2020-09-22 Would be (much) faster to pivot the item feature data set up front. Then the
+# similarity calculations will be much faster. Better yet would be to build a similarity matrix
+# of just the items that are in the result set, and consult that.
 def MMR_algorithm(lamb, user_id, item_feature_df, scaled_ratings, user_item_list, scaler, sim_method, top_k):
+
     current_result = []
     remain_list = user_item_list.copy()
     item_idx = np.argmax(scaled_ratings)
@@ -74,9 +74,19 @@ def MMR_algorithm(lamb, user_id, item_feature_df, scaled_ratings, user_item_list
         for i in range(num_remain):
 
             for j in range(num_curr):
-                feature1 = item_feature_df[item_feature_df['Item_ID'] == remain_list[i]].to_numpy().flatten()[1:]
-                feature2 = item_feature_df[item_feature_df['Item_ID'] == current_result[j]].to_numpy().flatten()[1:]
-                sim[i][j] = Similarity(feature1, feature2, sim_method)
+                index1 = remain_list[i]
+                index2 = current_result[j]
+
+                vec_proj1 = item_feature_df.loc[[index1,]]
+                vec_proj2 = item_feature_df.loc[[index2,]]
+
+                joined = pd.concat([vec_proj1, vec_proj2], axis=0)
+
+                pivoted = joined.pivot(columns='feature').fillna(0)
+
+                vec1 = pivoted.loc[index1].to_numpy()
+                vec2 = pivoted.loc[index2].to_numpy()
+                sim[i][j] = similarity(vec1, vec2, sim_method)
 
             sim_max[i] = np.max(sim[i])
 
@@ -92,14 +102,9 @@ def MMR_algorithm(lamb, user_id, item_feature_df, scaled_ratings, user_item_list
     # return [user_id] * top_k, current_result, all_scores
 
 
-def reranker(lamb, rating_path, feature_filepath, binary, top_k=0):
-    rating_file = pd.read_csv(rating_path, sep=",", names=[
-        "user", "item", "rating"])
+def reranker(lamb, rating_file, item_feature_df, binary, top_k=0):
 
-    item_feature_df = pd.read_csv(feature_filepath, sep=",", names=[
-        "Item_ID", "feature1", "feature2"])
-
-    all_user_id = np.unique(rating_file['user'].to_numpy())
+    all_user_id = np.unique(rating_file['userid'].to_numpy())
     num_user = len(all_user_id)
 
     scaler = MinMaxScaler()
@@ -111,11 +116,11 @@ def reranker(lamb, rating_path, feature_filepath, binary, top_k=0):
 
     for i in range(num_user):
         user_id = all_user_id[i]
-        user_rating = rating_file.loc[rating_file["user"] == user_id, [
+        user_rating = rating_file.loc[rating_file["userid"] == user_id, [
             "rating"]].to_numpy()
         scaled_ratings = scaler.fit_transform(user_rating).flatten()
-        user_item_list = rating_file.loc[rating_file["user"] == user_id, [
-            "item"]].to_numpy().flatten()
+        user_item_list = rating_file.loc[rating_file["userid"] == user_id, [
+            "itemid"]].to_numpy().flatten()
 
         result = MMR_algorithm(
             lamb, user_id, item_feature_df, scaled_ratings, user_item_list, scaler, sim_method, top_k)
@@ -129,9 +134,7 @@ def reranker(lamb, rating_path, feature_filepath, binary, top_k=0):
     return df
 
 
-
 RESULT_FILE_PATTERN = 'out-\d+.txt'
-INPUT_FILE_PATTERN = 'cv_\d+'
 
 def read_args():
     """
@@ -140,7 +143,6 @@ def read_args():
     """
     parser = argparse.ArgumentParser(description='Generic re-ranking script')
     parser.add_argument('conf', help='Name of configuration file')
-    parser.add_argument('target', help='Experiment target')
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
@@ -152,49 +154,60 @@ def read_args():
 
 
 def enumerate_results(result_path):
-    files = os.listdir(result_path)
     pat = re.compile(RESULT_FILE_PATTERN)
-    return [file for file in files if pat.match(file)]
+    files = [file for file in result_path.iterdir() if pat.match(file.name)]
+    files.sort()
+    return files
+
+
+def load_item_features(config, data_path):
+    item_feature_file = single_xpath(
+        config.get_xml(), '/librec-auto/features/item-feature-file').text
+    item_feature_path = data_path / item_feature_file
+
+    if not item_feature_path.exists():
+        print("Cannot locate item features. Path: " + item_feature_path)
+        return None
+
+    item_feature_df = pd.read_csv(item_feature_path,
+                                      names=['itemid', 'feature', 'value'])
+    item_feature_df.set_index('itemid', inplace=True)
+    return item_feature_df
+
+
+def output_reranked(reranked_df, dest_results_path, file_path):
+    output_file_path = dest_results_path / file_path.name
+    print('Reranking for ', output_file_path)
+    reranked_df.to_csv(output_file_path, header=False, index=False)
 
 
 def main():
     args = read_args()
-    config = read_config_file(args['conf'], args['target'])
-    result_files = enumerate_results(args['original'])
+    config = read_config_file(args['conf'], '.')
 
-    split_path = config.get_files().get_split_path()
+    original_results_path = Path(args['original'])
+    result_files = enumerate_results(original_results_path)
 
-    data_dir = config.get_prop_dict()['dfs.data.dir'] 
-    item_feature_file = config.get_prop_dict()['data.itemfeature.path']
-    protected = config.get_prop_dict()['data.protected.feature']
+    dest_results_path = Path(args['result'])
 
-    item_feature_path = Path(data_dir) / item_feature_file
+    data_dir = single_xpath(config.get_xml(), '/librec-auto/data/data-dir').text
+    data_path = Path(data_dir)
+    data_path = data_path.resolve()
 
-    if not item_feature_path.exists():
-        print("Cannot locate item features. Path: " + item_feature_path)
+    item_feature_df = load_item_features(config, data_path)
+    if item_feature_df is None:
         exit(-1)
 
     lamb = float(args['lambda'])
     top_k = int(args['max_len'])
     binary = args['binary'] == 'True'
 
-    for file_name in result_files:
-        input_file_path = Path(args['original'] + '/' + file_name)
+    for file_path in result_files:
 
-        cv_path = str(split_path) + '/cv_' + re.findall('\d+', file_name)[0] + '/train.txt'
-        tr_file_path = Path(cv_path)
+        results_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
+        reranked_df = reranker(lamb, results_df, item_feature_df, binary, top_k)
 
-        if not tr_file_path.exists():
-            print('Cannot locate training data: ' + tr_file_path)
-            exit(-1)
-
-        if input_file_path.exists():
-            reranked_df = reranker(lamb, input_file_path, item_feature_path, binary, top_k)
-
-            output_file_path = Path(args['result'] + '/' + file_name)
-            print('Reranking for ', output_file_path)
-            reranked_df.to_csv(output_file_path, header=None, index=False)
-
+        output_reranked(reranked_df, dest_results_path, file_path)
 
 
 if __name__ == '__main__':
