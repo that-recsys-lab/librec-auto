@@ -17,6 +17,11 @@ Feature Section
 
 Item features. The structure is ``item id, feature name, feature value``
 
+Splitter Section
+================
+
+Select amount of data to train and method of splitting data.
+
 Algorithm Section
 =================
 
