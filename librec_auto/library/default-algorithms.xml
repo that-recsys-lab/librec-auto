@@ -26,7 +26,7 @@
 		<user-reg>0.01</user-reg>
 		<item-reg>0.01</item-reg>
 		<bias-reg>0.01</bias-reg>
-		<!-- num-factors No Default -->
+		<num-factors>20</num-factors>
 	</alg>
 	
 	<alg name="alg:slim">

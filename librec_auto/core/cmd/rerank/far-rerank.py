@@ -61,10 +61,10 @@ def rescore_binary(item, original_score, items_so_far, score_profile, helper):
         if count_prot == len(items_so_far):
             div_term = 1 - score_profile
 
-    div_term *= helper.lam
+    div_term *= (1 - helper.lam)
+    answer *= helper.lam
     answer += div_term
 
-    # answer = original_score + lambda * div_term
     return answer
 
 
@@ -72,7 +72,6 @@ def rescore_binary(item, original_score, items_so_far, score_profile, helper):
 # See Abdollahpouri, Burke, and Mobasher. Managing popularity bias in recommender systems with personalized re-ranking. 2019
 def rescore_prop(item, original_score, items_so_far, score_profile, helper):
     answer = original_score
-    div_term = 0
 
     count_prot = helper.num_prot(items_so_far)
     count_items = len(items_so_far)
@@ -86,7 +85,8 @@ def rescore_prop(item, original_score, items_so_far, score_profile, helper):
             div_term = (1 - score_profile)
             div_term *= count_prot / count_items
 
-    div_term *= helper.lam
+    div_term *= (1 - helper.lam)
+    answer *= helper.lam
     answer += div_term
     return answer
 
