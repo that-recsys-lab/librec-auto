@@ -85,8 +85,8 @@ def rescore_prop(item, original_score, items_so_far, score_profile, helper):
             div_term = (1 - score_profile)
             div_term *= count_prot / count_items
 
-    div_term *= (1 - helper.lam)
-    answer *= helper.lam
+    div_term *= helper.lam
+    answer *= (1 - helper.lam)
     answer += div_term
     return answer
 
@@ -128,13 +128,15 @@ def rerank(userid, user_recs_df, user_profile, helper):
 
 
 def execute(recoms_df, train_df, helper):
+
+
     result = []
 
     for userid in list(set(recoms_df['userid'])):
         #        print('list reranked for user #',userid)
         result.append(
             rerank(userid, recoms_df[recoms_df['userid'] == userid].copy(),
-                   train_df[train_df['userid'] == userid], helper))
+                    train_df[train_df['userid'] == userid], helper))
 
     rr_df = pd.concat(result)
     return rr_df

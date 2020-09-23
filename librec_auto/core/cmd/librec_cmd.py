@@ -1,6 +1,7 @@
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, ExpPaths, Status
 from librec_auto.core import ConfigCmd
+from librec_auto.core.util.xml_utils import single_xpath
 import os
 import subprocess
 import shlex
@@ -89,6 +90,21 @@ class LibrecCmd(Cmd):
                                                     # a link but we are evaluating the results
             self.dry_run_librec()
 
+    # Late night demo hack
+    # The value of rec.recommender.ranking.topn must be the re-ranked list length
+    # Must substitute here and re-write the configuration.
+    def fix_list_length(self):
+        config = self._config
+        rerank_size_elem = single_xpath(config._xml_input,
+                                        '/librec-auto/rerank/script/param[@name="max_len"]')
+
+        if rerank_size_elem is None:
+            return
+        else:
+            list_size_elem = single_xpath(config._xml_input, "/librec-auto/metric/list-size")
+            list_size_elem.text = rerank_size_elem.text
+            config.write_exp_configs()
+
     def execute(self, config: ConfigCmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
@@ -100,6 +116,8 @@ class LibrecCmd(Cmd):
 
             Status.save_status("Executing", self._sub_no, config,
                                self._exp_path)
+            if self._command == "eval":
+                self.fix_list_length()
             self.execute_librec()
         Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
