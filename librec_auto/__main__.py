@@ -14,7 +14,8 @@ def read_args():
     '''
     parser = argparse.ArgumentParser(
         description=
-        'The librec-auto tool for running recommender systems experiments')
+        'The librec-auto tool for running recommender systems experiments.', 
+        epilog = 'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/')
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
@@ -57,6 +58,26 @@ def read_args():
         "-nc",
         "--no_cache",
         help="Do not cache any intermediate results (Not implemented)",
+        action="store_true")
+    parser.add_argument(
+        "-dev",
+        "--dev",
+        help="Help with documentation, code formatting, and Docker",
+        action="store_true")
+    parser.add_argument(
+        "-HT",
+        "--HT",
+        help="Help with using libraries (Not implemented)",
+        action="store_true")
+    parser.add_argument(
+        "-PCO",
+        "--dev",
+        help="Help with producting CSV outputs (Not implemented)",
+        action="store_true")
+    parser.add_argument(
+        "-int",
+        "--int",
+        help="Help with Integrations (Not implemented)",
         action="store_true")
 
     parser.add_argument(
@@ -256,4 +277,7 @@ if __name__ == '__main__':
                 else:
                     logging.error("Command instantiation failed.")
             else:
-                logging.error("Configuration loading failed.")
+                logging.error("Command instantiation failed.")
+        else:
+            logging.error("Configuration loading failed.")
+
