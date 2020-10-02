@@ -21,6 +21,7 @@ All of the fairness metrics in ``librec-auto`` assume a binary-valued feature, w
 All feature files have the same CSV format. 
 
 ::
+
 	id,feature id,value
 	
 where ``id`` is a user id when user features are being stored and an item feature id when the file has the features of item.
@@ -38,6 +39,7 @@ In order to use a fairness metric, you will need to specify the feature file and
 The feature information is added in the top-level ``features`` section of the configuration file as in this example. 
 
 ::
+
 	<features>
 		<appender-class>net.librec.data.convertor.appender.ItemFeatureAppender</appender-class>
 		<item-feature-file>item-features.csv</item-feature-file>
