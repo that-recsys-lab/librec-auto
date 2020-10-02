@@ -4,8 +4,6 @@ Development
 
 Documentation
 =============
-..
-  todo add details about read the docs
 
 Documentation lives in ``librec_auto/docs/``, and is hosted on `Read the Docs`_.
 
