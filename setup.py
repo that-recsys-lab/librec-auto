@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="librec-auto",
-    version="0.1.27",
+    version="0.1.48",
 	scripts=['librec_auto/__main__.py'] ,
     author="Masoud Mansoury and Robin Burke",
     author_email="masoodmansoury@gmail.com",
@@ -20,7 +20,11 @@ setuptools.setup(
                       'pandas',
                       'numpy',
                       'progressbar',
-                      'lxml'
+                      'lxml',
+                      'cryptography',
+                      'slackclient>=2.0',
+                      'slack',
+                      'slacker',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

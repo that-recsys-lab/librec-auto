@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<librec-auto-library>
+
+	<alg name="alg:userknn">
+		<class>userknn</class>
+		<similarity type="user">pcc</similarity>
+		<neighborhood-size>20</neighborhood-size>
+		<shrinkage>10</shrinkage>
+	</alg>
+
+	<alg name="alg:itemknn">
+		<class>itemknn</class>
+		<similarity type="item">pcc</similarity>
+		<neighborhood-size>50</neighborhood-size>
+		<shrinkage>10</shrinkage>
+	</alg>
+
+	<alg name="alg:biasedmf">
+		<class>biasedmf</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<bias-reg>0.01</bias-reg>
+		<num-factors>20</num-factors>
+	</alg>
+	
+	<alg name="alg:slim">
+		<class>slim</class>
+		<similarity type="item">cos</similarity>
+		<early-stop>true</early-stop>
+		<iterator-max>25</iterator-max>
+		<l1-reg>0.5</l1-reg>
+		<l2-reg>2.0</l2-reg>
+		<neighborhood-size>20</neighborhood-size>
+	</alg>
+	
+</librec-auto-library>

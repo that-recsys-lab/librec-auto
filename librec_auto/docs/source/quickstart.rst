@@ -14,16 +14,6 @@ You can install ``librec-auto`` using pip command as follows:
 
 	$ pip install librec-auto
 
-You must be running Python 3.7+. (Run ``python --version`` to check your python version.)
-
-Since ``librec-auto`` uses the ``Librec`` library for running the experiments,
-you will need to also download the ``Librec`` library after installing ``librec-auto``.
-
-You can use the helper ``install`` command from ``librec_auto``, like this:
-
-::
-
-	$ python -m librec_auto install
 
 Dependencies
 ------------
@@ -36,6 +26,7 @@ The installation is complete. You can now run your experiments with:
 ::
 
 	$ python -m librec_auto
+
 
 
 Building from Source
@@ -62,3 +53,24 @@ the ``librec_auto`` module before you install it from source. Run:
 ::
 
 	$ pip uninstall librec_auto
+
+Running an Example
+==================
+
+Get the following GitHub repository:
+
+::
+
+	https://github.com/that-recsys-lab/librec-auto-demo2020.git	
+
+You can run a basic matrix factorization recommender over a movie ratings data set using the following command:
+
+::
+	$ python -m librec_auto -t _path_to_repository_/demo01 run
+
+The configuration file that is followed to execute the study is found at the following path:
+
+::
+	_path_to_repository_/demo02/config/config.xml
+
+The ``-c`` command line parameter allows other configuration files to be selected.

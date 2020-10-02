@@ -5,44 +5,6 @@ from pathlib import Path
 import logging
 from . import xml_utils
 
-
-# TODO: Replace with XPath
-def safe_xml_path(config, key_list):
-    """
-    Checks that the list of keys in key_list can be used to navigate through
-    the dictionaries in config.
-
-    :param config: a nested dictionary structure
-    :param path_list: a list of dictionary keys
-    :return: True if the sequence of keys is valid
-    """
-    dct = config
-    for elem in key_list:
-        if elem in dct:
-            dct = dct[elem]
-        else:
-            return False
-    return True
-
-
-# TODO: Replace with XPath
-def extract_from_path(config, key_list):
-    """
-    Retrieves element content by following the path in key_list.
-
-    :param config: a nested dictionary structure
-    :param path_list: a list of dictionary keys
-    :return: Element at the end of the sequence
-    """
-    dct = config
-    for elem in key_list:
-        if elem in dct:
-            dct = dct[elem]
-        else:
-            return None
-    return dct
-
-
 def force_list(item):
     """
     Ensures that an item is of list type.
@@ -142,6 +104,7 @@ def create_param_spec(script_xml):
     param_list = []
     for param in params:
         key = param.get('name')
-        val = param.text
-        param_list.append(f'--{key}={val}')
+        if param.text:
+            val = param.text
+            param_list.append(f'--{key}={val}')
     return param_list

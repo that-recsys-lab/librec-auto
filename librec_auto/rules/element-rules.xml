@@ -9,12 +9,9 @@
 	<library action='no-translate'/>
 	<random-seed>rec.random.seed</random-seed>
 	<thread-count>rec.thread.count</thread-count>
-	<path>
-		<data>dfs.data.dir</data>
-		<result>dfs.result.dir</result>
-		<log>dfs.log.dir</log>
-	</path>
+
 	<data>
+		<data-dir>dfs.data.dir</data-dir>
 		<format>data.column.format</format>
 		<data-file>data.input.path</data-file>
 		<data-file format="*">data.model.format</data-file>

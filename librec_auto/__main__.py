@@ -4,6 +4,7 @@ from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
 import logging
+import librec_auto
 
 
 def read_args():
@@ -21,7 +22,7 @@ def read_args():
                             'status', 'describe', 'check', 'install'
                         ])
 
-    parser.add_argument("target", help="Path to experiment directory")
+    parser.add_argument("-t", "--target", help="Path to experiment directory")
 
     # Optional with arguments
     # parser.add_argument("-ex","--exhome", help="stub")
@@ -79,6 +80,12 @@ def read_args():
         help="Help with Integrations (Not implemented)",
         action="store_true")
 
+    parser.add_argument(
+        "-k",
+        "--key_password",
+        help="Password for the API keys used by post-processing scripts"
+    )
+
     input_args = parser.parse_args()
     return vars(input_args)
 
@@ -90,7 +97,9 @@ def load_config(args):
     if args['conf']:  # User requested a different configuration file
         config_file = args['conf']
 
-    target = args['target']
+    target = ""
+    if (args['target'] != None):
+        target = args['target']
 
     return read_config_file(config_file, target)
 
@@ -159,9 +168,17 @@ def setup_commands(args, config):
     action = args['action']
     purge_noask = args['quiet']
 
+    if action == 'install':
+        cmd = InstallCmd()
+        return cmd
+
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
     post_flag = config.has_post()
+
+    # Set the password in the configuration if we have it
+    if args['key_password']:
+        config.set_key_password(args['key_password'])
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
@@ -234,28 +251,31 @@ def setup_commands(args, config):
         cmd = build_librec_commands('check', args, config)
         return cmd
 
-    if action == 'install':
-        cmd = InstallCmd()
-        return cmd
-
 
 # -------------------------------------
 
 if __name__ == '__main__':
     args = read_args()
 
-    if args['action'] == 'describe':
-        print_description(args)
-    else:
-        config = load_config(args)
+    jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
+    if not jar_path.is_file() and args['action'] != 'install':
+        print("Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again.")
 
-        if config.is_valid():
-            command = setup_commands(args, config)
-            if isinstance(command, Cmd):
-                if args['dry_run']:
-                    command.dry_run(config)
+    else:
+        if args['action'] == 'describe':
+            print_description(args)
+        else:
+            config = load_config(args)
+
+            if config.is_valid() or args['action'] == 'install':
+                command = setup_commands(args, config)
+                if isinstance(command, Cmd):
+                    if args['dry_run']:
+                        command.dry_run(config)
+                    else:
+                        command.execute(config)
                 else:
-                    command.execute(config)
+                    logging.error("Command instantiation failed.")
             else:
                 logging.error("Command instantiation failed.")
         else:

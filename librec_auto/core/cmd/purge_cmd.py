@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, SubPaths
+from librec_auto.core.util import Files, ExpPaths
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util import confirm
 import shutil
@@ -46,16 +46,16 @@ class PurgeCmd(Cmd):
         self.status = Cmd.STATUS_COMPLETE
 
     def purge_confirm(self):
-        target = self._files.get_exp_path()
+        target = self._files.get_study_path()
         prompt_str = f"This will perform a purge of type {self._type} experiments and/or file splits in directory {target}"
         return confirm(prompt=prompt_str, resp=False)
 
     def purge_subexperiments(self):
-        target = self._files.get_exp_path()
+        target = self._files.get_study_path()
 
         print("librec-auto: Purging sub-experiments ", target)
-        if self._files.get_sub_count() > 0:
-            for sub_paths in self._files.get_sub_paths_iterator():
+        if self._files.get_exp_count() > 0:
+            for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
                 print("librec-auto: Deleting experiment directory: ", exp_str)
                 shutil.rmtree(exp_str)
@@ -63,7 +63,7 @@ class PurgeCmd(Cmd):
             print("librec-auto: No experiments folders found in ", target)
 
     def purge_splits(self):
-        target = self._files.get_exp_path()
+        target = self._files.get_study_path()
         split_path = self._files.get_split_path()
         if split_path.exists():
             print("librec-auto: Deleting split directories ", target)
@@ -72,7 +72,7 @@ class PurgeCmd(Cmd):
             print("librec-auto: No split directories found in", target)
 
     def purge_post(self):
-        target = self._files.get_exp_path()
+        target = self._files.get_study_path()
         post_path = self._files.get_post_path()
 
         if post_path.exists():
@@ -86,8 +86,8 @@ class PurgeCmd(Cmd):
 
     # TODO: 2019-12-06 RB The status file will be out of date.
     def purge_rerank(self):
-        if self._files.get_sub_count() > 0:
-            for sub_paths in self._files.get_sub_paths_iterator():
+        if self._files.get_exp_count() > 0:
+            for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
                 print("librec-auto: Deleting reranked results: ", exp_str)
                 sub_paths.results2original()

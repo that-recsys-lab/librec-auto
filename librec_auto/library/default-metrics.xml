@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<librec-auto-library>
+	
+	<metric name="metric:ndcg10">
+		<ranking>true</ranking>
+		<class>ndcg</class>
+		<list-size>10</list-size>
+	</metric>
+	
+</librec-auto-library>
