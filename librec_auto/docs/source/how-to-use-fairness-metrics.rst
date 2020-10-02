@@ -24,9 +24,9 @@ All feature files have the same CSV format.
 
 	id,feature id,value
 	
-where ``id`` is a user id when user features are being stored and an item feature id when the file has the features of item.
+where ``id`` is a user id when user features are being stored and an item id when the file has the features of items.
 
-If there are multiple features associated with a given item, there will be multiple lines, one for each feature. If the value for a feature is 0, it can be omitted. 
+If there are multiple features associated with a given id, there will be multiple lines, one for each feature. If the value for a feature is 0, it can be omitted. 
 
 Feature files are stored in the same directory as the data being used in your study. 
 
@@ -45,7 +45,7 @@ The feature information is added in the top-level ``features`` section of the co
 		<item-feature-file>item-features.csv</item-feature-file>
 	</features>
 
-For user features, the ``UserFeatureAppender`` class is used and the ``user-feature-file`` element. 
+For user features, the ``UserFeatureAppender`` class is used and the corresponding ``user-feature-file`` element. 
 
 The information about which feature is considered protected is configured in the ``metric`` section of the configuration with the element  ``protected-feature``. 
 
