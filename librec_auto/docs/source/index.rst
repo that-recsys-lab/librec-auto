@@ -9,6 +9,7 @@ Find a section
    development
    howtos
    how-to-produce-csv
+   how-to-use-fairness-metrics
    integrations
 
 Indices and tables
