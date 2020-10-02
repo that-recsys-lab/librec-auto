@@ -11,18 +11,41 @@ You can install ``librec-auto`` using pip as follows:
 
 	$ pip install librec-auto
 
-You can now run your experiments using ``librec-auto``.
+
+Dependencies
+------------
+You will need to install the Java `Java Runtime Environment 8`_, since ``Librec`` is executed as a Java ``.jar``.
+
+.. _Java Runtime Environment 8: https://java.com/en/download/
+
+The installation is complete. You can now run your experiments with:
+
+::
+
+	$ python -m librec_auto
+
+
 
 Building from Source
 ====================
 
-Instead of installing ``librec_auto`` from pip, you can also build it from the source with:
+Instead of installing ``librec_auto`` from pip, you can also build it from the source.
+
+First, you'll need to clone this repository:
+
+::
+
+	$ git clone https://github.com/that-recsys-lab/librec-auto.git && cd librec-auto
+
+Then, run the setup script:
 
 ::
 
 	$ python setup.py install
 
-You may need to uninstall the ``librec_auto`` module first, by running:
+
+If you already have ``librec_auto`` installed, you will need to uninstall
+the ``librec_auto`` module before you install it from source. Run:
 
 ::
 
@@ -100,8 +123,10 @@ Your directory structure should now look similar to this:
 These experiments each have their own subdirectory, under ``target``. In the
 diagram above, these subdirectories are like ``exp0000n``.
 
-At the study level, two results files are generated in the ``target/post``
-directory.
+If your configuration file is set up to produce them, various compilations of the study results
+will be stored in the ``target/post`` directory. You can also write your own post-processing scripts.
+In this example, CSV output containing metric values have been stored. See the producing CSV output 
+documentation for the configuration of this script and an explanation of its output.
 
 One is the ``study-results-full`` file, which shows evaluation metrics for
 every split from each experiment in the study.
@@ -109,11 +134,4 @@ every split from each experiment in the study.
 The other is the ``study-results-summary`` file, which shows the average
 evaluation metrics (across splits) for each experiment in the study.
 
-The columns are almost the same for both files. The first column (column A) is
-always the experiment name (like ``exp0000n``, zero indexed). The second column
-(column B) in ``study-results-full`` *only* (*not* in
-``study-results-summary``) is the split number for the experiment (zero indexed).
 
-The following columns (B and onward for ``study-results-summary``, C and onward
-for ``study-results-full``) are the evaluation metrics, which are specific to
-the algorithm chosen for the study.

@@ -8,7 +8,9 @@ Find a section
    quickstart
    development
    howtos
+   run-a-study
    how-to-produce-csv
+   how-to-use-fairness-metrics
    integrations
 
 Indices and tables

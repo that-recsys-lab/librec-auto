@@ -1,0 +1,117 @@
+============
+Run a Study
+============
+
+Imagine you want to run an study with ``librec_auto``.
+First, you will need to set up a configuration file.
+
+(todo link to the configuration file documentation)
+Once your configuration file is complete, you can run your study.
+
+Definitions
+===========
+
+What is an experiment?
+----------------------
+
+An experiment is a single job from the ``librec`` library.
+This is what happens when you call the ``librec`` jar from the command line.
+
+What is a study?
+----------------
+
+A study is a collection of experiments. ``librec_auto`` automates running
+multiple experiments at once, and the entity that encompasses a set of related
+experiments is called a study.
+
+File Structure
+==============
+
+Study Structure
+---------------
+
+``librec_auto`` has a specific project structure. If you want to run an study
+named ``movies``, you will need to put your ``config.xml`` file in a ``conf``
+directory inside a ``movies`` directory, like this:
+
+::
+
+    movies
+    └── conf
+        └── config.xml
+
+You can then run your movies study with:
+
+::
+
+    $ python -m librec_auto run movies
+
+
+This will update the ``movies`` directory to look like this:
+
+::
+
+    movies
+    ├── conf
+    │   └── config.xml
+    ├── exp00000
+    │   ├── conf
+    │   │   ├── config.xml
+    │   │   └── librec.properties
+    │   ├── log
+    │   │   └── librec-<timestamp>.log
+    │   ├── original
+    │   └── result
+    │       ├── out-1.txt
+    │       └── ...
+    ├── exp00001
+    │   ├── conf
+    │   │   ├── config.xml
+    │   │   └── librec.properties
+    │   ├── log
+    │   │   └── librec-<timestamp>.log
+    │   ├── original
+    │   └── result
+    │       ├── out-1.txt
+    │       └── ...
+    ├── exp00002
+    │   └── ...
+    ├── exp00003
+    │   └── ...
+    └── ...
+
+Each directory like ``exp00001`` represents one of the experiments from your
+movies study. The number of ``exp#####`` directories is equal to the number of
+permutations from the ``value`` items in your study-wide ``config.xml``.
+
+
+Experiment Structure
+--------------------
+
+Let's consider a single experiment directory:
+
+::
+
+    exp00002
+    ├── conf
+    │   ├── config.xml
+    │   └── librec.properties
+    ├── log
+    │   └── librec-<timestamp>.log
+    ├── original
+    └── result
+        ├── out-1.txt
+        ├── out-2.txt
+        ├── out-3.txt
+        ├── out-4.txt
+        └── out-5.txt
+
+* ``conf`` holds the auto-generated configuration file for this *experiment* (not for the study), as well as the ``librec.properties`` equivalent of the ``config.xml``.
+    * Don't tamper with these files: to edit the experiment configurations, modify the study-wide ``movies/conf/config.xml`` file.
+* ``log`` holds the log output from running the experiment.
+* ``result`` holds the computed recommendation lists from the ``librec`` experiment.
+* ``original`` can be used for re-ranking, without having to recompute the original recommendations. To use this feature:
+    * Copy the results from ``results`` to ``original`` (since the new re-ranking results will soon live in ``results``).
+    * Re-rank the results with ``python -m librec_auto rerank movies``
+
+.. include:: supported-algorithms.rst
