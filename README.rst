@@ -3,7 +3,7 @@ Librec-auto
 ============
 
 About
-============
+=====
 
 ``librec-auto`` is a Python tool for running recommender systems experiments.
 It is built on top of the open-source LibRec_ package, and
@@ -23,19 +23,19 @@ minimal experimenter intervention, and supports such capabilities as:
 * integration with Slack and Dropbox
 
 Workflow
-============
+========
 
 The workflow of an study involves identifying appropriate data, creating
 training / test splits, implementing or choosing algorithms, running experiments
 (possibly with a range of different parameters), and reporting on the results.
 
 Configuration
-===============
+=============
 
 Librec-auto uses an XML-based configuration system similar to Maven or Ant.
 
 Project structure
-===================
+=================
 
 This directory contains the Python libraries for the librec_auto module. There are two other affiliated
 respositories:
