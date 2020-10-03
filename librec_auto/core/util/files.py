@@ -205,12 +205,12 @@ class ExpPaths:
     _prop_dict = {
         'log': 'dfs.log.dir',
         #                 'split': 'dfs.split.dir',
-        'result': 'dfs.result.dir',
+        'librec_result': 'dfs.result.dir',
         'conf': 'dfs.config.dir'
     }
 
  #   _sub_dirs = ['conf', 'log', 'result', 'original']
-    _sub_dirs = ['conf', 'log', 'original']
+    _sub_dirs = ['conf', 'log', 'result', 'original']
 
     exp_name = None
 
@@ -227,7 +227,7 @@ class ExpPaths:
         self.set_path('status', status_path)
 
         librec_result_path = Path(exp_name) / 'result'
-        self.set_path('result', librec_result_path)
+        self.set_path('librec_result', librec_result_path)
 
         librec_prop_path = Path(exp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
         self.set_path('librec_prop', librec_prop_path)

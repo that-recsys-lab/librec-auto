@@ -71,7 +71,7 @@ def read_args():
         action="store_true")
     parser.add_argument(
         "-PCO",
-        "--dev",
+        "--PCO",
         help="Help with producting CSV outputs (Not implemented)",
         action="store_true")
     parser.add_argument(
@@ -277,7 +277,5 @@ if __name__ == '__main__':
                 else:
                     logging.error("Command instantiation failed.")
             else:
-                logging.error("Command instantiation failed.")
-        else:
-            logging.error("Configuration loading failed.")
+                logging.error("Configuration loading failed.")
 

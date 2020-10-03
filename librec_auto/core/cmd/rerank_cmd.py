@@ -61,6 +61,7 @@ class RerankCmd(Cmd):
             script_elem = script_elems[0]
             param_spec = create_param_spec(script_elem)
             script_path = get_script_path(script_elem, 'rerank')
+            study_path = self._files.get_study_path()
             result_path = sub_path.get_path('result')
 
             if not sub_path.get_ref_exp_name():  # If there is no ref, then LibRec was run

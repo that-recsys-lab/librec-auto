@@ -213,7 +213,7 @@ def setup_helper(args, config, item_feature_df):
 
 def output_reranked(reranked_df, dest_results_path, file_path):
     output_file_path = dest_results_path / file_path.name
-    print('Reranking for ', output_file_path)
+    print('Reranking saved to ', output_file_path)
     reranked_df.to_csv(output_file_path, header=False, index=False)
 
 
@@ -223,6 +223,9 @@ if __name__ == '__main__':
 
     original_results_path = Path(args['original'])
     result_files = enumerate_results(original_results_path)
+
+    if len(result_files) == 0:
+        print(f"far-rerank: No original results found in {original_results_path}")
 
     dest_results_path = Path(args['result'])
 
@@ -250,6 +253,7 @@ if __name__ == '__main__':
         if tr_df is None:
             exit(-1)
 
+        print(f'Load results from {file_path}')
         results_df = pd.read_csv(file_path, names=['userid', 'itemid', 'score'])
 
         reranked_df = execute(results_df, tr_df, helper)

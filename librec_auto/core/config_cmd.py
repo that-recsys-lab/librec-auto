@@ -179,7 +179,7 @@ class ConfigCmd:
                                     pretty_print=True)
 
         props = LibrecProperties(new_xml, self._files)
-        exp.add_to_config(props.properties, 'result')
+        exp.add_to_config(props.properties, 'librec_result')
         props.save(exp)
 
         if vconf.ref_config:
