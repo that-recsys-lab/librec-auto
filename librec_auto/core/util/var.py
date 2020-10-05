@@ -14,6 +14,9 @@ class VarColl:
         self.type_factor = defaultdict(lambda: 1)
 
     def compute_var_configurations(self):
+        if len(self.types) == 0:
+            self.var_confs = [VarConfig('merged')]
+            return
         # Need to reverse so that the cartesian product has the right priority
         rev_types = copy.copy(self.types)
         rev_types.reverse()
