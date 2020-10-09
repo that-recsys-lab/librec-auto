@@ -25,7 +25,6 @@ The installation is complete. You can now run your experiments with:
 	$ python -m librec_auto
 
 
-
 Building from Source
 ====================
 
@@ -133,5 +132,3 @@ every split from each experiment in the study.
 
 The other is the ``study-results-summary`` file, which shows the average
 evaluation metrics (across splits) for each experiment in the study.
-
-
