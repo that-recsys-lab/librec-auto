@@ -1,8 +1,7 @@
 language: python
 os:
   - linux
-dist:
-  - xenial
+dist: xenial
 jobs:
   include:
     - stage: main
@@ -21,6 +20,7 @@ jobs:
         - "coveralls"
     - name: "Build Docs"
       before_script:
+        - "apt-get install python3-sphinx"
         - "cd librec_auto/docs"
       script:
         - "make html"
