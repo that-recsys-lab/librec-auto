@@ -14,6 +14,7 @@ import numpy as np
 
 extract_params_format = "extract_{}_params"
 
+
 def get_metric_info(files):
     metric_info = {}
     for sub_paths in files.get_exp_paths_iterator():
@@ -24,6 +25,7 @@ def get_metric_info(files):
             log = status._log
             metric_info[status._name] = (params, vals, log)
     return metric_info
+
 
 def extract_full_info(config):
     metric_info = get_metric_info(config.get_files())
@@ -75,16 +77,21 @@ def save_data(df, choice, time_stamp):
     save_path = Path('post') / f'study-results-{choice}_{time_stamp}.csv'
     df.to_csv(save_path, index=False)
 
+
 def read_args():
     """
     Parse command line arguments.
     :return:
     """
-    parser = argparse.ArgumentParser(description="Extract the experimental parameters")
+    parser = argparse.ArgumentParser(
+        description="Extract the experimental parameters")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument('--option', help='Type of csv', choices=['summary', 'full', 'all'])
+    parser.add_argument('--option',
+                        help='Type of csv',
+                        choices=['summary', 'full', 'all'])
     input_args = parser.parse_args()
     return vars(input_args)
+
 
 if __name__ == '__main__':
     args = read_args()
@@ -105,4 +112,4 @@ if __name__ == '__main__':
         save_data(df, "full", time_stamp)
 
     else:
-        print ('Unrecognized option for results_to_csv')
+        print('Unrecognized option for results_to_csv')

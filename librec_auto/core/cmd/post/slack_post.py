@@ -8,14 +8,22 @@ def slack_send_message(message, channel, slack_api):
     client = WebClient(token=slack_api)
     client.chat_postMessage(channel=channel, text=message)
 
+
 def slack_send_file(filename, message, channel, slack_api):
     client = WebClient(token=slack_api)
     with open(filename, 'rb') as att:
-        r = client.api_call("files.upload", files={'file': att, },
-                            data={'channels': channel, 'filename': filename, 'title': f'File: {filename}',
-                                  'initial_comment': message}
-                            )
+        r = client.api_call("files.upload",
+                            files={
+                                'file': att,
+                            },
+                            data={
+                                'channels': channel,
+                                'filename': filename,
+                                'title': f'File: {filename}',
+                                'initial_comment': message
+                            })
     assert r.status_code == 200
+
 
 '''
 Zijun:
@@ -38,9 +46,12 @@ Zijun:
 
 
 def read_args():
-    parser = argparse.ArgumentParser(description="Slack Post-Processing script")
+    parser = argparse.ArgumentParser(
+        description="Slack Post-Processing script")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument("--option", help='Which actions you want to do', choices=["message", "file", "No"])
+    parser.add_argument("--option",
+                        help='Which actions you want to do',
+                        choices=["message", "file", "No"])
     parser.add_argument('--channel', help='Which channel you want to post')
     parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
     parser.add_argument('--file', help="File to post")
@@ -73,5 +84,3 @@ if __name__ == '__main__':
         slack_send_file(filename, message, channel, api_key)
     elif action == "No":
         exit()
-
-

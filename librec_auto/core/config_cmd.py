@@ -197,7 +197,8 @@ class ConfigCmd:
         return len(post_elems) > 0
 
     def cross_validation(self):
-        model_elem = single_xpath(self._xml_input, '/librec-auto/splitter/model')
+        model_elem = single_xpath(self._xml_input,
+                                  '/librec-auto/splitter/model')
         if model_elem.text == 'kcv':
             return int(model_elem.get('count'))
         else:
@@ -212,6 +213,7 @@ class ConfigCmd:
             return 1
         else:
             return int(thread_elems[0].text)
+
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)

@@ -4,21 +4,28 @@ from librec_auto.core.util.encrypt import decrypt_from_file
 import getpass
 from pathlib import Path
 
+
 def dropbox_send_file(filepath, destpath, api_key):
     dropbox_api = db.Dropbox(api_key)
     filename = filepath.name
     destname = destpath / filename
     with open(filepath, "rb") as f:
-        dropbox_api.files_upload(f.read(), str(destname),
-                                 db.files.WriteMode.overwrite, mute=False)
+        dropbox_api.files_upload(f.read(),
+                                 str(destname),
+                                 db.files.WriteMode.overwrite,
+                                 mute=False)
+
 
 def dropbox_send_folder(filepath, destpath, api_key):
     dropbox_api = db.Dropbox(api_key)
     for file in filepath.iterdir():
         destname = destpath / file.name
         with open(file) as f:
-            dropbox_api.files_upload(f.read(), str(destname),
-                                     db.files.WriteMode.overwrite, mute=True)
+            dropbox_api.files_upload(f.read(),
+                                     str(destname),
+                                     db.files.WriteMode.overwrite,
+                                     mute=True)
+
 
 '''
 Zijun:
@@ -34,9 +41,12 @@ Zijun:
 
 
 def read_args():
-    parser = argparse.ArgumentParser(description="Dropbox Post-Processing script")
+    parser = argparse.ArgumentParser(
+        description="Dropbox Post-Processing script")
     parser.add_argument('conf', help='Path to configuration file')
-    parser.add_argument("--option", help='Which actions you want to do', choices=["file", "folder", "No"])
+    parser.add_argument("--option",
+                        help='Which actions you want to do',
+                        choices=["file", "folder", "No"])
     parser.add_argument('--encrypted_key', help="Encrpyted slack api key file")
     parser.add_argument('--path', help="File/folder to post")
     parser.add_argument('--dest', help="Destination file/folder")
