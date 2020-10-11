@@ -20,7 +20,7 @@ jobs:
         - "coveralls"
     - name: "Build Docs"
       before_script:
-        - "apt-get install python3-sphinx"
+        - "sudo apt-get install python3-sphinx"
         - "cd librec_auto/docs"
       script:
         - "make html"
