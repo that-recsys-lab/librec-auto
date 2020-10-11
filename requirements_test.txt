@@ -1,13 +1,4 @@
-matplotlib
-lxml
-pandas
-numpy
-progressbar
-lxml
-cryptography
-slackclient>=2.0
-slack
-slacker
 pytest
-pytest-cov
-python-coveralls
+coverage
+yapf
+coveralls
