@@ -1,21 +1,17 @@
 language: python
-  - 3.8
-
 os:
   - linux
-
 dist:
-  - ubuntu
-
+  - xenial
 jobs:
   include:
     - stage: main
-      name: lint
+      name: Lint
       before_script:
         - "pip install -r requirements_test.txt"
       script:
         - "yapf librec_auto --recursive --diff"
-    - name: test
+    - name: "Python Tests"
       before_script:
         - "pip install -r requirements_test.txt"
         - "python setup.py install"
@@ -23,3 +19,8 @@ jobs:
         - "pytest --cov=librec_auto"
       after_success:
         - "coveralls"
+    - name: "Build Docs"
+      before_script:
+        - "cd librec_auto/docs"
+      script:
+        - "make html"
