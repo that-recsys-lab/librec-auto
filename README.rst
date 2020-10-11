@@ -2,6 +2,14 @@
 Librec-auto
 ============
 
+
+.. image:: https://travis-ci.org/schwartzadev/librec-auto.svg?branch=master
+    :target: https://travis-ci.org/schwartzadev/librec-auto
+\
+
+.. image:: https://coveralls.io/repos/github/schwartzadev/librec-auto/badge.svg?branch=master
+  :target: https://coveralls.io/github/schwartzadev/librec-auto?branch=master
+
 About
 =====
 
