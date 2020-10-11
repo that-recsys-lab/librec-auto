@@ -1,7 +1,7 @@
 language: python
   - "3.8"
 before_script:
-  - "pip install -r test_requirements.txt"
+  - "pip install -r requirements_test.txt"
   - "git clone https://github.com/schwartzadev/librec-auto"
   - "cd librec-auto"
 script:
