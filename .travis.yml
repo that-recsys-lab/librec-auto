@@ -1,0 +1,10 @@
+language: python
+  - "3.8"
+before_script:
+  - "pip install -r test_requirements.txt"
+  - "git clone https://github.com/schwartzadev/librec-auto"
+  - "cd librec-auto"
+script:
+  - "pytest --cov=librec_auto"
+after_success:
+  - "coveralls"
