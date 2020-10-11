@@ -10,12 +10,12 @@ jobs:
         - "pip install -r requirements_test.txt"
       script:
         - "yapf librec_auto --recursive --diff"
-    - name: "Python Tests"
+    - name: "Python Test"
       before_script:
         - "pip install -r requirements_test.txt"
         - "python setup.py install"
       script:
-        - "pytest --cov=librec_auto"
+        - "coverage run -m pytest"
       after_success:
         - "coveralls"
     - name: "Build Docs"
