@@ -6,6 +6,7 @@ import librec_auto
 from librec_auto.core.cmd.install_cmd import InstallCmd
 from librec_auto.core import ConfigCmd
 
+
 class TestInstallCmd(unittest.TestCase):
     def setUp(self):
         install_path = Path(librec_auto.__file__).parent
