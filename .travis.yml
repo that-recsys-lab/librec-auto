@@ -7,11 +7,13 @@ jobs:
     - stage: main
       name: Lint
       before_script:
+        - "export TASK=lint"
         - "pip install -r requirements_test.txt"
       script:
         - "yapf librec_auto --recursive --diff"
     - name: "Python Test"
       before_script:
+        - "export TASK=python_test"
         - "pip install -r requirements_test.txt"
         - "python setup.py install"
       script:
@@ -20,6 +22,7 @@ jobs:
         - "coveralls"
     - name: "Build Docs"
       before_script:
+        - "export TASK=build_docs"
         - "sudo apt-get install python3-sphinx"
         - "cd librec_auto/docs"
       script:
