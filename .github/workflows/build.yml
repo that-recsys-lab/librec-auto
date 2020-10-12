@@ -40,7 +40,7 @@ jobs:
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
         with:
-          parallel: true
+          parallel: false
   build-docs:
     runs-on: ubuntu-latest
     steps:
