@@ -148,7 +148,8 @@ def create_graphics(config, display):
 
     bars = create_bars(files.get_post_path(), metric_info)
 
-    if config.cross_validation() > 1:       # Box plot only makes sense for cross-validation
+    if config.cross_validation(
+    ) > 1:  # Box plot only makes sense for cross-validation
         boxes = create_boxes(files.get_post_path(), metric_info)
     else:
         boxes = None

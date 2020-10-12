@@ -36,7 +36,7 @@ class Files:
     _DEFAULT_RULES_DIR_NAME = "rules"
     _DEFAULT_LIB_DIR_NAME = "librec_auto/library"
     _DEFAULT_RES_DIR_NAME = "result"
-#    _DEFAULT_SPLIT_DIR_NAME = "split"
+    #    _DEFAULT_SPLIT_DIR_NAME = "split"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
     _DEFAULT_POST_DIR_NAME = "post"
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
@@ -52,7 +52,7 @@ class Files:
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
-#        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
+        #        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
@@ -85,9 +85,6 @@ class Files:
     def get_study_path(self):
         return self._study_path
 
-#    def get_split_path(self):
-#        return self._study_path / self._split_dir_path
-
     def get_config_file_path(self):
         return self._study_path / self._config_dir_path / self._config_file_name
 
@@ -96,9 +93,6 @@ class Files:
 
     def get_post_path(self):
         return self._study_path / self._post_dir_path
-
-    def set_config_dir_path(self, path):
-        self._config_dir_path = Path(path)
 
     def set_study_path(self, path):
         self._study_path = Path(path)
@@ -209,7 +203,7 @@ class ExpPaths:
         'conf': 'dfs.config.dir'
     }
 
- #   _sub_dirs = ['conf', 'log', 'result', 'original']
+    #   _sub_dirs = ['conf', 'log', 'result', 'original']
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
     exp_name = None
@@ -229,7 +223,9 @@ class ExpPaths:
         librec_result_path = Path(exp_name) / 'result'
         self.set_path('librec_result', librec_result_path)
 
-        librec_prop_path = Path(exp_name) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
+        librec_prop_path = Path(
+            exp_name
+        ) / Files._DEFAULT_CONFIG_DIR_NAME / Files.DEFAULT_PROP_FILE_NAME
         self.set_path('librec_prop', librec_prop_path)
 
         for subdir in self._sub_dirs:
@@ -254,7 +250,6 @@ class ExpPaths:
 
     def get_ref_exp_flag_path(self):
         return self.get_path('conf') / Files.DEFAULT_REF_EXP_FILENAME
-
 
     def get_path_str(self, type):
         return self.get_path(type).as_posix()

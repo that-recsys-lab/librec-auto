@@ -30,7 +30,8 @@ class PostCmd(Cmd):
 
         for post_elem in post_elems:
             param_spec = utils.create_param_spec(post_elem)
-            if single_xpath(post_elem, "//param[@name='password']") is not None:
+            if single_xpath(post_elem,
+                            "//param[@name='password']") is not None:
                 param_spec = param_spec + ['--password=<password hidden>']
             script_path = utils.get_script_path(post_elem, 'post')
 
