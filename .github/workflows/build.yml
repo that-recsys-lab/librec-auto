@@ -13,8 +13,8 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install Requirements
-        run:
-          - "pip install -r requirements_test.txt"
+        run: |
+          pip install -r requirements_test.txt
       - name: Lint with yapf
         run: "yapf librec_auto --recursive --diff"
   test:
@@ -27,9 +27,9 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install Requirements
-        run:
-          - "pip install -r requirements.txt"
-          - "pip install -r requirements_test.txt"
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements_test.txt
       - name: Install librec-auto
         run:
           - python setup.py install
