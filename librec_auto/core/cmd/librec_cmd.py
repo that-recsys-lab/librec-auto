@@ -61,7 +61,7 @@ class LibrecCmd(Cmd):
 
         #p.wait()
 
-        if type(p.returncode) is 'int' and p.returncode < 0:
+        if type(p.returncode) == 'int' and p.returncode < 0:
             self.status = Cmd.STATUS_ERROR
         else:
             self.status = Cmd.STATUS_COMPLETE
