@@ -6,11 +6,15 @@ jobs:
   include:
     - stage: main
       name: Lint
+      env:
+        - "TASK=lint"
       before_script:
         - "pip install -r requirements_test.txt"
       script:
         - "yapf librec_auto --recursive --diff"
     - name: "Python Test"
+      env:
+        - "TASK=python_test"
       before_script:
         - "pip install -r requirements_test.txt"
         - "python setup.py install"
@@ -19,8 +23,18 @@ jobs:
       after_success:
         - "coveralls"
     - name: "Build Docs"
+      env:
+        - "TASK=build_docs"
       before_script:
         - "sudo apt-get install python3-sphinx"
         - "cd librec_auto/docs"
       script:
         - "make html"
+
+notifications:
+  webhooks:
+    urls:
+      - https://travieso-librec-auto.herokuapp.com/notifications
+    on_success: always  # default
+    on_failure: always  # default
+    on_start: always    # default is never
