@@ -24,3 +24,11 @@ jobs:
         - "cd librec_auto/docs"
       script:
         - "make html"
+
+notifications:
+  webhooks:
+    urls:
+      - https://travieso-librec-auto.herokuapp.com/notifications
+    on_success: always  # default
+    on_failure: always  # default
+    on_start: always    # default is never
