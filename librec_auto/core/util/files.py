@@ -85,10 +85,6 @@ class Files:
     def get_study_path(self):
         return self._study_path
 
-
-#    def get_split_path(self):
-#        return self._study_path / self._split_dir_path
-
     def get_config_file_path(self):
         return self._study_path / self._config_dir_path / self._config_file_name
 
@@ -97,9 +93,6 @@ class Files:
 
     def get_post_path(self):
         return self._study_path / self._post_dir_path
-
-    def set_config_dir_path(self, path):
-        self._config_dir_path = Path(path)
 
     def set_study_path(self, path):
         self._study_path = Path(path)
