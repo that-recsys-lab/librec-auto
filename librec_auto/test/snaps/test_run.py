@@ -5,25 +5,22 @@ import os
 
 import librec_auto.__main__ as main
 
-def test_run(capsys, monkeypatch):
+def test_run(capsys,):
 	# make directories
 	run_directory = Path('librec_auto/test/snaps/run')
 	run_directory.mkdir(exist_ok=True)
 	Path('librec_auto/test/snaps/run/conf').mkdir(exist_ok=True)
-	
+
 	# move config file to 'test_run/conf/config.xml'
 	current_config = Path('librec_auto/test/snaps/config.xml')
 	new_config = Path('librec_auto/test/snaps/run/conf/config.xml')
 	shutil.copy(current_config, new_config)
 
 	# run command
-	args = {'action': 'run', 'target': 'librec_auto/test/snaps/run', 'conf': None, 'dry_run': False, 'quiet': False, 'no_parallel': False, 'purge': 'all', 'no_cache': False, 'dev': False, 'HT': False, 'PCO': False, 'int': False, 'key_password': None}
+	args = {'action': 'run', 'target': 'librec_auto/test/snaps/run', 'conf': None, 'dry_run': False, 'quiet': True, 'no_parallel': False, 'purge': 'all', 'no_cache': False, 'dev': False, 'HT': False, 'PCO': False, 'int': False, 'key_password': None}
 	config = main.load_config(args)
 	command = main.setup_commands(args, config)
 	command.execute(config)
-
-	monkeypatch.setattr('sys.stdin', io.StringIO('y\n')) # mock input
-	monkeypatch.setattr('sys.stdin', io.StringIO('\n')) # mock input
 
 	post_directory = Path('librec_auto/test/snaps/run/post')
 	post_files = os.listdir(post_directory)
