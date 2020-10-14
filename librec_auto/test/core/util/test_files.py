@@ -1,8 +1,9 @@
 import os
 import inspect
-import librec_auto
+from sys import platform
 from pathlib import Path
 
+import librec_auto
 from librec_auto.core.util import Files, ExpPaths
 
 
@@ -33,8 +34,13 @@ def test_get_librec_paths():
     assert files.get_jar_path() == Path(
         '/demo/path/to/librec_auto/librec_auto/jar')
 
-    assert files.get_classpath(
-    ) == '/demo/path/to/librec_auto/librec_auto/jar/auto.jar'
+    if platform == "win32":
+        # for windows
+        assert files.get_classpath(
+        ) == 'D:/demo/path/to/librec_auto/librec_auto/jar/auto.jar', "Windows path is correct"
+    else:
+        assert files.get_classpath(
+        ) == '/demo/path/to/librec_auto/librec_auto/jar/auto.jar', "Unix path is correct"
 
 
 def test_get_study_paths():
