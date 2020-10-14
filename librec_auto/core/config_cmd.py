@@ -28,10 +28,6 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
-        #self._var_librec_data = defaultdict(list)
-        #self._var_rerank_data = defaultdict(list)
-        #self._var_params = []
-        #self._var_tuples = []
         self._var_coll = VarColl()
         self._libraries = LibraryColl()
 
