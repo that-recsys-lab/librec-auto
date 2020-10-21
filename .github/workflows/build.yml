@@ -47,6 +47,7 @@ jobs:
         run: |
           coverage run --source=librec_auto -m pytest librec_auto/test/
       - name: Coveralls
+        if: runner.os != 'Windows'
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: false
