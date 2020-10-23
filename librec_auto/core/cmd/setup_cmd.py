@@ -13,7 +13,7 @@ class SetupCmd(Cmd):
     def setup(self, args):
         pass
 
-    def dry_run(self, config):
+    def dry_run(self, config: ConfigCmd):
         print(f"librec-auto (DR): Executing setup command {self}")
         config.ensure_experiments()
         config.setup_exp_configs()
