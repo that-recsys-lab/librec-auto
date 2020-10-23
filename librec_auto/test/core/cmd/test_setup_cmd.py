@@ -33,6 +33,11 @@ def test_execute():
     _test_directory_structure(exp_dir)
 
 
+def test_setup():
+    # currently does nothing, just passes
+    SetupCmd().setup({})
+
+
 def _test_directory_structure(exp):
     # test directory structure
     assert (exp).exists()
