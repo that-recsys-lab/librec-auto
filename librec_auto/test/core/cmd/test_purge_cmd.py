@@ -113,6 +113,7 @@ librec-auto: No experiments folders found in librec_auto/test/core/cmd/study
     # delete test directory
     shutil.rmtree(Path(STUDY_DIR))
 
+
 def test_purge_rerank(capsys):
     pass
     # todo
