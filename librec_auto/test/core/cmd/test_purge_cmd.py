@@ -1,6 +1,6 @@
 import shutil
 import time
-from os import scandir
+from os import scandir, name
 from pathlib import Path
 
 import librec_auto.__main__ as main
@@ -94,7 +94,14 @@ def test_purge_subexperiments(capsys):
     purge.purge_subexperiments()
 
     out, err = capsys.readouterr()
-    assert out == """librec-auto: Purging sub-experiments librec_auto/test/core/cmd/study
+    if name == 'nt':
+        # running on Windows
+        assert out == """librec-auto: Purging sub-experiments librec_auto\\test\\core\\cmd\\study
+librec-auto: No experiments folders found in librec_auto/test/core/cmd/study
+"""
+    else:
+        # non-Windows
+        assert out == """librec-auto: Purging sub-experiments librec_auto/test/core/cmd/study
 librec-auto: No experiments folders found in librec_auto/test/core/cmd/study
 """
 
