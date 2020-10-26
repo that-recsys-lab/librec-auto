@@ -231,7 +231,7 @@ if __name__ == '__main__':
 
     if len(result_files) == 0:
         print(
-            f"far-rerank: No original results found in {original_results_path}"
+            f"far_rerank: No original results found in {original_results_path}"
         )
 
     dest_results_path = Path(args['result'])
