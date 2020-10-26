@@ -1,5 +1,6 @@
-from pathlib import Path
 import shutil
+from os import scandir
+from pathlib import Path
 
 import librec_auto.__main__ as main
 from librec_auto.core.cmd.purge_cmd import PurgeCmd
@@ -7,6 +8,7 @@ from librec_auto.core import ConfigCmd
 
 POST_DIR = 'librec_auto/test/core/cmd/post'
 
+STUDY_DIR = 'librec_auto/test/core/cmd/study'
 
 def _get_config():
     config = ConfigCmd('librec_auto/test/test-config.xml', '')
@@ -73,8 +75,25 @@ def test_purge_post(capsys):
 
 
 def test_purge_subexperiments(capsys):
-    pass
-    # todo
+    # create purge command
+    purge = PurgeCmd(_get_config())
+
+    # set study path
+    purge._files = _get_config().get_files()
+    purge._files.set_study_path(STUDY_DIR)
+
+    # create three experiment subdirs
+    purge._files.ensure_exp_paths(3)
+    assert len([f.path for f in scandir(STUDY_DIR) if f.is_dir()]) == 3
+
+    # purge subexperiments
+    purge.purge_subexperiments()
+
+    # confirm no subexperiments in dir
+    assert len([f.path for f in scandir(STUDY_DIR) if f.is_dir()]) == 0
+
+    # delete test directory
+    shutil.rmtree(Path(STUDY_DIR))
 
 
 def test_purge_rerank(capsys):
