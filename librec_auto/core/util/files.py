@@ -91,6 +91,9 @@ class Files:
     def get_config_dir_path(self):
         return self._study_path / self._config_dir_path
 
+    def set_post_path(self, path):
+        self._post_dir_path = Path(path)
+
     def get_post_path(self):
         return self._study_path / self._post_dir_path
 
