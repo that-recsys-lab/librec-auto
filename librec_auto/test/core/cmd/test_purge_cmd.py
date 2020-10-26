@@ -97,7 +97,7 @@ def test_purge_subexperiments(capsys):
     if name == 'nt':
         # running on Windows
         assert out == """librec-auto: Purging sub-experiments librec_auto\\test\\core\\cmd\\study
-librec-auto: No experiments folders found in librec_auto/test/core/cmd/study
+librec-auto: No experiments folders found in librec_auto\\test\\core\\cmd\\study
 """
     else:
         # non-Windows
