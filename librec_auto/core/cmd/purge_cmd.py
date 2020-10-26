@@ -53,14 +53,14 @@ class PurgeCmd(Cmd):
     def purge_subexperiments(self):
         target = self._files.get_study_path()
 
-        print("librec-auto: Purging sub-experiments ", target)
+        print("librec-auto: Purging sub-experiments", target)
         if self._files.get_exp_count() > 0:
             for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
-                print("librec-auto: Deleting experiment directory: ", exp_str)
+                print("librec-auto: Deleting experiment directory:", exp_str)
                 shutil.rmtree(exp_str)
         else:
-            print("librec-auto: No experiments folders found in ", target)
+            print("librec-auto: No experiments folders found in", target)
 
     # AS 10-23-20: Files.get_split_path() does not exist
 
@@ -68,7 +68,7 @@ class PurgeCmd(Cmd):
     #     target = self._files.get_study_path()
     #     split_path = self._files.get_split_path()
     #     if split_path.exists():
-    #         print("librec-auto: Deleting split directories ", target)
+    #         print("librec-auto: Deleting split directories", target)
     #         shutil.rmtree(split_path.as_posix())
     #     else:
     #         print("librec-auto: No split directories found in", target)
@@ -78,18 +78,18 @@ class PurgeCmd(Cmd):
         post_path = self._files.get_post_path()
 
         if post_path.exists():
-            print("librec-auto: Deleting post directory files ", target)
+            print("librec-auto: Deleting post directory files", target)
 
             files = post_path.glob('*')
             for f in files:
                 os.remove(str(f))
         else:
-            print("librec-auto: Post directory missing ", target)
+            print("librec-auto: Post directory missing", target)
 
     # TODO: 2019-12-06 RB The status file will be out of date.
     def purge_rerank(self):
         if self._files.get_exp_count() > 0:
             for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
-                print("librec-auto: Deleting reranked results: ", exp_str)
+                print("librec-auto: Deleting reranked results:", exp_str)
                 sub_paths.results2original()
