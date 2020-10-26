@@ -7,6 +7,7 @@ from librec_auto.core import ConfigCmd
 
 POST_DIR = 'librec_auto/test/core/cmd/post'
 
+
 def _get_config():
     config = ConfigCmd('librec_auto/test/test-config.xml', '')
     config._files.set_post_path(POST_DIR)
@@ -14,21 +15,16 @@ def _get_config():
 
 
 def test_purge_type():
-    assert main.purge_type({
-        'purge': 'all'
-    }) == 'all'
+    assert main.purge_type({'purge': 'all'}) == 'all'
 
-    assert main.purge_type({
-        'action': 'purge'
-    }) == 'split'
+    assert main.purge_type({'action': 'purge'}) == 'split'
 
-    assert main.purge_type({
-        'action': 'notpurge'
-    }) == 'none'
+    assert main.purge_type({'action': 'notpurge'}) == 'none'
 
 
 def test_str():
     assert PurgeCmd(_get_config()).__str__().startswith("PurgeCmd(")
+
 
 def test_setup():
     # no checks, just pass in the implementation
@@ -41,7 +37,8 @@ def test_dry_run(capsys):
     PurgeCmd(_get_config).dry_run(_get_config())
 
     out, err = capsys.readouterr()
-    assert out.startswith("librec-auto (DR): Executing purge command PurgeCmd(")
+    assert out.startswith(
+        "librec-auto (DR): Executing purge command PurgeCmd(")
 
 
 def test_purge_post(capsys):
@@ -66,7 +63,7 @@ def test_purge_post(capsys):
     (test_dir / Path('post1.xml')).touch()
     (test_dir / Path('post2.xml')).touch()
 
-    purge.purge_post() # purge
+    purge.purge_post()  # purge
 
     # check test files are removed
     assert list(test_dir.glob('*')) == []
@@ -79,9 +76,11 @@ def test_purge_subexperiments(capsys):
     pass
     # todo
 
+
 def test_purge_rerank(capsys):
     pass
     # todo
+
 
 def test_execute():
     config = _get_config()
@@ -99,4 +98,3 @@ def test_execute():
 
     purge._type = "post"
     purge.execute(config)
-
