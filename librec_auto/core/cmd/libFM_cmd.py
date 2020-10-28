@@ -2,6 +2,8 @@ from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, ExpPaths, Status
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util.xml_utils import single_xpath
+from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
+    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
 import os
 import subprocess
 import shlex
@@ -9,7 +11,7 @@ import time
 from pathlib import Path, WindowsPath
 
 
-class LibrecCmd(Cmd):
+class LibFMCmd(Cmd):
 
     _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
 
@@ -17,6 +19,8 @@ class LibrecCmd(Cmd):
         return f'LibrecCmd(sub-exp: {self._sub_no}, command: {self._command})'
 
     def __init__(self, command, sub_no):
+        super().__init__()
+        self._files = None
         self._command = command
         self._sub_no = sub_no
         self._config: ConfigCmd = None
@@ -34,13 +38,12 @@ class LibrecCmd(Cmd):
 
         if len(cmd) == 0:
             print(
-                "librec-auto: Unknown command {self._command}. Skipping LibRec execution."
+                "libFM: Unknown command {self._command}. Skipping LibFM execution."
             )
             self.status = Cmd.STATUS_ERROR
             return
 
-        print(f"librec-auto: Running librec. {cmd}")
-
+        print(f"libFM: Running libFM. {cmd}")
         log_path = self._exp_path.get_log_path()
         #        print(f"librec-auto: Logging to {log_path}.")
 
@@ -49,7 +52,14 @@ class LibrecCmd(Cmd):
         study_path = Path(_files.get_study_path())
 
         f = open(str(log_path), 'w+')
-        p = subprocess.Popen(cmd,
+
+        #libfm1.py code
+        target = self._config.get_target()
+        props = LibrecProperties(self._config._xml_input, self._files)
+        filename = props.get_property('data.input.path')
+
+        params1 = "python libFM1.py " + target + " " + study_path + " " + filename
+        p = subprocess.Popen(params1,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
                              cwd=str(study_path.absolute()))
@@ -58,7 +68,32 @@ class LibrecCmd(Cmd):
             line_string = str(line, 'utf-8')
             f.write(line_string)
             print(line_string, end='')
-        f.close()
+
+        params2 = "python -m librec_auto run -t " + target
+        #os.system(params1)
+
+        p = subprocess.Popen(params2,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             cwd=str(study_path.absolute()))
+
+        for line in p.stdout:
+            line_string = str(line, 'utf-8')
+            f.write(line_string)
+            print(line_string, end='')
+
+        """params3 = "python -m librec_auto eval -t " + study_path
+        p = subprocess.Popen(params3,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             cwd=str(study_path.absolute()))
+
+        for line in p.stdout:
+            line_string = str(line, 'utf-8')
+            f.write(line_string)
+            print(line_string, end='')
+
+        f.close()"""
 
         #p.wait()
 
