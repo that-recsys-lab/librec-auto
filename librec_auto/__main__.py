@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd, LibFMCmd
 import logging
 import librec_auto
 
@@ -21,7 +21,7 @@ def read_args():
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check', 'install'
+                            'status', 'describe', 'check', 'install', 'libfm-run'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -250,12 +250,16 @@ def setup_commands(args, config):
         cmd = build_librec_commands('check', args, config)
         return cmd
 
+    if action == 'libfm-run':
+        libfm_commands = [
+            LibFMCmd('run', i) for i in range(config.get_sub_exp_count())
+        ]
+        return SequenceCmd(libfm_commands)
 
 # -------------------------------------
 
 if __name__ == '__main__':
     args = read_args()
-
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file() and args['action'] != 'install':
         print(

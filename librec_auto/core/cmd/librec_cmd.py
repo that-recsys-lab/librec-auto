@@ -40,7 +40,6 @@ class LibrecCmd(Cmd):
             return
 
         print(f"librec-auto: Running librec. {cmd}")
-
         log_path = self._exp_path.get_log_path()
         #        print(f"librec-auto: Logging to {log_path}.")
 

@@ -5,10 +5,15 @@ from librec_auto.core.util.xml_utils import single_xpath
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
     xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
 import os
+import os.path
+from os import path
 import subprocess
 import shlex
 import time
 from pathlib import Path, WindowsPath
+import sys
+import pandas as pd
+from numpy import loadtxt
 
 
 class LibFMCmd(Cmd):
@@ -16,7 +21,7 @@ class LibFMCmd(Cmd):
     _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
 
     def __str__(self):
-        return f'LibrecCmd(sub-exp: {self._sub_no}, command: {self._command})'
+        return f'LibFM(sub-exp: {self._sub_no}, command: {self._command})'
 
     def __init__(self, command, sub_no):
         super().__init__()
@@ -33,71 +38,114 @@ class LibFMCmd(Cmd):
     # seems to work more naturally with Popen. A mystery for future developers. Also, capture_output requires
     # Python 3.8, which may be too much to ask at this point.
     # proc = subprocess.run(cmd, capture_output=True
+
+    def modify_file(self, target, filename, study_path):
+        curr_path = study_path + "/" + target
+        data = pd.read_csv(curr_path + "/data/" + filename, sep=",")
+        data = data.iloc[:, [0, 1, 2]]
+        columns = [0, 1, 2]
+        data.columns = columns
+
+        user_dict = {}
+        count = 1
+        for i in data[0]:
+            if i not in user_dict:
+                user_dict[i] = count
+                count = count + 1
+
+        item_dict = {}
+        count = 1
+        for i in data[1]:
+            if i not in item_dict:
+                item_dict[i] = count
+                count = count + 1
+
+        data.loc[:, 0] = data.apply(lambda x: user_dict[x[0]], axis=1)
+        data.loc[:, 1] = data.apply(lambda x: item_dict[x[1]], axis=1)
+
+        data.to_csv(curr_path + "/data/" + filename, header=None, index=False)
+        print(f"File modified and saved")
+
+    def run_libFM(self, target, filename, study_path, split_count):
+        curr_path = study_path + "/" + target
+        perl_script = curr_path + "/triple_format_to_libfm.pl"
+        if not path.exists(perl_script):
+            raise Exception("Perl script does not exist")
+        if not path.exists(curr_path + "/libFM.exe"):
+            raise Exception("LibFM application does not exist")
+
+        for i in range(1, int(split_count) + 1):
+            data = pd.read_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, sep="\t")
+            users = data[0].unique()
+            items = data[1].unique()
+            df = pd.MultiIndex.from_product([users, items], names=[0, 1])
+            df = pd.DataFrame(index=df).reset_index()
+
+            print("Cross product created - ", i)
+            df = pd.merge(df, data, how='left', on=[0, 1])
+            df.fillna(0, inplace=True)
+            df.to_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, index=False, sep="\t")
+            print("File saved - ", i)
+
+        for i in range(1, int(split_count) + 1):
+            params1 = "perl " + perl_script + " --in " + curr_path + "/data/split/cv_" + str(
+                i) + r"/train.txt --target 2 --separator \t"
+            print(params1)
+            pl_script = os.popen(params1)
+            for line in pl_script:
+                print(line.rstrip())
+
+            params2 = "perl " + perl_script + " --in " + curr_path + "/data/split/cv_" + str(
+                i) + r"/test.txt --target 2 --separator \t"
+            print(params2)
+            pl_script2 = os.popen(params2)
+            for line in pl_script2:
+                print(line.rstrip())
+
+        for i in range(1, int(split_count) + 1):
+            params3 = curr_path + "/libFM -task r -train " + curr_path + "/data/split/cv_" + str(
+                i) + "/train.txt.libfm -test " + curr_path + "/data/split/cv_" + str(
+                i) + "/test.txt.libfm -dim '1,1,20' -out " + curr_path + "/data/split/cv_" + str(i) + "/output.txt"
+            pl_script3 = os.popen(params3)
+            for line in pl_script3:
+                print(line.rstrip())
+
+        for i in range(1, int(split_count) + 1):
+            data = pd.read_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, sep="\t")
+            output = loadtxt(curr_path + "/data/split/cv_" + str(i) + "/output.txt", unpack=False)
+            print("Merging the output - ", i)
+            data[2] = output
+            data.to_csv(curr_path + "/exp00000/result/out-" + str(i) + ".txt", sep=",", header=None, index=False)
+
     def execute_librec(self):
-        cmd = self.create_proc_spec()
-
-        if len(cmd) == 0:
-            print(
-                "libFM: Unknown command {self._command}. Skipping LibFM execution."
-            )
-            self.status = Cmd.STATUS_ERROR
-            return
-
-        print(f"libFM: Running libFM. {cmd}")
         log_path = self._exp_path.get_log_path()
-        #        print(f"librec-auto: Logging to {log_path}.")
+
+        #print("librec-auto: Logging to ", log_path)
 
         # change working directory
-        _files = self._config.get_files()
-        study_path = Path(_files.get_study_path())
-
+        self._files = self._config.get_files()
+        study_path = os.getcwd()
         f = open(str(log_path), 'w+')
 
-        #libfm1.py code
         target = self._config.get_target()
         props = LibrecProperties(self._config._xml_input, self._files)
         filename = props.get_property('data.input.path')
+        split_count = props.get_property("data.splitter.cv.number")
 
-        params1 = "python libFM1.py " + target + " " + study_path + " " + filename
-        p = subprocess.Popen(params1,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             cwd=str(study_path.absolute()))
+        self.modify_file(target, filename, study_path)
 
-        for line in p.stdout:
-            line_string = str(line, 'utf-8')
-            f.write(line_string)
-            print(line_string, end='')
+        f.close()
+        params = "python -m librec_auto run -t " + target
+        os.system(params)
 
-        params2 = "python -m librec_auto run -t " + target
-        #os.system(params1)
+        f = open(str(log_path), 'w+')
+        self.run_libFM(target, filename, study_path, split_count)
 
-        p = subprocess.Popen(params2,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             cwd=str(study_path.absolute()))
+        f.close()
+        params1 = "python -m librec_auto eval -t " + target
+        p = os.system(params1)
 
-        for line in p.stdout:
-            line_string = str(line, 'utf-8')
-            f.write(line_string)
-            print(line_string, end='')
-
-        """params3 = "python -m librec_auto eval -t " + study_path
-        p = subprocess.Popen(params3,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             cwd=str(study_path.absolute()))
-
-        for line in p.stdout:
-            line_string = str(line, 'utf-8')
-            f.write(line_string)
-            print(line_string, end='')
-
-        f.close()"""
-
-        #p.wait()
-
-        if type(p.returncode) == 'int' and p.returncode < 0:
+        if p.returncode < 0:
             self.status = Cmd.STATUS_ERROR
         else:
             self.status = Cmd.STATUS_COMPLETE
@@ -151,9 +199,7 @@ class LibFMCmd(Cmd):
             self.status = Cmd.STATUS_COMPLETE
         else:
             self.ensure_clean_log()
-
-            Status.save_status("Executing", self._sub_no, config,
-                               self._exp_path)
+            #Status.save_status("Executing", self._sub_no, config, self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
             self.execute_librec()

@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="110f0d9c-a5bb-4a96-8fa6-fa3c9cdff728" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/core/cmd/libFM1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__main__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cmd/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cmd/libFM1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cmd/libFM_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/libFM_cmd.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cmd/librec_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/librec_cmd.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

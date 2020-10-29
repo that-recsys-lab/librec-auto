@@ -7,3 +7,4 @@ from .rerank_cmd import RerankCmd
 from .status_cmd import StatusCmd
 from .parallel_cmd import ParallelCmd
 from .install_cmd import InstallCmd
+from .libFM_cmd import LibFMCmd
