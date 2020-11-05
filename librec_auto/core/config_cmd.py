@@ -28,10 +28,6 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
-        #self._var_librec_data = defaultdict(list)
-        #self._var_rerank_data = defaultdict(list)
-        #self._var_params = []
-        #self._var_tuples = []
         self._var_coll = VarColl()
         self._libraries = LibraryColl()
 
@@ -197,7 +193,8 @@ class ConfigCmd:
         return len(post_elems) > 0
 
     def cross_validation(self):
-        model_elem = single_xpath(self._xml_input, '/librec-auto/splitter/model')
+        model_elem = single_xpath(self._xml_input,
+                                  '/librec-auto/splitter/model')
         if model_elem.text == 'kcv':
             return int(model_elem.get('count'))
         else:
@@ -212,6 +209,7 @@ class ConfigCmd:
             return 1
         else:
             return int(thread_elems[0].text)
+
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)

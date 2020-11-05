@@ -14,8 +14,10 @@ def read_args():
     '''
     parser = argparse.ArgumentParser(
         description=
-        'The librec-auto tool for running recommender systems experiments.', 
-        epilog = 'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/')
+        'The librec-auto tool for running recommender systems experiments.',
+        epilog=
+        'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
+    )
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
@@ -64,27 +66,24 @@ def read_args():
         "--dev",
         help="Help with documentation, code formatting, and Docker",
         action="store_true")
-    parser.add_argument(
-        "-HT",
-        "--HT",
-        help="Help with using libraries (Not implemented)",
-        action="store_true")
+    parser.add_argument("-HT",
+                        "--HT",
+                        help="Help with using libraries (Not implemented)",
+                        action="store_true")
     parser.add_argument(
         "-PCO",
         "--PCO",
         help="Help with producting CSV outputs (Not implemented)",
         action="store_true")
-    parser.add_argument(
-        "-int",
-        "--int",
-        help="Help with Integrations (Not implemented)",
-        action="store_true")
+    parser.add_argument("-int",
+                        "--int",
+                        help="Help with Integrations (Not implemented)",
+                        action="store_true")
 
     parser.add_argument(
         "-k",
         "--key_password",
-        help="Password for the API keys used by post-processing scripts"
-    )
+        help="Password for the API keys used by post-processing scripts")
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -259,7 +258,9 @@ if __name__ == '__main__':
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file() and args['action'] != 'install':
-        print("Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again.")
+        print(
+            "Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again."
+        )
 
     else:
         if args['action'] == 'describe':
@@ -278,4 +279,3 @@ if __name__ == '__main__':
                     logging.error("Command instantiation failed.")
             else:
                 logging.error("Configuration loading failed.")
-

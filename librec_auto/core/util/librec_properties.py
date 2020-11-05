@@ -12,9 +12,11 @@ class LibrecTranslation:
 
     __instance = None
 
-    fixed_param_dict = {'dfs.result.dir': 'result',
-                        'dfs.log.dir': 'log',
-                        'dfs.split.dir': 'split'}
+    fixed_param_dict = {
+        'dfs.result.dir': 'result',
+        'dfs.log.dir': 'log',
+        'dfs.split.dir': 'split'
+    }
 
     def __new__(cls, files):
         if LibrecTranslation.__instance is None:
@@ -58,6 +60,7 @@ class LibrecProperties:
 # if an element is labeled in the rules as "no-translate", that means it's contents are not passed to LibRec
 #     and it can be ignored
 #
+
     def process_aux(self, conf_tree: etree._Element,
                     rule_tree: etree._Element):
         for conf_elem in conf_tree.iterchildren(tag=etree.Element):
@@ -70,8 +73,10 @@ class LibrecProperties:
                     action_attr = rule_elem.get('action', default=None)
                     if action_attr is not None and action_attr == 'no-translate':  # If labeled "no translate", skip
                         pass
-                    elif len(conf_elem) > 0:  # If the config file has subelements
-                        if len(rule_elem) > 0:  # If the rules also have subelements
+                    elif len(conf_elem
+                             ) > 0:  # If the config file has subelements
+                        if len(rule_elem
+                               ) > 0:  # If the rules also have subelements
                             self.process_aux(conf_elem,
                                              rule_elem)  # recursive call
                         else:  # If no corresponding elements in rules

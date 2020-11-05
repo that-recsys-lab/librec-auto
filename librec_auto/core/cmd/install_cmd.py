@@ -19,27 +19,15 @@ class InstallCmd(Cmd):
         pass
 
     def dry_run(self, config):
-        # self._config = config
         print(f'librec-auto (DR): Running install command {self}')
-        # for script_path, params in config.collect_scripts('post'):
-        #     param_spec = utils.create_param_spec(params)
-        #     print (f'    Post script: {script_path}')
-        #     print (f'\tParameters: {param_spec}')
 
     def execute(self, config: ConfigCmd):
+        print(config)
         install_path = Path(librec_auto.__file__).parent
         jar_path = install_path / "jar" / "auto.jar"
-        #jar_path = os.path.dirname(librec_auto.__file__) + '\\jar\\auto.jar'
         urllib.request.urlretrieve(
             'http://that-recsys-lab.net/downloads/auto.jar',
             str(jar_path.absolute()), self.show_progress)
-
-    # def execute(self, config: ConfigCmd):
-    #     jar_path = os.path.dirname(librec_auto.__file__) + '\\jar\\auto.jar'
-    #     import urllib.request
-    #     urllib.request.urlretrieve(
-    #         'https://www.dropbox.com/s/hyemqt99790t16q/auto.jar?dl=1',
-    #         jar_path, self.show_progress)
 
     def show_progress(self, count, block_size, total_size):
         # global start_time
@@ -58,31 +46,3 @@ class InstallCmd(Cmd):
                          (percent, progress_size /
                           (1024 * 1024), speed, duration))
         sys.stdout.flush()
-
-    # def show_progress(self, block_num, block_size, total_size):
-    #     # global pbar
-    #     if self.pbar is None:
-    #         self.pbar = progressbar.ProgressBar(maxval=total_size)
-    #
-    #     downloaded = block_num * block_size
-    #     if downloaded < total_size:
-    #         self.pbar.update(downloaded)
-    #     else:
-    #         self.pbar.finish()
-    #         self.pbar = None
-
-
-# class MyProgressBar():
-#     def __init__(self):
-#         self.pbar = None
-#
-#     def __call__(self, block_num, block_size, total_size):
-#         if not self.pbar:
-#             self.pbar=progressbar.ProgressBar(maxval=total_size)
-#             self.pbar.start()
-#
-#         downloaded = block_num * block_size
-#         if downloaded < total_size:
-#             self.pbar.update(downloaded)
-#         else:
-#             self.pbar.finish()
