@@ -17,7 +17,8 @@ from numpy import loadtxt
 
 
 class LibFMCmd(Cmd):
-
+    POST_SCRIPT_PATH = "core/cmd/externalAlgo"
+    POST_ELEM_XPATH = '/librec-auto/alg/script'
     _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
 
     def __str__(self):
@@ -66,61 +67,8 @@ class LibFMCmd(Cmd):
         data.to_csv(curr_path + "/data/" + filename, header=None, index=False)
         print(f"File modified and saved")
 
-    def run_libFM(self, target, filename, study_path, split_count):
-        curr_path = study_path + "/" + target
-        perl_script = curr_path + "/triple_format_to_libfm.pl"
-        if not path.exists(perl_script):
-            raise Exception("Perl script does not exist")
-        if not path.exists(curr_path + "/libFM.exe"):
-            raise Exception("LibFM application does not exist")
-
-        for i in range(1, int(split_count) + 1):
-            data = pd.read_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, sep="\t")
-            users = data[0].unique()
-            items = data[1].unique()
-            df = pd.MultiIndex.from_product([users, items], names=[0, 1])
-            df = pd.DataFrame(index=df).reset_index()
-
-            print("Cross product created - ", i)
-            df = pd.merge(df, data, how='left', on=[0, 1])
-            df.fillna(0, inplace=True)
-            df.to_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, index=False, sep="\t")
-            print("File saved - ", i)
-
-        for i in range(1, int(split_count) + 1):
-            params1 = "perl " + perl_script + " --in " + curr_path + "/data/split/cv_" + str(
-                i) + r"/train.txt --target 2 --separator \t"
-            print(params1)
-            pl_script = os.popen(params1)
-            for line in pl_script:
-                print(line.rstrip())
-
-            params2 = "perl " + perl_script + " --in " + curr_path + "/data/split/cv_" + str(
-                i) + r"/test.txt --target 2 --separator \t"
-            print(params2)
-            pl_script2 = os.popen(params2)
-            for line in pl_script2:
-                print(line.rstrip())
-
-        for i in range(1, int(split_count) + 1):
-            params3 = curr_path + "/libFM -task r -train " + curr_path + "/data/split/cv_" + str(
-                i) + "/train.txt.libfm -test " + curr_path + "/data/split/cv_" + str(
-                i) + "/test.txt.libfm -dim '1,1,20' -out " + curr_path + "/data/split/cv_" + str(i) + "/output.txt"
-            pl_script3 = os.popen(params3)
-            for line in pl_script3:
-                print(line.rstrip())
-
-        for i in range(1, int(split_count) + 1):
-            data = pd.read_csv(curr_path + "/data/split/cv_" + str(i) + "/test.txt", header=None, sep="\t")
-            output = loadtxt(curr_path + "/data/split/cv_" + str(i) + "/output.txt", unpack=False)
-            print("Merging the output - ", i)
-            data[2] = output
-            data.to_csv(curr_path + "/exp00000/result/out-" + str(i) + ".txt", sep=",", header=None, index=False)
-
     def execute_librec(self):
         log_path = self._exp_path.get_log_path()
-
-        #print("librec-auto: Logging to ", log_path)
 
         # change working directory
         self._files = self._config.get_files()
@@ -139,7 +87,21 @@ class LibFMCmd(Cmd):
         os.system(params)
 
         f = open(str(log_path), 'w+')
-        self.run_libFM(target, filename, study_path, split_count)
+
+        post_elems = self._config.get_xml().xpath(self.POST_ELEM_XPATH)
+        for post_elem in post_elems:
+            script_path = utils.get_script_path(post_elems[0], 'externalAlgo')
+            print(script_path)
+            proc_spec = [
+                sys.executable,
+                script_path.absolute().as_posix(),
+                target,
+                filename,
+                study_path,
+                split_count
+            ]
+            print('libFM: Running script {proc_spec}')
+            subprocess.call(proc_spec, cwd=study_path)
 
         f.close()
         params1 = "python -m librec_auto eval -t " + target
@@ -174,23 +136,6 @@ class LibFMCmd(Cmd):
             # a link but we are evaluating the results
             self.dry_run_librec()
 
-    # Late night demo hack
-    # The value of rec.recommender.ranking.topn must be the re-ranked list length
-    # Must substitute here and re-write the configuration.
-    def fix_list_length(self):
-        config = self._config
-        rerank_size_elem = single_xpath(
-            config._xml_input,
-            '/librec-auto/rerank/script/param[@name="max_len"]')
-
-        if rerank_size_elem is None:
-            return
-        else:
-            list_size_elem = single_xpath(config._xml_input,
-                                          "/librec-auto/metric/list-size")
-            list_size_elem.text = rerank_size_elem.text
-            config.write_exp_configs()
-
     def execute(self, config: ConfigCmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
@@ -199,7 +144,7 @@ class LibFMCmd(Cmd):
             self.status = Cmd.STATUS_COMPLETE
         else:
             self.ensure_clean_log()
-            #Status.save_status("Executing", self._sub_no, config, self._exp_path)
+            # Status.save_status("Executing", self._sub_no, config, self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
             self.execute_librec()
