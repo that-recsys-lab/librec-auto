@@ -22,8 +22,9 @@ def test_run_script():
     study_conf_path.mkdir(exist_ok=True)
 
     # copy study config
-    copyfile(Path('librec_auto/test/data/rerank-study-config.xml'),
-             study_conf_path / 'config.xml')
+    copyfile(
+        Path('librec_auto/test/data/rerank-utils/rerank-study-config.xml'),
+        study_conf_path / 'config.xml')
 
     # make experiment directory
     experiment_path = (rerank_path / Path('exp00000'))
@@ -38,15 +39,17 @@ def test_run_script():
     experiment_conf_path.mkdir(exist_ok=True)
 
     # copy experiment config
-    copyfile(Path('librec_auto/test/data/rerank-experiment-config.xml'),
-             experiment_conf_path / 'config.xml')
+    copyfile(
+        Path(
+            'librec_auto/test/data/rerank-utils/rerank-experiment-config.xml'),
+        experiment_conf_path / 'config.xml')
 
     (experiment_path / Path('results')).mkdir(exist_ok=True)
 
     # copy out-1.txt and out-2.txt to original
-    copyfile(Path('librec_auto/test/data/out-1.txt'),
+    copyfile(Path('librec_auto/test/data/rerank-utils/original-out-1.txt'),
              original_path / 'out-1.txt')
-    copyfile(Path('librec_auto/test/data/out-2.txt'),
+    copyfile(Path('librec_auto/test/data/rerank-utils/original-out-2.txt'),
              original_path / 'out-2.txt')
 
     # create RerankCmd
@@ -74,10 +77,9 @@ def test_run_script():
 
     # todo verify the reranking worked here
 
-    rmtree(RERANK_DIR) # delete the reranking directory
+    rmtree(RERANK_DIR)  # delete the reranking directory
 
     assert 1 == 0  # display results
-
 
     # import pdb
     # pdb.set_trace()
