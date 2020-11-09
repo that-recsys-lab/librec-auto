@@ -10,6 +10,7 @@ RERANK_DIR = 'librec_auto/test/core/cmd/rerank'
 
 RERANK_DATA_DIR = 'librec_auto/test/data/rerank'
 
+
 def test_run_script():
     # set command line target flag
     sys.argv = ['-t', RERANK_DIR]
@@ -25,9 +26,8 @@ def test_run_script():
     study_conf_path.mkdir(exist_ok=True)
 
     # copy study config
-    copyfile(
-        RERANK_DATA_DIR /  Path('rerank-study-config.xml'),
-        study_conf_path / 'config.xml')
+    copyfile(RERANK_DATA_DIR / Path('rerank-study-config.xml'),
+             study_conf_path / 'config.xml')
 
     # make experiment directory
     experiment_path = (rerank_path / Path('exp00000'))
@@ -49,7 +49,7 @@ def test_run_script():
 
     # copy experiment config
     copyfile(RERANK_DATA_DIR / Path('rerank-experiment-config.xml'),
-        experiment_conf_path / 'config.xml')
+             experiment_conf_path / 'config.xml')
 
     # make results directory
     results_path = (experiment_path / Path('result'))
@@ -81,11 +81,9 @@ def test_run_script():
     assert result == 0  # check that the script ran successfully
 
     # check the reranked results are correct
-    assert filecmp.cmp(
-        RERANK_DATA_DIR / Path('result-out-1.txt'),
-        results_path / 'out-1.txt')
-    assert filecmp.cmp(
-        RERANK_DATA_DIR / Path('result-out-2.txt'),
-        results_path / 'out-2.txt')
+    assert filecmp.cmp(RERANK_DATA_DIR / Path('result-out-1.txt'),
+                       results_path / 'out-1.txt')
+    assert filecmp.cmp(RERANK_DATA_DIR / Path('result-out-2.txt'),
+                       results_path / 'out-2.txt')
 
     rmtree(RERANK_DIR)  # delete the reranking directory
