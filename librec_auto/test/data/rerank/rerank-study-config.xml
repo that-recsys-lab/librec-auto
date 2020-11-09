@@ -7,7 +7,7 @@
 	
 	<!-- DATA SECTION -->
 	<data>
-		<data-dir>../../../data/rerank</data-dir>
+		<data-dir>../../../data/rerank-data</data-dir>
 		<format>UIR</format>
 		<data-file format="text">ratings.csv</data-file>
 	</data>

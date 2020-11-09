@@ -8,8 +8,7 @@ from librec_auto.core import ConfigCmd
 
 RERANK_DIR = 'librec_auto/test/core/cmd/rerank'
 
-# todo add rerank-utils as dir stem
-
+RERANK_DATA_DIR = 'librec_auto/test/data/rerank'
 
 def test_run_script():
     # set command line target flag
@@ -27,7 +26,7 @@ def test_run_script():
 
     # copy study config
     copyfile(
-        Path('librec_auto/test/data/rerank-utils/rerank-study-config.xml'),
+        RERANK_DATA_DIR /  Path('rerank-study-config.xml'),
         study_conf_path / 'config.xml')
 
     # make experiment directory
@@ -39,9 +38,9 @@ def test_run_script():
     original_path.mkdir(exist_ok=True)
 
     # copy out-1.txt and out-2.txt to original directory
-    copyfile(Path('librec_auto/test/data/rerank-utils/original-out-1.txt'),
+    copyfile(RERANK_DATA_DIR / Path('original-out-1.txt'),
              original_path / 'out-1.txt')
-    copyfile(Path('librec_auto/test/data/rerank-utils/original-out-2.txt'),
+    copyfile(RERANK_DATA_DIR / Path('original-out-2.txt'),
              original_path / 'out-2.txt')
 
     # make experiment conf directory
@@ -49,9 +48,7 @@ def test_run_script():
     experiment_conf_path.mkdir(exist_ok=True)
 
     # copy experiment config
-    copyfile(
-        Path(
-            'librec_auto/test/data/rerank-utils/rerank-experiment-config.xml'),
+    copyfile(RERANK_DATA_DIR / Path('rerank-experiment-config.xml'),
         experiment_conf_path / 'config.xml')
 
     # make results directory
@@ -85,10 +82,10 @@ def test_run_script():
 
     # check the reranked results are correct
     assert filecmp.cmp(
-        Path('librec_auto/test/data/rerank-utils/result-out-1.txt'),
+        RERANK_DATA_DIR / Path('result-out-1.txt'),
         results_path / 'out-1.txt')
     assert filecmp.cmp(
-        Path('librec_auto/test/data/rerank-utils/result-out-2.txt'),
+        RERANK_DATA_DIR / Path('result-out-2.txt'),
         results_path / 'out-2.txt')
 
     rmtree(RERANK_DIR)  # delete the reranking directory
