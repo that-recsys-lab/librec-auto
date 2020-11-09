@@ -1,12 +1,13 @@
-from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files
-from librec_auto.core.util.utils import create_param_spec, get_script_path
-from librec_auto.core.util.xml_utils import single_xpath
-from librec_auto.core import ConfigCmd
 import sys
 import subprocess
 from lxml import etree
 import logging
+
+from librec_auto.core import ConfigCmd
+from librec_auto.core.cmd import Cmd
+from librec_auto.core.util import Files
+from librec_auto.core.util.utils import create_param_spec, get_script_path
+from librec_auto.core.util.xml_utils import single_xpath
 
 
 class RerankCmd(Cmd):

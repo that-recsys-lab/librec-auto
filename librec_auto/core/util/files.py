@@ -190,7 +190,7 @@ class ExpPaths:
 
     - log
     - result
-    - original (for re-ranking
+    - original (for re-ranking)
     - conf
     """
 
@@ -206,7 +206,6 @@ class ExpPaths:
         'conf': 'dfs.config.dir'
     }
 
-    #   _sub_dirs = ['conf', 'log', 'result', 'original']
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
     exp_name = None
