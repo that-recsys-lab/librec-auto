@@ -12,6 +12,7 @@ RERANK_DIR = 'librec_auto/test/core/cmd/rerank'
 
 RERANK_DATA_DIR = 'librec_auto/test/data/rerank'
 
+
 def build_directory_structure():
     # set command line target flag
     sys.argv = ['-t', RERANK_DIR]
