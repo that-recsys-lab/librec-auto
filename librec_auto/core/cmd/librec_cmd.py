@@ -158,11 +158,11 @@ class LibrecCmd(Cmd):
 
         if self._command == 'split':
             # check if split exists, if so split command doesn't make sense. Does not purge here.
-            if self.split_exists():
-                print("Split already exists. Skipping.")
-                return None
-            else:
-                return 'split'
+#            if self.split_exists():
+#                print("Split already exists. Skipping.")
+#                return None
+#            else:
+            return 'split'
 
         if self._command == 'eval':
             if self.results_exist():
