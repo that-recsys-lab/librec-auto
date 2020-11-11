@@ -1,6 +1,6 @@
-=======================================
-Configeration File
-=======================================
+==================
+Configuration File
+==================
 
 Path Section
 ============
@@ -36,7 +36,7 @@ Select proper metrics for fairness calculation, such as ``erroe-based fairness m
 Rerank Section
 ==============
 
-Select different method to rerank the previous result for fairness of recommendation system, including ``far-rerank``, ``pfar-rerank``, ``MMR-rerank``, ``ofar-rerank`` and more.
+Select different method to rerank the previous result for fairness of recommendation system, including ``far_rerank``, ``pfar_rerank``, ``MMR_rerank``, ``ofar_rerank`` and more.
 Control the accuracy and diversity of the recommendation system by hyperparameter lambda. Higher lambda means more accurate, and Lower lambda means higher diversity.
 
 

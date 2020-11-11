@@ -39,3 +39,5 @@ librec_auto.egg-info/
 librec_auto/docs/build
 librec_auto\jar\auto.jar
 
+## Testing
+.coverage

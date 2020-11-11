@@ -129,14 +129,13 @@ def rerank(userid, user_recs_df, user_profile, helper):
 
 def execute(recoms_df, train_df, helper):
 
-
     result = []
 
     for userid in list(set(recoms_df['userid'])):
         #        print('list reranked for user #',userid)
         result.append(
             rerank(userid, recoms_df[recoms_df['userid'] == userid].copy(),
-                    train_df[train_df['userid'] == userid], helper))
+                   train_df[train_df['userid'] == userid], helper))
 
     rr_df = pd.concat(result)
     return rr_df
@@ -174,6 +173,7 @@ def enumerate_results(result_path):
     files.sort()
     return files
 
+
 def load_item_features(config, data_path):
     item_feature_file = single_xpath(
         config.get_xml(), '/librec-auto/features/item-feature-file').text
@@ -184,9 +184,10 @@ def load_item_features(config, data_path):
         return None
 
     item_feature_df = pd.read_csv(item_feature_path,
-                                      names=['itemid', 'feature', 'value'])
+                                  names=['itemid', 'feature', 'value'])
     item_feature_df.set_index('itemid', inplace=True)
     return item_feature_df
+
 
 def load_training(split_path, cv_count):
     tr_file_path = split_path / f'cv_{cv_count}' / 'train.txt'
@@ -195,9 +196,12 @@ def load_training(split_path, cv_count):
         print('Cannot locate training data: ' + str(tr_file_path.absolute()))
         return None
 
-    tr_df = pd.read_csv(tr_file_path, names=['userid', 'itemid', 'score'], sep='\t')
+    tr_df = pd.read_csv(tr_file_path,
+                        names=['userid', 'itemid', 'score'],
+                        sep='\t')
 
     return tr_df
+
 
 def setup_helper(args, config, item_feature_df):
     protected = single_xpath(config.get_xml(),
@@ -210,6 +214,7 @@ def setup_helper(args, config, item_feature_df):
     helper.max_length = int(args['max_len'])
     helper.binary = args['binary'] == 'True'
     return helper
+
 
 def output_reranked(reranked_df, dest_results_path, file_path):
     output_file_path = dest_results_path / file_path.name
@@ -225,11 +230,14 @@ if __name__ == '__main__':
     result_files = enumerate_results(original_results_path)
 
     if len(result_files) == 0:
-        print(f"far-rerank: No original results found in {original_results_path}")
+        print(
+            f"far_rerank: No original results found in {original_results_path}"
+        )
 
     dest_results_path = Path(args['result'])
 
-    data_dir = single_xpath(config.get_xml(), '/librec-auto/data/data-dir').text
+    data_dir = single_xpath(config.get_xml(),
+                            '/librec-auto/data/data-dir').text
 
     data_path = Path(data_dir)
     data_path = data_path.resolve()
@@ -254,9 +262,8 @@ if __name__ == '__main__':
             exit(-1)
 
         print(f'Load results from {file_path}')
-        results_df = pd.read_csv(file_path, names=['userid', 'itemid', 'score'])
+        results_df = pd.read_csv(file_path,
+                                 names=['userid', 'itemid', 'score'])
 
         reranked_df = execute(results_df, tr_df, helper)
         output_reranked(reranked_df, dest_results_path, file_path)
-
-

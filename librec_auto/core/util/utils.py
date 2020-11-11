@@ -5,6 +5,7 @@ from pathlib import Path
 import logging
 from . import xml_utils
 
+
 def force_list(item):
     """
     Ensures that an item is of list type.

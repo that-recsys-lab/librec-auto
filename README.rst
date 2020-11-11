@@ -2,6 +2,10 @@
 Librec-auto
 ============
 
+
+.. image:: https://coveralls.io/repos/github/that-recsys-lab/librec-auto/badge.svg?branch=master
+  :target: https://coveralls.io/github/that-recsys-lab/librec-auto?branch=master
+
 About
 =====
 

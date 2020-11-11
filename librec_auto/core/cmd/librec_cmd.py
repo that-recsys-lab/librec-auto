@@ -41,7 +41,7 @@ class LibrecCmd(Cmd):
 
         print(f"librec-auto: Running librec. {cmd}")
         log_path = self._exp_path.get_log_path()
-#        print(f"librec-auto: Logging to {log_path}.")
+        #        print(f"librec-auto: Logging to {log_path}.")
 
         # change working directory
         _files = self._config.get_files()
@@ -61,7 +61,7 @@ class LibrecCmd(Cmd):
 
         #p.wait()
 
-        if type(p.returncode) is 'int' and p.returncode < 0:
+        if type(p.returncode) == 'int' and p.returncode < 0:
             self.status = Cmd.STATUS_ERROR
         else:
             self.status = Cmd.STATUS_COMPLETE
@@ -80,14 +80,14 @@ class LibrecCmd(Cmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
         link = self._exp_path.get_ref_exp_name()
-        if link and self._command == 'run':         # If the results are stored elsewhere
-                                                    # then we don't execute librec to generate
-                                                    # results
+        if link and self._command == 'run':  # If the results are stored elsewhere
+            # then we don't execute librec to generate
+            # results
             print(
                 f'librec-auto (DR): Skipping librec. Getting results from {link}'
             )
-        else:                                       # We are running librec normally or we have
-                                                    # a link but we are evaluating the results
+        else:  # We are running librec normally or we have
+            # a link but we are evaluating the results
             self.dry_run_librec()
 
     # Late night demo hack
@@ -95,13 +95,15 @@ class LibrecCmd(Cmd):
     # Must substitute here and re-write the configuration.
     def fix_list_length(self):
         config = self._config
-        rerank_size_elem = single_xpath(config._xml_input,
-                                        '/librec-auto/rerank/script/param[@name="max_len"]')
+        rerank_size_elem = single_xpath(
+            config._xml_input,
+            '/librec-auto/rerank/script/param[@name="max_len"]')
 
         if rerank_size_elem is None:
             return
         else:
-            list_size_elem = single_xpath(config._xml_input, "/librec-auto/metric/list-size")
+            list_size_elem = single_xpath(config._xml_input,
+                                          "/librec-auto/metric/list-size")
             list_size_elem.text = rerank_size_elem.text
             config.write_exp_configs()
 

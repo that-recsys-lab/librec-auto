@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!-- Configuration file for RecSys demo
+         Part 01: Demonstrating librec-auto -->
+
+<librec-auto>
+        <random-seed>202001</random-seed>
+        <thread-count>1</thread-count>
+        <library src="system">default-algorithms.xml</library>
+
+        <!-- DATA SECTION -->
+        <data>
+                <data-dir>../data</data-dir>
+                <format>UIR</format>
+                <data-file format="text">ratings.csv</data-file>
+        </data>
+
+        <!-- SPLITTER SECTION -->
+        <splitter>
+                <model count="3">kcv</model>
+                <dim>userfixed</dim>
+                <ratio>0.8</ratio>
+                <save>true</save>
+        </splitter>
+
+        <!-- ALGORITHM SECTION -->
+        <!-- Using biased for demonstration purposes. -->
+        <alg ref="alg:biasedmf">
+                <similarity type="item">pcc</similarity>
+                <iterator-max>25</iterator-max>
+                <item-reg><value>0.001</value><value>0.01</value><value>0.05</value></item-reg>
+                <num-factors>20</num-factors>
+        </alg>
+
+        <!-- METRICS SECTION -->
+        <metric>
+                <ranking>true</ranking>
+                <list-size>10</list-size>
+                <class>ndcg,precision</class>
+        </metric>
+
+        <!-- POST-PROCESSING SECTION -->
+        <post>
+                <script lang="python3" src="system">
+                        <script-name>results_to_csv.py</script-name>
+                        <param name="option">all</param>
+                </script>
+        </post>
+</librec-auto>
