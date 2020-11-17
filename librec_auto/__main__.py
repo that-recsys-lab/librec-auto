@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
 import librec_auto
 
@@ -13,15 +13,13 @@ def read_args():
     :return:
     '''
     parser = argparse.ArgumentParser(
-        description=
-        'The librec-auto tool for running recommender systems experiments.',
-        epilog=
-        'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
+        description='The librec-auto tool for running recommender systems experiments.',
+        epilog='TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
     )
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check', 'install'
+                            'status', 'describe', 'check'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -47,8 +45,7 @@ def read_args():
     parser.add_argument(
         "-np",
         "--no_parallel",
-        help=
-        "Ignore thread-count directive and run all operations sequentially",
+        help="Ignore thread-count directive and run all operations sequentially",
         action="store_true")
     parser.add_argument(
         "-p",
@@ -105,7 +102,7 @@ def load_config(args):
 
 DESCRIBE_TEXT = 'Librec-auto automates recommender systems experimentation using the LibRec Java library.\n' +\
     '\tA librec-auto experiment consist of five steps governed by the specifications in the configuration file:\n' +\
-    '\t- split: Create training / test splits from a data set. (LibRec)\n'+\
+    '\t- split: Create training / test splits from a data set. (LibRec)\n' +\
     '\t- exp: Run an experiment generating recommendations for a test set (LibRec)\n' +\
     '\t- rerank (optional): Re-rank the results of the experiment (script)\n' +\
     '\t- eval: Evaluate the results of a recommendation experiment (LibRec)\n' +\
@@ -166,10 +163,6 @@ def build_librec_commands(librec_action, args, config):
 def setup_commands(args, config):
     action = args['action']
     purge_noask = args['quiet']
-
-    if action == 'install':
-        cmd = InstallCmd()
-        return cmd
 
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
@@ -257,9 +250,9 @@ if __name__ == '__main__':
     args = read_args()
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
-    if not jar_path.is_file() and args['action'] != 'install':
+    if not jar_path.is_file():
         print(
-            "Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again."
+            "Error: LibRec JAR file is missing."
         )
 
     else:
@@ -268,7 +261,7 @@ if __name__ == '__main__':
         else:
             config = load_config(args)
 
-            if config.is_valid() or args['action'] == 'install':
+            if config.is_valid():
                 command = setup_commands(args, config)
                 if isinstance(command, Cmd):
                     if args['dry_run']:
