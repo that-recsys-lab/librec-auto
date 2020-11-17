@@ -1,4 +1,5 @@
 import argparse
+from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
@@ -95,11 +96,11 @@ def read_args():
     return vars(input_args)
 
 
-def load_config(args):
+def load_config(args: dict) -> ConfigCmd:
 
     config_file = Files.DEFAULT_CONFIG_FILENAME
 
-    if args['conf']:  # User requested a different configuration file
+    if args['conf']:  # User requested a different configuration file from the default
         config_file = args['conf']
 
     target = ""
@@ -135,7 +136,7 @@ May result in no action if all computations are up-to-date and no purge option i
 }
 
 
-def print_description(args):
+def print_description(args: dict) -> None:
     act = args['target']
     if act in DESCRIBE_DICT:
         print(f'core {act} <target>: {DESCRIBE_DICT[act]}')
@@ -143,7 +144,7 @@ def print_description(args):
         print(DESCRIBE_TEXT)
 
 
-def purge_type(args):
+def purge_type(args: dict) -> str:
     if 'purge' in args:
         return args['purge']
     # If no type specified and you're purging, purge everything
@@ -156,7 +157,7 @@ def purge_type(args):
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
 # and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
 # variation its own parameters.
-def build_librec_commands(librec_action, args, config):
+def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd):
     librec_commands = [
         LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
     ]
@@ -169,7 +170,7 @@ def build_librec_commands(librec_action, args, config):
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
-def setup_commands(args, config):
+def setup_commands(args: dict, config: ConfigCmd):
     action = args['action']
     purge_no_ask = args['quiet']
 
@@ -187,18 +188,15 @@ def setup_commands(args, config):
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
-        cmd = PurgeCmd(purge_type(args), no_ask=purge_no_ask)
-        return cmd
+        return PurgeCmd(purge_type(args), no_ask=purge_no_ask)
 
     # Shows the status of the experiment
     if action == 'status':
-        cmd = StatusCmd()
-        return cmd
+        return StatusCmd()
 
     # Perform (only) post-processing on results
     if action == 'post' and post_flag:
-        cmd = PostCmd()
-        return cmd
+        return PostCmd()
     # No post scripts available
     if action == 'post' and not post_flag:
         logging.warning(
