@@ -18,6 +18,7 @@ def read_args():
         epilog=
         'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
     )
+
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
@@ -37,41 +38,49 @@ def read_args():
         "--dry_run",
         help="Show sequence of command execution but do not execute commands",
         action="store_true")
+
     parser.add_argument("-q",
                         "--quiet",
                         help="Skip confirmation when purging",
                         action="store_true")
+
     parser.add_argument(
         "-np",
         "--no_parallel",
         help=
         "Ignore thread-count directive and run all operations sequentially",
         action="store_true")
+
     parser.add_argument(
         "-p",
         "--purge",
         help="Purge results of step given in <option> and all subsequent steps",
         choices=['all', 'split', 'results', 'rerank', 'post'],
         default='all')
+
     parser.add_argument(
         "-nc",
         "--no_cache",
         help="Do not cache any intermediate results (Not implemented)",
         action="store_true")
+
     parser.add_argument(
         "-dev",
         "--dev",
         help="Help with documentation, code formatting, and Docker",
         action="store_true")
+
     parser.add_argument("-HT",
                         "--HT",
                         help="Help with using libraries (Not implemented)",
                         action="store_true")
+
     parser.add_argument(
         "-PCO",
         "--PCO",
         help="Help with producting CSV outputs (Not implemented)",
         action="store_true")
+
     parser.add_argument("-int",
                         "--int",
                         help="Help with Integrations (Not implemented)",
