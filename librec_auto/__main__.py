@@ -13,8 +13,10 @@ def read_args():
     :return:
     '''
     parser = argparse.ArgumentParser(
-        description='The librec-auto tool for running recommender systems experiments.',
-        epilog='TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
+        description=
+        'The librec-auto tool for running recommender systems experiments.',
+        epilog=
+        'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
     )
     parser.add_argument('action',
                         choices=[
@@ -45,7 +47,8 @@ def read_args():
     parser.add_argument(
         "-np",
         "--no_parallel",
-        help="Ignore thread-count directive and run all operations sequentially",
+        help=
+        "Ignore thread-count directive and run all operations sequentially",
         action="store_true")
     parser.add_argument(
         "-p",
@@ -251,9 +254,7 @@ if __name__ == '__main__':
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file():
-        print(
-            "Error: LibRec JAR file is missing."
-        )
+        print("Error: LibRec JAR file is missing.")
 
     else:
         if args['action'] == 'describe':
