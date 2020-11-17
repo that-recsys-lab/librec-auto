@@ -27,9 +27,6 @@ def read_args():
     parser.add_argument("-t", "--target", help="Path to experiment directory")
 
     # Optional with arguments
-    # parser.add_argument("-ex","--exhome", help="stub")
-    # parser.add_argument("-rs","--reset", help = "stub")
-    # parser.add_argument("-rss","--revise-step", help="stub")
     parser.add_argument("-c",
                         "--conf",
                         help="Use the specified configuration file")
@@ -165,7 +162,7 @@ def build_librec_commands(librec_action, args, config):
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
 def setup_commands(args, config):
     action = args['action']
-    purge_noask = args['quiet']
+    purge_no_ask = args['quiet']
 
     if action == 'install':
         cmd = InstallCmd()
@@ -181,7 +178,7 @@ def setup_commands(args, config):
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
-        cmd = PurgeCmd(purge_type(args), noask=purge_noask)
+        cmd = PurgeCmd(purge_type(args), no_ask=purge_no_ask)
         return cmd
 
     # Shows the status of the experiment
@@ -201,7 +198,7 @@ def setup_commands(args, config):
 
     # Perform re-ranking on results, followed by evaluation and post-processing
     if action == 'rerank' and rerank_flag:  # Runs a reranking script on the python side
-        cmd1 = PurgeCmd('rerank', noask=purge_noask)
+        cmd1 = PurgeCmd('rerank', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = RerankCmd()
         cmd4 = build_librec_commands('eval', args, config)
@@ -217,7 +214,7 @@ def setup_commands(args, config):
     # LibRec actions
     # re-run splits only
     if action == 'split':
-        cmd1 = PurgeCmd('split', noask=purge_noask)
+        cmd1 = PurgeCmd('split', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('split', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
@@ -225,7 +222,7 @@ def setup_commands(args, config):
 
     # re-run experiment and continue
     if action == 'run':
-        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('full', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
@@ -238,7 +235,7 @@ def setup_commands(args, config):
 
     # eval-only
     if action == 'eval':
-        cmd1 = PurgeCmd('post', noask=purge_noask)
+        cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('eval', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
