@@ -1,5 +1,10 @@
-# FAR rerank
-# Based on W. Liu, R. Burke, Personalizing Fairness-aware Re-ranking
+# PFAR rerank
+# Based on Personalized fairness-aware re-ranking for microlending.
+# By Weiwen Liu, Jun Guo, Nasim Sonboli, Robin Burke, and Shengyu Zhang. 2019.
+         # In <i>Proceedings of the 13th ACM Conference on Recommender Systems</i> (<i>RecSys '19</i>).
+         # Association for Computing Machinery, New York, NY, USA, 467–471.
+         # DOI:https://doi.org/10.1145/3298689.3347016
+# implemented by
 
 import argparse
 import os

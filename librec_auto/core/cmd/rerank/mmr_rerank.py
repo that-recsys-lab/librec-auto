@@ -226,6 +226,11 @@ def main():
     original_results_path = Path(args['original'])
     result_files = enumerate_results(original_results_path)
 
+    if len(result_files) == 0:
+        print(
+            f"mmr_rerank: No original results found in {original_results_path}"
+        )
+
     dest_results_path = Path(args['result'])
 
     data_dir = single_xpath(config.get_xml(),

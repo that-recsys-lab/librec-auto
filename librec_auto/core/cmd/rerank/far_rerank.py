@@ -1,5 +1,10 @@
 # FAR rerank
-# Based on W. Liu, R. Burke, Personalizing Fairness-aware Re-ranking
+# Based on Personalized fairness-aware re-ranking for microlending.
+# By Weiwen Liu, Jun Guo, Nasim Sonboli, Robin Burke, and Shengyu Zhang. 2019.
+         # In <i>Proceedings of the 13th ACM Conference on Recommender Systems</i> (<i>RecSys '19</i>).
+         # Association for Computing Machinery, New York, NY, USA, 467–471.
+         # DOI:https://doi.org/10.1145/3298689.3347016
+# implemented by
 
 import argparse
 import re
@@ -164,7 +169,7 @@ def read_args():
 
 
 RESULT_FILE_PATTERN = 'out-(\d+).txt'
-INPUT_FILE_PATTERN = 'cv_\d+'
+# INPUT_FILE_PATTERN = 'cv_\d+'
 
 
 def enumerate_results(result_path):
@@ -224,6 +229,7 @@ def output_reranked(reranked_df, dest_results_path, file_path):
 
 if __name__ == '__main__':
     args = read_args()
+    # print(args)  # todo need to be deleted
     config = read_config_file(args['conf'], ".")
 
     original_results_path = Path(args['original'])
