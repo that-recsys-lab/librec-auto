@@ -223,6 +223,9 @@ class ExpPaths:
         status_path = exp_path / '.status'
         self.set_path('status', status_path)
 
+        output_path = exp_path / 'output.xml'
+        self.set_path('output', output_path)
+
         librec_result_path = Path(exp_name) / 'result'
         self.set_path('librec_result', librec_result_path)
 

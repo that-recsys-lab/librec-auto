@@ -115,28 +115,45 @@ class Status():
 
         status_file = paths.get_path('status')
 
+        # write to status file
         status_xml.getroottree().write(status_file.absolute().as_posix(),
                                        pretty_print=True)
 
-    # # Accept list of vars and tuples
-    # @staticmethod
-    # def save_status(msg, exp_count, config, paths):
-    #     status_file = paths.get_path('status')
-    #     status_front = Status._TEMPLATE_FRONT.format(msg, exp_count, datetime.datetime.now())
-    #
-    #     status_params = ''
-    #     conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
-    #     var_elems = conf_xml.xpath("//*[@var='true']")
-    #     for var_elem in var_elems:
-    #         if var_elem.tag == 'param':
-    #             var_name = var_elem.get('name')
-    #         else:
-    #             var_name = var_elem.tag
-    #         var_value = var_elem.text
-    #
-    #         status_params = status_params + Status._TEMPLATE_LINE.format(var_name, var_value)
-    #
-    #     status_info = Status._HEADER + status_front + status_params + Status._TEMPLATE_END
-    #
-    #     with status_file.open(mode='w') as fh:
-    #         fh.write(str(status_info))
+        # get the output file
+        output_file = paths.get_path('output')
+
+        # create a new output tree
+        output_xml = etree.Element("librec-auto-output")
+        status_xml.tag = "status"
+        output_xml.insert(
+            0, status_xml)  # add status as a subelement to the output tree
+
+        # write to output XML
+        output_xml.getroottree().write(output_file.absolute().as_posix(),
+                                       pretty_print=True)
+
+        # todo stop from overwriting file every time
+
+
+# # Accept list of vars and tuples
+# @staticmethod
+# def save_status(msg, exp_count, config, paths):
+#     status_file = paths.get_path('status')
+#     status_front = Status._TEMPLATE_FRONT.format(msg, exp_count, datetime.datetime.now())
+#
+#     status_params = ''
+#     conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
+#     var_elems = conf_xml.xpath("//*[@var='true']")
+#     for var_elem in var_elems:
+#         if var_elem.tag == 'param':
+#             var_name = var_elem.get('name')
+#         else:
+#             var_name = var_elem.tag
+#         var_value = var_elem.text
+#
+#         status_params = status_params + Status._TEMPLATE_LINE.format(var_name, var_value)
+#
+#     status_info = Status._HEADER + status_front + status_params + Status._TEMPLATE_END
+#
+#     with status_file.open(mode='w') as fh:
+#         fh.write(str(status_info))
