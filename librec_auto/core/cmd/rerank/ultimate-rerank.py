@@ -1,7 +1,29 @@
-# MMR rerank with helpers
+# ultimate rerank with helpers
+# include MMR, FAR
 # Ziyue Guo
 # Fall 2020
 
+# config example
+
+# <!--		<script lang="python3" src="system">-->
+# <!--			<script-name>ultimate-rerank.py</script-name>-->
+# <!--			<param name="max_len">10</param>-->
+
+# <!--			<param name="lambda">-->
+# <!--				<value>1.0</value>-->
+# <!--				<value>0.5</value>-->
+# <!--			</param>-->
+
+# <!--			<param name="method">mmr</param>-->
+
+# <!--			<param name="alpha">-->
+# <!--				<value>0.01</value>-->
+# <!--				<value>0.15</value>-->
+# <!--			</param>-->
+
+# <!--			<param name="binary">True</param>-->
+# <!--			<param name="protected">new</param>-->
+# <!--		</script>-->
 
 import numpy as np
 import pandas as pd
@@ -139,6 +161,11 @@ def set_item_helper(item_feature_df):
     return item_helper
 
 
+def get_protected_set(item_features, helper):
+    return set((item_features[(item_features['feature'] == helper.protected)
+                              & (item_features['value'] == 1)].index).tolist())
+
+
 def MMR(rec, item_helper, rerank_helper, user_helper):
     num_remain = len(user_helper.item_list)
     num_curr = len(user_helper.item_so_far)
@@ -158,6 +185,75 @@ def MMR(rec, item_helper, rerank_helper, user_helper):
     return scores, item_helper, rerank_helper, user_helper
 
 
+def FAR(rec, item_helper, rerank_helper, user_helper):
+    # num_prot = rerank_helper.num_prot(user_helper.item_so_far)
+    num_curr = len(user_helper.item_so_far)
+    num_remain = len(user_helper.item_list)
+    best_score = -1
+    scores = []
+
+    for i in range(num_remain):
+        item = user_helper.item_list[i]
+        score = rec[i]
+        if rerank_helper.binary:
+            new_score = rescore_binary(item, score, user_helper.item_so_far,
+                                       user_helper.score_profile, rerank_helper)
+        else:
+            new_score = rescore_prop(item, score, user_helper.item_so_far,
+                                     user_helper.score_profile, rerank_helper)
+
+        scores.append(new_score)
+
+    return scores, item_helper, rerank_helper, user_helper
+
+
+def rescore_binary(item, original_score, items_so_far, score_profile, helper):
+    answer = original_score
+    div_term = 0
+
+    # If there are both kind of items in the list, no re-ranking happens
+    count_prot = helper.num_prot(items_so_far)
+    if helper.is_protected(item):
+        if count_prot == 0:
+            div_term = score_profile
+    else:
+        if count_prot == len(items_so_far):
+            div_term = 1 - score_profile
+
+    div_term *= (1 - helper.lamb)
+    answer *= helper.lamb
+    answer += div_term
+
+    return answer
+
+
+def rescore_prop(item, original_score, items_so_far, score_profile, helper):
+    answer = original_score
+
+    count_prot = helper.num_prot(items_so_far)
+    count_items = len(items_so_far)
+    if count_items == 0:
+        div_term = score_profile
+    else:
+        if helper.is_protected(item):
+            div_term = score_profile
+            div_term *= 1 - count_prot / count_items
+        else:
+            div_term = (1 - score_profile)
+            div_term *= count_prot / count_items
+
+    div_term *= helper.lamb
+    answer *= (1 - helper.lamb)
+    answer += div_term
+    return answer
+
+
+def score_prot(user_profile, helper):
+    user_items = user_profile['itemid'].tolist()
+    if len(user_items) == 0:
+        return 0
+    return helper.num_prot(user_items) * 1.0 / len(user_items)
+
 
 def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
     user_helper.item_so_far = []
@@ -170,8 +266,8 @@ def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
     user_helper.item_list = np.delete(user_helper.item_list, item_idx)
 
     all_scores = np.zeros(num_item)
-    all_scores[0] = user_helper.scaled_rating[item_idx] * rerank_helper.lamb
-    # all_scores[0] = user_helper.scaled_rating[item_idx]
+    # all_scores[0] = user_helper.scaled_rating[item_idx] * rerank_helper.lamb
+    all_scores[0] = user_helper.scaled_rating[item_idx]
     scaler = MinMaxScaler()
 
     for k in range(num_item - 1):
@@ -247,7 +343,9 @@ def read_args():
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
     parser.add_argument('--lambda', help='The weight for re-ranking.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
-
+    parser.add_argument('--alpha', help='alpha.')
+    parser.add_argument('--protected', help='protected feature', default="new")
+    parser.add_argument('--method', help='reranking method')
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -327,7 +425,13 @@ def main():
     split_path = data_path / 'split'
     pat = re.compile(RESULT_FILE_PATTERN)
 
-    scoring_function, profile_flag = MMR, False
+    method = args['method']
+
+    scoring_function, profile_flag = match_method(method)
+
+    if scoring_function is None:
+        print("rerank method not exist")
+        exit(-1)
 
     for file_path in result_files:
         tr_df = None

@@ -1,4 +1,4 @@
-# MMR rerank with helpers
+# Far rerank with helpers
 # Ziyue Guo
 # Fall 2020
 
@@ -32,13 +32,12 @@ class Rerank_Helper():
 
     def is_protected(self, itemid):
         return itemid in self.protected_set
-
     def num_prot(self, items):
         num_prot = [self.is_protected(itemid) for itemid in items].count(True)
         return num_prot
 
 
-def set_rerank_helper(args, config, item_helper):
+def set_rerank_helper(args, config,item_helper):
     # basic info
     rerank_helper = Rerank_Helper()
     rerank_helper.binary = args['binary'] == 'True'
@@ -46,27 +45,19 @@ def set_rerank_helper(args, config, item_helper):
 
     # protected data
     # try: rerank_helper.protected = str(args['protected'])
-    try:
-        protected = single_xpath(config.get_xml(),
-                                 '/librec-auto/metric/protected-feature').text
-    except:
-        pass
+    try: protected = single_xpath(config.get_xml(),
+                             '/librec-auto/metric/protected-feature').text
+    except: pass
 
-    try:
-        rerank_helper.protected_set = get_protected_set(item_helper.item_feature_df, item_helper)
-    except:
-        pass
+    try: rerank_helper.protected_set = get_protected_set(item_helper.item_feature_df, item_helper)
+    except: pass
 
     # hyper-parameters
-    try:
-        rerank_helper.lamb = float(args['lambda'])
-    except:
-        pass
+    try: rerank_helper.lamb = float(args['lambda'])
+    except: pass
 
-    try:
-        rerank_helper.alpha = float(args['alpha'])
-    except:
-        pass
+    try: rerank_helper.alpha = float(args['alpha'])
+    except: pass
 
     return rerank_helper
 
@@ -86,14 +77,14 @@ def set_user_helper(user_id, rating_df, user_profile, rerank_helper):
     user_helper.id = user_id
 
     user_rating = rating_df.loc[rating_df["userid"] == user_id, [
-        "rating"]].to_numpy()
-
+            "rating"]].to_numpy()
+    
     scaler = MinMaxScaler()
 
     user_helper.scaled_rating = scaler.fit_transform(user_rating).flatten()
 
     user_helper.item_list = rating_df.loc[rating_df["userid"] == user_id, [
-        "itemid"]].to_numpy().flatten()
+            "itemid"]].to_numpy().flatten()
 
     if user_profile is not None:
         user_helper.user_profile = user_profile
@@ -112,8 +103,9 @@ class Item_Helper():
             if index2 in self.sim_matrix_dic[index1]:
                 return self.sim_matrix_dic[index1][index2]
 
-        vec_proj1 = self.item_feature_df.loc[[index1, ]]
-        vec_proj2 = self.item_feature_df.loc[[index2, ]]
+
+        vec_proj1 = self.item_feature_df.loc[[index1,]]
+        vec_proj2 = self.item_feature_df.loc[[index2,]]
 
         joined = pd.concat([vec_proj1, vec_proj2], axis=0)
         pivoted = joined.pivot(columns='feature').fillna(0)
@@ -121,7 +113,7 @@ class Item_Helper():
         vec1 = pivoted.loc[index1].to_numpy()
         vec2 = pivoted.loc[index2].to_numpy()
         sim_score = similarity(vec1, vec2, binary)
-
+            
         sim1 = self.sim_matrix_dic.get(index1, {})
         sim1[index2] = sim_score
         self.sim_matrix_dic[index1] = sim1
@@ -139,30 +131,85 @@ def set_item_helper(item_feature_df):
     return item_helper
 
 
-def MMR(rec, item_helper, rerank_helper, user_helper):
-    num_remain = len(user_helper.item_list)
-    num_curr = len(user_helper.item_so_far)
+def get_protected_set(item_features, helper):
+    return set((item_features[(item_features['feature'] == helper.protected)
+                              & (item_features['value'] == 1)].index).tolist())
 
-    sim = np.zeros([num_remain, num_curr])
-    sim_max = np.zeros(num_remain)
+
+def FAR(rec, item_helper, rerank_helper, user_helper):
+    # num_prot = rerank_helper.num_prot(user_helper.item_so_far)
+    num_curr = len(user_helper.item_so_far)
+    num_remain = len(user_helper.item_list)
+    best_score = -1
+    scores = []
 
     for i in range(num_remain):
-        for j in range(num_curr):
-            index1 = user_helper.item_list[i]
-            index2 = user_helper.item_so_far[j]
-            sim[i][j] = item_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
+        item = user_helper.item_list[i]
+        score = rec[i]
+        if rerank_helper.binary:
+            new_score = rescore_binary(item, score, user_helper.item_so_far,
+                                       user_helper.score_profile, rerank_helper)
+        else:
+            new_score = rescore_prop(item, score, user_helper.item_so_far,
+                                       user_helper.score_profile, rerank_helper)
 
-        sim_max[i] = np.max(sim[i])
-    scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_max
-
+        scores.append(new_score)
+        
     return scores, item_helper, rerank_helper, user_helper
 
+
+def rescore_binary(item, original_score, items_so_far, score_profile, helper):
+    answer = original_score
+    div_term = 0
+
+    # If there are both kind of items in the list, no re-ranking happens
+    count_prot = helper.num_prot(items_so_far)
+    if helper.is_protected(item):
+        if count_prot == 0:
+            div_term = score_profile
+    else:
+        if count_prot == len(items_so_far):
+            div_term = 1 - score_profile
+
+    div_term *= (1 - helper.lamb)
+    answer *= helper.lamb
+    answer += div_term
+
+    return answer
+
+
+def rescore_prop(item, original_score, items_so_far, score_profile, helper):
+    answer = original_score
+
+    count_prot = helper.num_prot(items_so_far)
+    count_items = len(items_so_far)
+    if count_items == 0:
+        div_term = score_profile
+    else:
+        if helper.is_protected(item):
+            div_term = score_profile
+            div_term *= 1 - count_prot / count_items
+        else:
+            div_term = (1 - score_profile)
+            div_term *= count_prot / count_items
+
+    div_term *= helper.lamb
+    answer *= (1 - helper.lamb)
+    answer += div_term
+    return answer
+
+
+def score_prot(user_profile, helper):
+    user_items = user_profile['itemid'].tolist()
+    if len(user_items) == 0:
+        return 0
+    return helper.num_prot(user_items) * 1.0 / len(user_items)
 
 
 def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
     user_helper.item_so_far = []
     item_idx = np.argmax(user_helper.scaled_rating)
-
+ 
     user_helper.item_so_far.append(user_helper.item_list[item_idx])
     num_item = rerank_helper.max_len
 
@@ -170,8 +217,8 @@ def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
     user_helper.item_list = np.delete(user_helper.item_list, item_idx)
 
     all_scores = np.zeros(num_item)
-    all_scores[0] = user_helper.scaled_rating[item_idx] * rerank_helper.lamb
-    # all_scores[0] = user_helper.scaled_rating[item_idx]
+    # all_scores[0] = user_helper.scaled_rating[item_idx] * rerank_helper.lamb
+    all_scores[0] = user_helper.scaled_rating[item_idx] 
     scaler = MinMaxScaler()
 
     for k in range(num_item - 1):
@@ -203,33 +250,19 @@ def reranker(rating, training, rerank_helper, item_helper, scoring_function):
         user_profile = None
         if training is not None:
             user_profile = training[training['userid'] == user_id]
-
+        
         user_helper = set_user_helper(user_id, rating, user_profile, rerank_helper)
 
-        rerank_helper, item_helper, user_helper = greedy_enhance(rerank_helper, item_helper, user_helper,
-                                                                 scoring_function)
-
+        rerank_helper, item_helper, user_helper = greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function)
+    
         user += [user_helper.id] * rerank_helper.max_len
         item += user_helper.item_so_far
         score += user_helper.item_so_far_score
 
+
     ziplist = list(zip(user, item, score))
     df = pd.DataFrame(ziplist, columns=['Users', 'Items', 'Ratings'])
     return df, rerank_helper, item_helper
-
-
-def similarity(feature1, feature2, binary):
-    if binary:
-        return np.count_nonzero(np.logical_and(feature1, feature2)) / \
-               np.count_nonzero(np.logical_or(feature1, feature2))
-
-    try:
-        return 1 - distance.cosine(feature1, feature2)
-    except:
-        tol = 0.0001
-        feature1 = np.append(feature1, tol)
-        feature2 = np.append(feature2, tol)
-        return 1 - distance.cosine(feature1, feature2)
 
 
 RESULT_FILE_PATTERN = 'out-(\d+).txt'
@@ -247,7 +280,9 @@ def read_args():
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
     parser.add_argument('--lambda', help='The weight for re-ranking.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
-
+    parser.add_argument('--alpha', help='alpha.')
+    parser.add_argument('--protected', help='protected feature', default="new")
+    parser.add_argument('--method', help='reranking method')
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -293,22 +328,15 @@ def load_training(split_path, cv_count):
     return tr_df
 
 
-def match_method(method):
-    if method == "mmr": 
-        return MMR, False
-    elif method == "far": 
-        return FAR, True
-    else:
-        print("rerank method not exist")
-        return None, None
-
-
-def main():
+if __name__ == '__main__':
     args = read_args()
-    config = read_config_file(args['conf'], '.')
+    config = read_config_file(args['conf'], ".")
 
     original_results_path = Path(args['original'])
     result_files = enumerate_results(original_results_path)
+
+    if len(result_files) == 0:
+        print(f"far-rerank: No original results found in {original_results_path}")
 
     dest_results_path = Path(args['result'])
 
@@ -322,12 +350,12 @@ def main():
         exit(-1)
 
     item_helper = set_item_helper(item_feature_df)
-    rerank_helper = set_rerank_helper(args, config, item_helper)
+    rerank_helper = set_rerank_helper(args,config,item_helper)
 
     split_path = data_path / 'split'
     pat = re.compile(RESULT_FILE_PATTERN)
 
-    scoring_function, profile_flag = MMR, False
+    scoring_function, profile_flag = FAR, True
 
     for file_path in result_files:
         tr_df = None
@@ -342,8 +370,7 @@ def main():
         output_reranked(reranked_df, dest_results_path, file_path)
 
 
-if __name__ == '__main__':
-    main()
+
 
 
 
