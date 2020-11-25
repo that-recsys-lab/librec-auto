@@ -93,28 +93,24 @@ class Item_Helper():
             if index2 in self.sim_matrix_dic[index1]:
                 return self.sim_matrix_dic[index1][index2]
 
-        else:
-            vec_proj1 = self.item_feature_df.loc[[index1,]]
-            vec_proj2 = self.item_feature_df.loc[[index2,]]
 
-            joined = pd.concat([vec_proj1, vec_proj2], axis=0)
-            pivoted = joined.pivot(columns='feature').fillna(0)
+        vec_proj1 = self.item_feature_df.loc[[index1,]]
+        vec_proj2 = self.item_feature_df.loc[[index2,]]
 
-            vec1 = pivoted.loc[index1].to_numpy()
-            vec2 = pivoted.loc[index2].to_numpy()
-            sim_score = similarity(vec1, vec2, binary)
+        joined = pd.concat([vec_proj1, vec_proj2], axis=0)
+        pivoted = joined.pivot(columns='feature').fillna(0)
 
-            # if binary:
-            #     sim_score = np.count_nonzero(np.logical_and(vec1, vec2)) / \
-            #                 np.count_nonzero(np.logical_or(vec1, vec2))
+        vec1 = pivoted.loc[index1].to_numpy()
+        vec2 = pivoted.loc[index2].to_numpy()
+        sim_score = similarity(vec1, vec2, binary)
             
-            sim1 = self.sim_matrix_dic.get(index1, {})
-            sim1[index2] = sim_score
-            self.sim_matrix_dic[index1] = sim1
+        sim1 = self.sim_matrix_dic.get(index1, {})
+        sim1[index2] = sim_score
+        self.sim_matrix_dic[index1] = sim1
 
-            sim2 = self.sim_matrix_dic.get(index2, {})
-            sim2[index1] = sim_score
-            self.sim_matrix_dic[index2] = sim2
+        sim2 = self.sim_matrix_dic.get(index2, {})
+        sim2[index1] = sim_score
+        self.sim_matrix_dic[index2] = sim2
 
         return sim_score
 
@@ -162,8 +158,8 @@ def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
         rec = np.delete(rec, item_idx)
 
         # scoring function
-        scores, item_helper, rerank_helper, user_helper = scoring_function(rec, item_helper, rerank_helper, user_helper)
-        #scores, item_helper, rerank_helper, user_helper = MMR(rec, item_helper, rerank_helper, user_helper)
+        # scores, item_helper, rerank_helper, user_helper = scoring_function(rec, item_helper, rerank_helper, user_helper)
+        scores, item_helper, rerank_helper, user_helper = MMR(rec, item_helper, rerank_helper, user_helper)
 
         max_idx = np.argmax(scores)
         all_scores[k + 1] = scores[max_idx]
@@ -171,7 +167,7 @@ def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
         user_helper.item_list = np.delete(user_helper.item_list, max_idx)
         item_idx = max_idx
 
-    user_helper.item_so_far_score = scaler.fit_transform(all_scores.reshape(-1, 1)).flatten()
+    user_helper.item_so_far_score = list(scaler.fit_transform(all_scores.reshape(-1, 1)).flatten())
     return rerank_helper, item_helper, user_helper
 
 
@@ -274,7 +270,7 @@ def main():
     item_helper = set_item_helper(item_feature_df)
     rerank_helper = set_rerank_helper(args)
 
-    scoring_function = MMR()
+    scoring_function = 'mmr'
 
     for file_path in result_files:
 
