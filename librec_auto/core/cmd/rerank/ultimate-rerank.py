@@ -37,6 +37,7 @@ from pathlib import Path
 from librec_auto.core.util.xml_utils import single_xpath
 import warnings
 warnings.filterwarnings('ignore')
+import multiprocessing
 
 
 class Rerank_Helper():
@@ -401,6 +402,19 @@ def match_method(method):
         return None, None
 
 
+def before_rerank(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path):
+    tr_df = None
+
+    if profile_flag:
+        m = re.match(pat, file_path.name)
+        cv_count = m.group(1)
+        tr_df = load_training(split_path, cv_count)
+
+    rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
+    reranked_df, rerank_helper, item_helper = reranker(rating_df, tr_df, rerank_helper, item_helper, scoring_function)
+    output_reranked(reranked_df, dest_results_path, file_path)
+
+
 def main():
     args = read_args()
     config = read_config_file(args['conf'], '.')
@@ -433,18 +447,25 @@ def main():
         print("rerank method not exist")
         exit(-1)
 
+    p = []
+
     for file_path in result_files:
-        tr_df = None
+        p1 = multiprocessing.Process(target = before_rerank, args=(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path))
+        p.append(p1)
+        p1.start()
+        # tr_df = None
+        #
+        # if profile_flag:
+        #     m = re.match(pat, file_path.name)
+        #     cv_count = m.group(1)
+        #     tr_df = load_training(split_path, cv_count)
+        #
+        # rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
+        # reranked_df, rerank_helper, item_helper = reranker(rating_df, tr_df, rerank_helper, item_helper, scoring_function)
+        # output_reranked(reranked_df, dest_results_path, file_path)
 
-        if profile_flag:
-            m = re.match(pat, file_path.name)
-            cv_count = m.group(1)
-            tr_df = load_training(split_path, cv_count)
-
-        rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
-        reranked_df, rerank_helper, item_helper = reranker(rating_df, tr_df, rerank_helper, item_helper, scoring_function)
-        output_reranked(reranked_df, dest_results_path, file_path)
-
+    for p1 in p:
+        p1.join()
 
 if __name__ == '__main__':
     main()
