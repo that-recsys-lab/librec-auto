@@ -39,6 +39,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import multiprocessing
 
+# helpers
 
 class Rerank_Helper():
     # basic info
@@ -102,6 +103,7 @@ class User_Helper():
     item_list = None
     item_so_far = []
     item_so_far_score = []
+    tol = None
 
 
 def set_user_helper(user_id, rating_df, user_profile, rerank_helper):
@@ -119,7 +121,7 @@ def set_user_helper(user_id, rating_df, user_profile, rerank_helper):
         "itemid"]].to_numpy().flatten()
 
     if user_profile is not None:
-        user_helper.user_profile = user_profile
+        user_helper.profile = user_profile
         user_helper.score_profile = score_prot(user_profile, rerank_helper)
 
     return user_helper
@@ -162,9 +164,7 @@ def set_item_helper(item_feature_df):
     return item_helper
 
 
-def get_protected_set(item_features, helper):
-    return set((item_features[(item_features['feature'] == helper.protected)
-                              & (item_features['value'] == 1)].index).tolist())
+# rerank methods
 
 
 def MMR(rec, item_helper, rerank_helper, user_helper):
@@ -208,7 +208,85 @@ def FAR(rec, item_helper, rerank_helper, user_helper):
     return scores, item_helper, rerank_helper, user_helper
 
 
-def rescore_binary(item, original_score, items_so_far, score_profile, helper):
+def PFAR(rec, item_helper, rerank_helper, user_helper):
+    # num_prot = rerank_helper.num_prot(user_helper.item_so_far)
+    num_curr = len(user_helper.item_so_far)
+    num_remain = len(user_helper.item_list)
+    best_score = -1
+    scores = []
+    user_tol = get_user_tolerance(user_helper.profile, item_helper.item_feature_df, rerank_helper)
+
+    for i in range(num_remain):
+        item = user_helper.item_list[i]
+        score = rec[i]
+        if rerank_helper.binary:
+            new_score = rescore_binary(item, score, user_helper.item_so_far,
+                                       user_helper.score_profile, rerank_helper, user_tol)
+        else:
+            new_score = rescore_prop(item, score, user_helper.item_so_far,
+                                     user_helper.score_profile, rerank_helper, user_tol)
+
+        scores.append(new_score)
+
+    return scores, item_helper, rerank_helper, user_helper
+
+
+# functions inside methods
+
+
+def similarity(feature1, feature2, binary):
+    if binary:
+        return np.count_nonzero(np.logical_and(feature1, feature2)) / \
+               np.count_nonzero(np.logical_or(feature1, feature2))
+
+    try:
+        return 1 - distance.cosine(feature1, feature2)
+    except:
+        tol = 0.0001
+        feature1 = np.append(feature1, tol)
+        feature2 = np.append(feature2, tol)
+        return 1 - distance.cosine(feature1, feature2)
+
+
+def get_user_tolerance(user_profile, item_features, helper):
+    # look through the items that the user has rated before
+    # look through the item features and save a list of all these feature names in a file
+    # call entropy_() function and return the entropy result
+    user_items = user_profile['itemid'].tolist()
+    if len(user_items) == 0:
+        return 0
+    return entropy_(item_features.loc[item_features.index.isin(user_items),
+                                      'feature'].tolist())
+
+
+def entropy_(labels, base=None):
+    from math import log, e
+    """ Computes entropy of label distribution. """
+    n_labels = len(labels)
+    if n_labels <= 1:
+        return 0
+
+    value, counts = np.unique(labels, return_counts=True)
+    probs = counts / n_labels
+    n_classes = np.count_nonzero(probs)
+
+    if n_classes <= 1:
+        return 0
+    ent = 0.
+    # Compute entropy
+    base = e if base is None else base
+    for i in probs:
+        ent -= i * log(i, base)
+
+    return ent
+
+
+def get_protected_set(item_features, helper):
+    return set((item_features[(item_features['feature'] == helper.protected)
+                              & (item_features['value'] == 1)].index).tolist())
+
+
+def rescore_binary(item, original_score, items_so_far, score_profile, helper, user_tol = None):
     answer = original_score
     div_term = 0
 
@@ -221,14 +299,20 @@ def rescore_binary(item, original_score, items_so_far, score_profile, helper):
         if count_prot == len(items_so_far):
             div_term = 1 - score_profile
 
-    div_term *= (1 - helper.lamb)
-    answer *= helper.lamb
-    answer += div_term
+    if user_tol is None:
+        div_term *= (1 - helper.lamb)
+        answer *= helper.lamb
+        answer += div_term
+
+    else:
+        div_term *= helper.lamb
+        answer += div_term
+        div_term *= user_tol        
 
     return answer
 
 
-def rescore_prop(item, original_score, items_so_far, score_profile, helper):
+def rescore_prop(item, original_score, items_so_far, score_profile, helper, user_tol = None):
     answer = original_score
 
     count_prot = helper.num_prot(items_so_far)
@@ -243,9 +327,15 @@ def rescore_prop(item, original_score, items_so_far, score_profile, helper):
             div_term = (1 - score_profile)
             div_term *= count_prot / count_items
 
-    div_term *= helper.lamb
-    answer *= (1 - helper.lamb)
-    answer += div_term
+    if user_tol is None:
+        div_term *= (1 - helper.lamb)
+        answer *= helper.lamb
+        answer += div_term
+
+    else:
+        div_term *= helper.lamb
+        answer += div_term
+        div_term *= user_tol      
     return answer
 
 
@@ -254,6 +344,9 @@ def score_prot(user_profile, helper):
     if len(user_items) == 0:
         return 0
     return helper.num_prot(user_items) * 1.0 / len(user_items)
+
+
+# core rerank
 
 
 def greedy_enhance(rerank_helper, item_helper, user_helper, scoring_function):
@@ -298,7 +391,9 @@ def reranker(rating, training, rerank_helper, item_helper, scoring_function):
 
         user_id = all_user_id[i]
         user_profile = None
+        
         if training is not None:
+
             user_profile = training[training['userid'] == user_id]
 
         user_helper = set_user_helper(user_id, rating, user_profile, rerank_helper)
@@ -313,20 +408,6 @@ def reranker(rating, training, rerank_helper, item_helper, scoring_function):
     ziplist = list(zip(user, item, score))
     df = pd.DataFrame(ziplist, columns=['Users', 'Items', 'Ratings'])
     return df, rerank_helper, item_helper
-
-
-def similarity(feature1, feature2, binary):
-    if binary:
-        return np.count_nonzero(np.logical_and(feature1, feature2)) / \
-               np.count_nonzero(np.logical_or(feature1, feature2))
-
-    try:
-        return 1 - distance.cosine(feature1, feature2)
-    except:
-        tol = 0.0001
-        feature1 = np.append(feature1, tol)
-        feature2 = np.append(feature2, tol)
-        return 1 - distance.cosine(feature1, feature2)
 
 
 RESULT_FILE_PATTERN = 'out-(\d+).txt'
@@ -397,18 +478,23 @@ def match_method(method):
         return MMR, False
     elif method == "far": 
         return FAR, True
+    elif method == "pfar":
+        return PFAR, True
     else:
         print("rerank method not exist")
         return None, None
 
 
-def before_rerank(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path):
+def execute(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path):
     tr_df = None
 
     if profile_flag:
         m = re.match(pat, file_path.name)
         cv_count = m.group(1)
         tr_df = load_training(split_path, cv_count)
+        if tr_df is None:
+            print("no traning data")
+            exit(-1)
 
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
     reranked_df, rerank_helper, item_helper = reranker(rating_df, tr_df, rerank_helper, item_helper, scoring_function)
@@ -450,19 +536,9 @@ def main():
     p = []
 
     for file_path in result_files:
-        p1 = multiprocessing.Process(target = before_rerank, args=(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path))
+        p1 = multiprocessing.Process(target = execute, args=(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path,dest_results_path))
         p.append(p1)
         p1.start()
-        # tr_df = None
-        #
-        # if profile_flag:
-        #     m = re.match(pat, file_path.name)
-        #     cv_count = m.group(1)
-        #     tr_df = load_training(split_path, cv_count)
-        #
-        # rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
-        # reranked_df, rerank_helper, item_helper = reranker(rating_df, tr_df, rerank_helper, item_helper, scoring_function)
-        # output_reranked(reranked_df, dest_results_path, file_path)
 
     for p1 in p:
         p1.join()
