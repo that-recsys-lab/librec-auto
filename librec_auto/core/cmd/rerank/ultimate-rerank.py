@@ -305,9 +305,11 @@ def rescore_binary(item, original_score, items_so_far, score_profile, helper, us
         answer += div_term
 
     else:
-        div_term *= helper.lamb
+        div_term *= (1 - helper.lamb)
+        answer *= helper.lamb
+        div_term *= user_tol 
         answer += div_term
-        div_term *= user_tol        
+                
 
     return answer
 
@@ -542,6 +544,7 @@ def main():
 
     for p1 in p:
         p1.join()
+
 
 if __name__ == '__main__':
     main()
