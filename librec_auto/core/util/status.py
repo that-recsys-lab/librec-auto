@@ -207,16 +207,22 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
             status_xml)  # append this new status to the end
 
         if results_folds_xml is not None:
-            results_fold_element = results_element.find('folds')  # get the statuses element
+            # remove folds to replace it
+            results_fold_element = results_element.find('folds')
+            results_element.remove(results_fold_element)
+
             # put results xml into the tree
             _move_field_from_element(results_folds_xml, "folds",
-                                     results_fold_element)
+                                     results_element)
 
         if results_average_xml is not None:
-            results_average_element = results_element.find('averages')  # get the statuses element
+            # remove averages to replace it
+            results_fold_element = results_element.find('averages')
+            results_element.remove(results_fold_element)
+
             # put results xml into the tree
             _move_field_from_element(results_average_xml, "averages",
-                                     results_average_element)
+                                     results_element)
 
         tree.write(output_file_path,
                    pretty_print=True)  # re-write the original tree
@@ -243,15 +249,20 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
 
         # add a results object
         results_element = etree.SubElement(output_xml, "results")
-        # add folds, averages objects
-        folds_element = etree.SubElement(results_element, "folds")
-        averages_element = etree.SubElement(results_element, "averages")
 
         if results_folds_xml is not None:
-            _move_field_from_element(results_folds_xml, "folds", parent=folds_element)
+            _move_field_from_element(results_folds_xml,
+                                     "folds",
+                                     parent=results_element)
+        else:
+            etree.SubElement(results_element, "folds")
 
         if results_average_xml is not None:
-            _move_field_from_element(results_average_xml, "averages", parent=averages_element)
+            _move_field_from_element(results_average_xml,
+                                     "averages",
+                                     parent=results_element)
+        else:
+            etree.SubElement(results_element, "averages")
 
         # write to output XML
         output_xml.getroottree().write(output_file_path, pretty_print=True)
