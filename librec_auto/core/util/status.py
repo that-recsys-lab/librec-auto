@@ -122,27 +122,25 @@ class Status():
 
         output_file_path_string = output_file.absolute().as_posix()
 
-        results_xml = _generate_results_output(paths)
-
-        _update_output(output_file_path_string, status_xml, results_xml)
+        _update_output(output_file_path_string, status_xml, paths)
 
 
-def _generate_results_output(paths: ExpPaths) -> etree._Element:
-    """Generates results XML data
+def _generate_folds_results_output(paths: ExpPaths) -> etree._Element:
+    """Generates XML data for CV fold results
 
     Args:
         paths (ExpPaths): The paths object for this experiment
 
     Returns:
-        etree._Element: An XML tree containing metric results
+        etree._Element: An XML tree containing cv fold results
     """
+    # check if the log directory exists and has contents
     if not paths.get_path('log').exists() or not os.listdir(
             paths.get_path('log')):
         return
-    # checks if the log directory exists and has contents
     log = LogFile(paths)
     root_xml = etree.Element("root")
-    results_element = etree.SubElement(root_xml, "results")
+    results_element = etree.SubElement(root_xml, "folds")
     for _, index in enumerate(range(log.get_kcv_count())):
         # using index + 1 to one-index the folds
         cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
@@ -154,21 +152,42 @@ def _generate_results_output(paths: ExpPaths) -> etree._Element:
             metric_element.text = all_values[metric]['cv_results'][
                 index]  # add cv value
     return root_xml
-    # todo add average results here, too
 
 
-def _update_output(output_file_path: str,
-                   status_xml: etree._Element,
-                   results_xml: etree._Element = None) -> None:
+def _generate_average_results_output(paths: ExpPaths) -> etree._Element:
+    # check if the log directory exists and has contents
+    if not paths.get_path('log').exists() or not os.listdir(
+            paths.get_path('log')):
+        return
+    log = LogFile(paths)
+    root_xml = etree.Element("root")
+    averages_element = etree.SubElement(root_xml, "averages")
+    all_values = log.get_all_values()
+    for metric in all_values:
+        metric_element = etree.SubElement(averages_element,
+                                          "metric",
+                                          name=metric)
+        # add average value
+        metric_element.text = all_values[metric]['average_result']
+    return root_xml
+
+
+def _update_output(output_file_path: str, status_xml: etree._Element,
+                   paths: ExpPaths) -> None:
     """Saves or updates the output file with this Status object's new status.
 
 
     Args:
         output_file_path (str): The path of the output file
         status_xml (etree._Element): The XML for this status update
-        results_xml (etree._Element, optional): The results for this experiment. Defaults to None.
+        paths (ExpPaths): The paths object for this experiment
     """
     status_xml.tag = "status"
+
+    # update the results objects
+    results_folds_xml = _generate_folds_results_output(paths)
+    results_average_xml = _generate_average_results_output(paths)
+
     if _output_file_exists(output_file_path):
         # append this status to an existing file
         parser = etree.XMLParser(
@@ -177,6 +196,7 @@ def _update_output(output_file_path: str,
         tree = etree.parse(output_file_path, parser)  # open existing file
         root = tree.getroot()
         statuses_element = root.find('statuses')  # get the statuses element
+        results_element = root.find('results')  # get the results element
 
         _move_field_from_element(status_xml,
                                  'exp_no')  # remove exp_no from status
@@ -186,12 +206,17 @@ def _update_output(output_file_path: str,
         statuses_element.append(
             status_xml)  # append this new status to the end
 
-        # update the results object
-        if results_xml is not None:
-            results_element = root.find('results')  # get the statuses element
+        if results_folds_xml is not None:
+            results_fold_element = results_element.find('folds')  # get the statuses element
             # put results xml into the tree
-            # todo stop having two nested results elements
-            _move_field_from_element(results_xml, "results", results_element)
+            _move_field_from_element(results_folds_xml, "folds",
+                                     results_fold_element)
+
+        if results_average_xml is not None:
+            results_average_element = results_element.find('averages')  # get the statuses element
+            # put results xml into the tree
+            _move_field_from_element(results_average_xml, "averages",
+                                     results_average_element)
 
         tree.write(output_file_path,
                    pretty_print=True)  # re-write the original tree
@@ -217,10 +242,16 @@ def _update_output(output_file_path: str,
         )  # add this status as a subelement to the statuses object
 
         # add a results object
-        meta_element = etree.SubElement(output_xml, "results")
-        if results_xml:
-            # put results xml into the tree
-            _move_field_from_element(results_xml, "results", output_xml)
+        results_element = etree.SubElement(output_xml, "results")
+        # add folds, averages objects
+        folds_element = etree.SubElement(results_element, "folds")
+        averages_element = etree.SubElement(results_element, "averages")
+
+        if results_folds_xml is not None:
+            _move_field_from_element(results_folds_xml, "folds", parent=folds_element)
+
+        if results_average_xml is not None:
+            _move_field_from_element(results_average_xml, "averages", parent=averages_element)
 
         # write to output XML
         output_xml.getroottree().write(output_file_path, pretty_print=True)
