@@ -10,9 +10,9 @@ class PurgeCmd(Cmd):
     def __str__(self):
         return f'PurgeCmd({self._type})'
 
-    def __init__(self, type, noask=False):
+    def __init__(self, type, no_ask=False):
         self._type = type
-        self._noask = noask
+        self._no_ask = no_ask
         self._files = None
 
     def setup(self, args):
@@ -25,7 +25,7 @@ class PurgeCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
         self._files = config.get_files()
 
-        if self._noask or self.purge_confirm():
+        if self._no_ask or self.purge_confirm():
             if self._type == "all" or self._type == 'split':
                 self.purge_subexperiments()
                 # self.purge_splits() # AS 10-23-20

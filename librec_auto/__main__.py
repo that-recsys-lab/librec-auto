@@ -1,8 +1,9 @@
 import argparse
+from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
 import librec_auto
 
@@ -18,18 +19,16 @@ def read_args():
         epilog=
         'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
     )
+
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check', 'install'
+                            'status', 'describe', 'check'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
 
     # Optional with arguments
-    # parser.add_argument("-ex","--exhome", help="stub")
-    # parser.add_argument("-rs","--reset", help = "stub")
-    # parser.add_argument("-rss","--revise-step", help="stub")
     parser.add_argument("-c",
                         "--conf",
                         help="Use the specified configuration file")
@@ -40,41 +39,49 @@ def read_args():
         "--dry_run",
         help="Show sequence of command execution but do not execute commands",
         action="store_true")
+
     parser.add_argument("-q",
                         "--quiet",
                         help="Skip confirmation when purging",
                         action="store_true")
+
     parser.add_argument(
         "-np",
         "--no_parallel",
         help=
         "Ignore thread-count directive and run all operations sequentially",
         action="store_true")
+
     parser.add_argument(
         "-p",
         "--purge",
         help="Purge results of step given in <option> and all subsequent steps",
         choices=['all', 'split', 'results', 'rerank', 'post'],
         default='all')
+
     parser.add_argument(
         "-nc",
         "--no_cache",
         help="Do not cache any intermediate results (Not implemented)",
         action="store_true")
+
     parser.add_argument(
         "-dev",
         "--dev",
         help="Help with documentation, code formatting, and Docker",
         action="store_true")
+
     parser.add_argument("-HT",
                         "--HT",
                         help="Help with using libraries (Not implemented)",
                         action="store_true")
+
     parser.add_argument(
         "-PCO",
         "--PCO",
         help="Help with producting CSV outputs (Not implemented)",
         action="store_true")
+
     parser.add_argument("-int",
                         "--int",
                         help="Help with Integrations (Not implemented)",
@@ -89,11 +96,11 @@ def read_args():
     return vars(input_args)
 
 
-def load_config(args):
+def load_config(args: dict) -> ConfigCmd:
 
     config_file = Files.DEFAULT_CONFIG_FILENAME
 
-    if args['conf']:  # User requested a different configuration file
+    if args['conf']:  # User requested a different configuration file from the default
         config_file = args['conf']
 
     target = ""
@@ -105,7 +112,7 @@ def load_config(args):
 
 DESCRIBE_TEXT = 'Librec-auto automates recommender systems experimentation using the LibRec Java library.\n' +\
     '\tA librec-auto experiment consist of five steps governed by the specifications in the configuration file:\n' +\
-    '\t- split: Create training / test splits from a data set. (LibRec)\n'+\
+    '\t- split: Create training / test splits from a data set. (LibRec)\n' +\
     '\t- exp: Run an experiment generating recommendations for a test set (LibRec)\n' +\
     '\t- rerank (optional): Re-rank the results of the experiment (script)\n' +\
     '\t- eval: Evaluate the results of a recommendation experiment (LibRec)\n' +\
@@ -129,7 +136,7 @@ May result in no action if all computations are up-to-date and no purge option i
 }
 
 
-def print_description(args):
+def print_description(args: dict) -> None:
     act = args['target']
     if act in DESCRIBE_DICT:
         print(f'core {act} <target>: {DESCRIBE_DICT[act]}')
@@ -137,7 +144,7 @@ def print_description(args):
         print(DESCRIBE_TEXT)
 
 
-def purge_type(args):
+def purge_type(args: dict) -> str:
     if 'purge' in args:
         return args['purge']
     # If no type specified and you're purging, purge everything
@@ -150,7 +157,7 @@ def purge_type(args):
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
 # and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
 # variation its own parameters.
-def build_librec_commands(librec_action, args, config):
+def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd):
     librec_commands = [
         LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
     ]
@@ -163,13 +170,9 @@ def build_librec_commands(librec_action, args, config):
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
-def setup_commands(args, config):
+def setup_commands(args: dict, config: ConfigCmd):
     action = args['action']
-    purge_noask = args['quiet']
-
-    if action == 'install':
-        cmd = InstallCmd()
-        return cmd
+    purge_no_ask = args['quiet']
 
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
@@ -181,18 +184,15 @@ def setup_commands(args, config):
 
     # Purge files (possibly) from splits and subexperiments
     if action == 'purge':
-        cmd = PurgeCmd(purge_type(args), noask=purge_noask)
-        return cmd
+        return PurgeCmd(purge_type(args), no_ask=purge_no_ask)
 
     # Shows the status of the experiment
     if action == 'status':
-        cmd = StatusCmd()
-        return cmd
+        return StatusCmd()
 
     # Perform (only) post-processing on results
     if action == 'post' and post_flag:
-        cmd = PostCmd()
-        return cmd
+        return PostCmd()
     # No post scripts available
     if action == 'post' and not post_flag:
         logging.warning(
@@ -201,7 +201,7 @@ def setup_commands(args, config):
 
     # Perform re-ranking on results, followed by evaluation and post-processing
     if action == 'rerank' and rerank_flag:  # Runs a reranking script on the python side
-        cmd1 = PurgeCmd('rerank', noask=purge_noask)
+        cmd1 = PurgeCmd('rerank', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = RerankCmd()
         cmd4 = build_librec_commands('eval', args, config)
@@ -217,7 +217,7 @@ def setup_commands(args, config):
     # LibRec actions
     # re-run splits only
     if action == 'split':
-        cmd1 = PurgeCmd('split', noask=purge_noask)
+        cmd1 = PurgeCmd('split', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('split', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
@@ -225,7 +225,7 @@ def setup_commands(args, config):
 
     # re-run experiment and continue
     if action == 'run':
-        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('full', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
@@ -238,7 +238,7 @@ def setup_commands(args, config):
 
     # eval-only
     if action == 'eval':
-        cmd1 = PurgeCmd('post', noask=purge_noask)
+        cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('eval', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
@@ -257,10 +257,8 @@ if __name__ == '__main__':
     args = read_args()
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
-    if not jar_path.is_file() and args['action'] != 'install':
-        print(
-            "Error: LibRec JAR file is missing.\nRun 'python -m librec_auto install' (~45 MB download) and then try to run librec_auto again."
-        )
+    if not jar_path.is_file():
+        print("Error: LibRec JAR file is missing.")
 
     else:
         if args['action'] == 'describe':
@@ -268,7 +266,7 @@ if __name__ == '__main__':
         else:
             config = load_config(args)
 
-            if config.is_valid() or args['action'] == 'install':
+            if config.is_valid():
                 command = setup_commands(args, config)
                 if isinstance(command, Cmd):
                     if args['dry_run']:

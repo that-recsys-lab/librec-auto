@@ -129,7 +129,7 @@ def test_purge_rerank(capsys):
 def test_execute():
     config = _get_config()
     purge = PurgeCmd(_get_config())
-    purge._noask = True
+    purge._no_ask = True
 
     purge._type = "all"
     purge.execute(config)

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<librec-auto>
+	<random-seed>19990</random-seed>
+	<thread-count>1</thread-count>
+	<library src="system">default-algorithms.xml</library>
+	
+	<!-- DATA SECTION -->
+	<data>
+		<data-dir>../../../data/rerank-data</data-dir>
+		<format>UIR</format>
+		<data-file format="text">ratings.csv</data-file>
+	</data>
+	
+	<!-- FEATURES SECTION -->
+	<features>
+		<appender-class>net.librec.data.convertor.appender.ItemFeatureAppender</appender-class>
+		<item-feature-file>item-features.csv</item-feature-file>
+	</features>
+	
+	<!-- SPLITTER SECTION -->
+	<splitter>
+		<model count="2">kcv</model>
+		<dim>userfixed</dim> <!-- dimension on which to calculate ratio -->
+
+		<!-- % to keep in the training data (i.e. 80% train, 20% split) -->
+		<ratio>0.8</ratio>
+		<save>true</save>
+	</splitter>
+	
+	<!-- ALGORITHM SECTION -->
+	<!-- Using biased for demonstration purposes. -->
+	<alg ref="alg:biasedmf">
+		<similarity type="item">pcc</similarity>
+		<iterator-max>25</iterator-max>
+		<item-reg><value>0.01</value></item-reg>
+		<num-factors>4</num-factors>
+	</alg>
+	
+	<!-- RERANK SECTION -->
+	<rerank>
+		<script lang="python3" src="system">
+			<script-name>far_rerank.py</script-name>
+			<param name="max_len">4</param>
+			<param name="lambda">
+				<value>0.3</value>
+			</param>
+			<param name="binary">False</param>
+		</script>
+	</rerank>
+
+	<!-- METRICS SECTION -->
+	<metric>
+		<ranking>true</ranking>
+		<list-size>50</list-size>
+		<class>ndcg,precision,sp</class>
+		<protected-feature>new</protected-feature>
+	</metric>
+</librec-auto>
