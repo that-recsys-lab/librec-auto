@@ -219,9 +219,6 @@ class ExpPaths:
         exp_path = base / exp_name
         self.set_path('subexp', exp_path)
 
-        status_path = exp_path / '.status'
-        self.set_path('status', status_path)
-
         output_path = exp_path / 'output.xml'
         self.set_path('output', output_path)
 
