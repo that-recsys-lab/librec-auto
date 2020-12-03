@@ -1,28 +1,22 @@
 import datetime
 import os.path
 from pathlib import Path
-from librec_auto.core.util import xml_load_from_path, force_list, ExpPaths, LogFile
+from librec_auto.core.util import xml_load_from_path, ExpPaths, LogFile
 from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
 
-# A .status file looks like this
-# <librec-auto-status>
-#    <message>Completed</message>
-#    <exp-no>1</exp-no>\
-#    <param><name>rec.neighbors.knn.number</name><value>30</value></param>
-#    <date>June 28, 11:00 PM</date>
-# </librec-auto-status>
-# TODO: Rewrite with lxml. This is kind of embarrassing.
-
 
 class Status():
-    def __init__(self, sub_paths):
+    """
+    The output (status) from an experiment.
+    """
+    def __init__(self, sub_paths: ExpPaths):
         self._subpaths = sub_paths
-        status_path = self._subpaths.get_path('status')
+        output_path = self._subpaths.get_path('output')
 
-        if status_path.exists():
+        if output_path.exists():
             self._name = sub_paths.exp_name
-            self._status_xml = xml_load_from_path(status_path)
+            self._status_xml = xml_load_from_path(output_path)
             self._message = single_xpath(self._status_xml,
                                          '/librec-auto-status/message').text
 
@@ -86,42 +80,48 @@ class Status():
         return metric_info
 
     @staticmethod
-    def save_status(msg, exp_count, config, paths):
+    def save_status(msg: str, exp_count: int, config, paths: ExpPaths) -> None:
+        """Generate and save the experiment status
+
+        Args:
+            msg (str): The message for this status. i.e. "Executing"
+            exp_count (int): The experiment count within the study, zero indexed.
+            config (ConfigCmd): The configuration for this experiment.
+            paths (ExpPaths): The paths object for this experiment.
+        """
         status_xml = etree.Element("librec-auto-status")
-        msg_elem = etree.SubElement(status_xml, "message")
-        msg_elem.text = msg
-        expno_elem = etree.SubElement(status_xml, "exp_no")
-        expno_elem.text = str(exp_count)
-        date_elem = etree.SubElement(status_xml, "date")
-        date_elem.text = str(datetime.datetime.now())
+
+        message_element = etree.SubElement(status_xml, "message")
+        message_element.text = msg
+
+        experiment_number_element = etree.SubElement(status_xml, "exp_no")
+        experiment_number_element.text = str(exp_count)
+
+        date_element = etree.SubElement(status_xml, "date")
+        date_element.text = str(datetime.datetime.now())
 
         conf_xml = config.get_files().get_exp_paths(exp_count).get_study_conf()
-        var_elems = conf_xml.xpath("//*[@var='true']")
-        for var_elem in var_elems:
-            if var_elem.tag == 'param':
-                var_name = var_elem.get('name')
+
+        variable_elements = conf_xml.xpath("//*[@var='true']")
+
+        for variable_element in variable_elements:
+            if variable_element.tag == 'param':
+                variable_name = variable_element.get('name')
             else:
-                var_name = var_elem.tag
-            var_value = var_elem.text
+                variable_name = variable_element.tag
+            variable_value = variable_element.text
 
-            param_elem = etree.SubElement(status_xml, "param")
+            parameter_element = etree.SubElement(status_xml, "param")
 
-            name_elem = etree.SubElement(param_elem, "name")
-            name_elem.text = var_name
-            value_elem = etree.SubElement(param_elem, "value")
-            value_elem.text = var_value
-
-        status_file = paths.get_path('status')
-
-        # write to status file
-        status_xml.getroottree().write(status_file.absolute().as_posix(),
-                                       pretty_print=True)
+            name_element = etree.SubElement(parameter_element, "name")
+            name_element.text = variable_name
+            value_element = etree.SubElement(parameter_element, "value")
+            value_element.text = variable_value
 
         # get the output file
         output_file = paths.get_path('output')
 
-        output_file_path_string = paths.get_path(
-            'output').absolute().as_posix()
+        output_file_path_string = output_file.absolute().as_posix()
 
         _update_output(output_file_path_string, status_xml)
 
@@ -199,27 +199,3 @@ def _output_file_exists(path: str) -> bool:
     if not os.path.isfile(path):
         return False
     return True
-
-
-# # Accept list of vars and tuples
-# @staticmethod
-# def save_status(msg, exp_count, config, paths):
-#     status_file = paths.get_path('status')
-#     status_front = Status._TEMPLATE_FRONT.format(msg, exp_count, datetime.datetime.now())
-#
-#     status_params = ''
-#     conf_xml = config.get_files().get_sub_paths(exp_count).get_exp_conf()
-#     var_elems = conf_xml.xpath("//*[@var='true']")
-#     for var_elem in var_elems:
-#         if var_elem.tag == 'param':
-#             var_name = var_elem.get('name')
-#         else:
-#             var_name = var_elem.tag
-#         var_value = var_elem.text
-#
-#         status_params = status_params + Status._TEMPLATE_LINE.format(var_name, var_value)
-#
-#     status_info = Status._HEADER + status_front + status_params + Status._TEMPLATE_END
-#
-#     with status_file.open(mode='w') as fh:
-#         fh.write(str(status_info))
