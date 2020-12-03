@@ -1,6 +1,5 @@
 import datetime
 import os.path
-from pathlib import Path
 from librec_auto.core.util import xml_load_from_path, ExpPaths, LogFile
 from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
@@ -180,10 +179,14 @@ def _move_field_from_element(
     to_remove: str,
     replacement_parent: etree._Element = None,
 ) -> None:
-    """
-    Moves or removes a field from an element.
+    """ An XML utility function to move or remove a field from an element.
     If replacement_parent is None, this performs a removal.
     Otherwise, it performs a replacement.
+
+    Args:
+        original_parent (etree._Element): The initial parent of the field to be moved/removed.
+        to_remove (str): The name of the field to be moved/removed.
+        replacement_parent (etree._Element, optional): The new parent for the field to be moved. Defaults to None.
     """
     element_to_move = original_parent.find(to_remove)
     element_to_move.getparent().remove(element_to_move)
@@ -193,8 +196,14 @@ def _move_field_from_element(
 
 
 def _output_file_exists(path: str) -> bool:
-    """
-    Checks if the output file already exists
+    """Checks if the output file already exists
+
+
+    Args:
+        path (str): The path to the output file.
+
+    Returns:
+        bool: True means that the file exists.
     """
     if not os.path.isfile(path):
         return False
