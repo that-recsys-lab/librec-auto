@@ -19,10 +19,10 @@ class Status():
             self._message = single_xpath(self._status_xml,
                                          '/librec-auto-status/message').text
 
-            if self._subpaths.get_path('log').exists():
-                self._log = LogFile(self._subpaths)
-            else:
-                self._log = None
+        if self._subpaths.get_path('log').exists():
+            self._log = LogFile(self._subpaths)
+        else:
+            self._log = None
 
             params = self._status_xml.xpath('//param')
             if params != None:
@@ -122,12 +122,51 @@ class Status():
 
         output_file_path_string = output_file.absolute().as_posix()
 
-        _update_output(output_file_path_string, status_xml)
+        results_xml = _generate_results_output(paths)
+
+        _update_output(output_file_path_string, status_xml, results_xml)
 
 
-def _update_output(output_file_path: str, status_xml: etree._Element) -> None:
+def _generate_results_output(paths: ExpPaths) -> etree._Element:
+    """Generates results XML data
+
+    Args:
+        paths (ExpPaths): The paths object for this experiment
+
+    Returns:
+        etree._Element: An XML tree containing metric results
     """
-    Saves or updates the output file with this Status object's new status. 
+    if not paths.get_path('log').exists() or not os.listdir(
+            paths.get_path('log')):
+        return
+    # checks if the log directory exists and has contents
+    log = LogFile(paths)
+    root_xml = etree.Element("root")
+    results_element = etree.SubElement(root_xml, "results")
+    for _, index in enumerate(range(log.get_kcv_count())):
+        # using index + 1 to one-index the folds
+        cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
+        all_values = log.get_all_values()
+        for metric in all_values:
+            metric_element = etree.SubElement(cv_element,
+                                              "metric",
+                                              name=metric)
+            metric_element.text = all_values[metric]['cv_results'][
+                index]  # add cv value
+    return root_xml
+    # todo add average results here, too
+
+
+def _update_output(output_file_path: str,
+                   status_xml: etree._Element,
+                   results_xml: etree._Element = None) -> None:
+    """Saves or updates the output file with this Status object's new status.
+
+
+    Args:
+        output_file_path (str): The path of the output file
+        status_xml (etree._Element): The XML for this status update
+        results_xml (etree._Element, optional): The results for this experiment. Defaults to None.
     """
     status_xml.tag = "status"
     if _output_file_exists(output_file_path):
@@ -146,6 +185,13 @@ def _update_output(output_file_path: str, status_xml: etree._Element) -> None:
 
         statuses_element.append(
             status_xml)  # append this new status to the end
+
+        # update the results object
+        if results_xml is not None:
+            results_element = root.find('results')  # get the statuses element
+            # put results xml into the tree
+            # todo stop having two nested results elements
+            _move_field_from_element(results_xml, "results", results_element)
 
         tree.write(output_file_path,
                    pretty_print=True)  # re-write the original tree
@@ -169,6 +215,12 @@ def _update_output(output_file_path: str, status_xml: etree._Element) -> None:
         statuses_element.append(
             status_xml
         )  # add this status as a subelement to the statuses object
+
+        # add a results object
+        meta_element = etree.SubElement(output_xml, "results")
+        if results_xml:
+            # put results xml into the tree
+            _move_field_from_element(results_xml, "results", output_xml)
 
         # write to output XML
         output_xml.getroottree().write(output_file_path, pretty_print=True)
