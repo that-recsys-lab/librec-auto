@@ -18,7 +18,7 @@ class LogFile:
 
         self._log_path = self.newest_log(paths)
         self._time_stamp = self.extract_time_stamp(self._log_path.name)
-        self._kcv_count = None
+        self._kcv_count = 1  # one-indexed
 
         self.parse_log()
 
@@ -27,6 +27,9 @@ class LogFile:
         log_files = os.listdir(log_dir)
         newest_file = sorted(log_files, reverse=True)[0]
         return log_dir / newest_file
+
+    def get_all_values(self):
+        return self._values
 
     def get_metric_values(self, metric):
         if metric in self._values:
@@ -49,10 +52,23 @@ class LogFile:
         """
         if metric in self._metrics:
             # append the value to the existing values list
-            self._values[metric].append(value)
+            self._values[metric]['cv_results'].append(value)
         else:
             # add the value as a one item list at the metric key in _values
-            self._values[metric] = [value]
+            self._values[metric] = {}
+            self._values[metric]['cv_results'] = [value]
+            # add the metric to the list of metrics
+            self._metrics.append(metric)
+
+    def add_metric_average(self, metric: str, value: str):
+        """Adds the average result for a metric to _values
+
+        Args:
+            metric (str): The name of the metric to be added
+            value (str): The average value for that metric across all folds
+        """
+        self._values[metric]['average_result'] = value
+        if metric not in self._metrics:
             # add the metric to the list of metrics
             self._metrics.append(metric)
 
@@ -88,7 +104,7 @@ class LogFile:
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
 
-        fold_count = 0
+        fold_count = 1
 
         with open(str(self._log_path), 'r', newline='\n') as log_file:
             for line in log_file:
@@ -108,6 +124,6 @@ class LogFile:
                 if final is not None:
                     metric_name = final.group(1)
                     metric_value = final.group(2)
-                    self.add_metric_value(metric_name, metric_value)
+                    self.add_metric_average(metric_name, metric_value)
 
-            self._kcv_count = fold_count
+            self._kcv_count = fold_count  # one-indexed
