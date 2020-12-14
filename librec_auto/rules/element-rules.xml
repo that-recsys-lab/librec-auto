@@ -15,6 +15,7 @@
 		<format>data.column.format</format>
 		<data-file>data.input.path</data-file>
 		<data-file format="*">data.model.format</data-file>
+		<data-file-ext>data-ext.input.path</data-file-ext>
 		<!-- Handling the "testset" case -->
 		<train-file>data.input.path</train-file>
 		<train-file format="*">data.model.format</train-file>

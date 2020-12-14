@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="110f0d9c-a5bb-4a96-8fa6-fa3c9cdff728" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/core/cmd/externalAlgo/run_libFm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cmd/externalAlgo/run_libFm.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/externalAlgo/run_libFm.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cmd/libFM_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/libFM_cmd.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cmd/librec_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cmd/librec_cmd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rules/element-rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/rules/element-rules.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +33,12 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../ml-latest-small/bashFile.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/core/cmd/externalAlgo" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\shrut\TRSL\librec-auto-0.1.3\librec-auto\librec_auto\core\cmd\externalAlgo" />
+    </key>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -51,10 +58,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="463" y="119" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1603853614466" />
-    <state x="379" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1603853591225">
+    <state x="379" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1607824860921">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="379" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1603853591225" />
+    <state x="379" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1607824860921" />
     <state x="346" y="49" key="search.everywhere.popup" timestamp="1604542182160">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

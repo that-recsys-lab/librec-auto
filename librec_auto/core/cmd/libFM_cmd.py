@@ -40,11 +40,13 @@ class LibFMCmd(Cmd):
     # Python 3.8, which may be too much to ask at this point.
     # proc = subprocess.run(cmd, capture_output=True
 
-    def modify_file(self, target, filename, study_path):
+    def modify_file(self, target, libfm_filename, librec_filename, study_path):
         curr_path = study_path + "/" + target
-        data = pd.read_csv(curr_path + "/data/" + filename, sep=",")
-        data = data.iloc[:, [0, 1, 2]]
-        columns = [0, 1, 2]
+        print(curr_path + "/data/" + libfm_filename)
+        data = pd.read_csv(curr_path + "/data/" + libfm_filename, sep=",")
+        #data = data.iloc[:, [0, 1, 2]]
+        length = len(data.columns)
+        columns = [*range(0, length)]
         data.columns = columns
 
         user_dict = {}
@@ -64,8 +66,10 @@ class LibFMCmd(Cmd):
         data.loc[:, 0] = data.apply(lambda x: user_dict[x[0]], axis=1)
         data.loc[:, 1] = data.apply(lambda x: item_dict[x[1]], axis=1)
 
-        data.to_csv(curr_path + "/data/" + filename, header=None, index=False)
-        print(f"File modified and saved")
+        data.to_csv(curr_path + "/data/" + libfm_filename, header=None, index=False)
+        df = data.iloc[:, [0, 1, 2]]
+        df.to_csv(curr_path + "/data/" + librec_filename, header=None, index=False)
+        print(f"Outer and Inner Dictionaries created. File modified and saved")
 
     def execute_librec(self):
         log_path = self._exp_path.get_log_path()
@@ -77,10 +81,11 @@ class LibFMCmd(Cmd):
 
         target = self._config.get_target()
         props = LibrecProperties(self._config._xml_input, self._files)
-        filename = props.get_property('data.input.path')
+        librec_filename = props.get_property('data.input.path')
+        libfm_filename = props.get_property('data-ext.input.path')
         split_count = props.get_property("data.splitter.cv.number")
 
-        self.modify_file(target, filename, study_path)
+        self.modify_file(target, libfm_filename, librec_filename, study_path)
 
         f.close()
         params = "python -m librec_auto run -t " + target
@@ -90,13 +95,13 @@ class LibFMCmd(Cmd):
 
         post_elems = self._config.get_xml().xpath(self.POST_ELEM_XPATH)
         for post_elem in post_elems:
-            script_path = utils.get_script_path(post_elems[0], 'externalAlgo')
+            script_path = utils.get_script_path(post_elem, 'externalAlgo')
             print(script_path)
             proc_spec = [
                 sys.executable,
                 script_path.absolute().as_posix(),
                 target,
-                filename,
+                libfm_filename,
                 study_path,
                 split_count
             ]

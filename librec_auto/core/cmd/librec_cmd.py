@@ -58,7 +58,6 @@ class LibrecCmd(Cmd):
             f.write(line_string)
             print(line_string, end='')
         f.close()
-
         #p.wait()
 
         if type(p.returncode) == 'int' and p.returncode < 0:
