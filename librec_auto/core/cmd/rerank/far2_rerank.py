@@ -292,29 +292,6 @@ class FAR(Reranker):
     def __init__(self, rating, training, rerank_helper):
         Reranker.__init__(self, rating, training, rerank_helper, self.fun())
 
-class MMR(Reranker):
-    def fun(self):
-        def mmr(rec, rerank_helper, user_helper):
-            num_remain = len(user_helper.item_list)
-            num_curr = len(user_helper.item_so_far)
-
-            sim = np.zeros([num_remain, num_curr])
-            sim_max = np.zeros(num_remain)
-
-            for i in range(num_remain):
-                for j in range(num_curr):
-                    index1 = user_helper.item_list[i]
-                    index2 = user_helper.item_so_far[j]
-                    sim[i][j] = rerank_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
-
-                sim_max[i] = np.max(sim[i])
-            scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_max
-
-            return scores, rerank_helper, user_helper
-        return mmr
-
-    def __init__(self, rating, training, rerank_helper):
-        Reranker.__init__(self, rating, training, rerank_helper, self.fun())
 
 RESULT_FILE_PATTERN = 'out-(\d+).txt'
 INPUT_FILE_PATTERN = 'cv_\d+'
@@ -383,17 +360,17 @@ def load_training(split_path, cv_count):
 def execute(rerank_helper, pat, file_path, split_path, dest_results_path):
     tr_df = None
 
-    # if profile_flag:
-    #     m = re.match(pat, file_path.name)
-    #     cv_count = m.group(1)
-    #     tr_df = load_training(split_path, cv_count)
-    #     if tr_df is None:
-    #         print("no traning data")
-    #         exit(-1)
+
+    m = re.match(pat, file_path.name)
+    cv_count = m.group(1)
+    tr_df = load_training(split_path, cv_count)
+    if tr_df is None:
+        print("no traning data")
+        exit(-1)
 
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
 
-    re_ranker = MMR(rating_df, tr_df, rerank_helper)
+    re_ranker = FAR(rating_df, tr_df, rerank_helper)
 
     reranked_df, rerank_helper = re_ranker.reranker()
     output_reranked(reranked_df, dest_results_path, file_path)
