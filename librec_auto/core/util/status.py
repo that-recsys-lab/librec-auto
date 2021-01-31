@@ -237,8 +237,9 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         statuses_element = etree.SubElement(
             output_xml, "statuses")  # add a statuses object
 
-        # move exp_no to meta
-        move_field_from_element(status_xml, 'exp_no', meta_element)
+        # set the experiment count attribute
+        experiment_number = status_xml.find('exp_no').text
+        output_xml.attrib['count'] = experiment_number
 
         # move param to meta
         move_field_from_element(status_xml, 'param', meta_element)
