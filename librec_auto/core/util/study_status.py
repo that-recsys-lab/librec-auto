@@ -29,6 +29,12 @@ def create_study_output(config) -> None:
     # Add an element to contain the experiments results.
     experiments_element = etree.SubElement(output_tree, "experiments")
 
+    # Adds the config.xml content to the output.xml file.
+    # todo: do we want all of this information here? Only some of it?
+    study_config_path = config.get_files().get_config_file_path()
+    study_config_root = etree.parse(str(study_config_path)).getroot()
+    move_field_from_element(study_config_root, None, output_tree)
+
     for i in range(0, config.get_sub_exp_count()):
         # For each experiment number...
 
