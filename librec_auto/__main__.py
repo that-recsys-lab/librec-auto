@@ -2,7 +2,7 @@ import argparse
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
-from librec_auto.core.util import Files, StudyStatus
+from librec_auto.core.util import Files, create_study_output
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
 import librec_auto
@@ -273,7 +273,7 @@ if __name__ == '__main__':
                         command.dry_run(config)
                     else:
                         command.execute(config)
-                        StudyStatus.create_study_output(config)
+                        create_study_output(config)
                 else:
                     logging.error("Command instantiation failed.")
             else:
