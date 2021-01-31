@@ -198,10 +198,10 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         statuses_element = root.find('statuses')  # get the statuses element
         results_element = root.find('results')  # get the results element
 
-        _move_field_from_element(status_xml,
-                                 'exp_no')  # remove exp_no from status
-        _move_field_from_element(status_xml,
-                                 'param')  # remove param from status
+        move_field_from_element(status_xml,
+                                'exp_no')  # remove exp_no from status
+        move_field_from_element(status_xml,
+                                'param')  # remove param from status
 
         statuses_element.append(
             status_xml)  # append this new status to the end
@@ -212,8 +212,8 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
             results_element.remove(results_fold_element)
 
             # put results xml into the tree
-            _move_field_from_element(results_folds_xml, "folds",
-                                     results_element)
+            move_field_from_element(results_folds_xml, "folds",
+                                    results_element)
 
         if results_average_xml is not None:
             # remove averages to replace it
@@ -221,8 +221,8 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
             results_element.remove(results_fold_element)
 
             # put results xml into the tree
-            _move_field_from_element(results_average_xml, "averages",
-                                     results_element)
+            move_field_from_element(results_average_xml, "averages",
+                                    results_element)
 
         tree.write(output_file_path,
                    pretty_print=True)  # re-write the original tree
@@ -238,10 +238,10 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
             output_xml, "statuses")  # add a statuses object
 
         # move exp_no to meta
-        _move_field_from_element(status_xml, 'exp_no', meta_element)
+        move_field_from_element(status_xml, 'exp_no', meta_element)
 
         # move param to meta
-        _move_field_from_element(status_xml, 'param', meta_element)
+        move_field_from_element(status_xml, 'param', meta_element)
 
         statuses_element.append(
             status_xml
@@ -251,16 +251,16 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         results_element = etree.SubElement(output_xml, "results")
 
         if results_folds_xml is not None:
-            _move_field_from_element(results_folds_xml,
-                                     "folds",
-                                     parent=results_element)
+            move_field_from_element(results_folds_xml,
+                                    "folds",
+                                    parent=results_element)
         else:
             etree.SubElement(results_element, "folds")
 
         if results_average_xml is not None:
-            _move_field_from_element(results_average_xml,
-                                     "averages",
-                                     parent=results_element)
+            move_field_from_element(results_average_xml,
+                                    "averages",
+                                    parent=results_element)
         else:
             etree.SubElement(results_element, "averages")
 
@@ -268,7 +268,7 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         output_xml.getroottree().write(output_file_path, pretty_print=True)
 
 
-def _move_field_from_element(
+def move_field_from_element(
     original_parent: etree._Element,
     to_remove: str,
     replacement_parent: etree._Element = None,
@@ -279,12 +279,18 @@ def _move_field_from_element(
 
     Args:
         original_parent (etree._Element): The initial parent of the field to be moved/removed.
-        to_remove (str): The name of the field to be moved/removed.
+        to_remove (str): The name of the field to be moved/removed. None means to move the root. None can only be used to move and not remove.
         replacement_parent (etree._Element, optional): The new parent for the field to be moved. Defaults to None.
     """
-    element_to_move = original_parent.find(to_remove)
-    element_to_move.getparent().remove(element_to_move)
-    if replacement_parent is not None:
+    element_to_move = None
+    if to_remove is not None:
+        element_to_move = original_parent.find(to_remove)
+        element_to_move.getparent().remove(element_to_move)
+    else:
+        # We want to move the original parent here.
+        element_to_move = original_parent
+
+    if replacement_parent is not None or to_remove is None:
         # Replace the element
         replacement_parent.append(element_to_move)
 
