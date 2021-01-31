@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from lxml import etree
 from .status import move_field_from_element
 
@@ -23,6 +25,12 @@ class StudyStatus():
                                                     "experiment_count")
         experiment_count_element.text = str(config.get_sub_exp_count())
 
+        # Add a completion timestamp
+        completion_timestamp_element = etree.SubElement(
+            output_tree, "completed_at")
+        completion_timestamp_element.text = str(datetime.now())
+
+        # Add an element to contain the experiments results
         experiments_element = etree.SubElement(output_tree, "experiments")
 
         for i in range(0, config.get_sub_exp_count()):
@@ -36,6 +44,8 @@ class StudyStatus():
 
             move_field_from_element(experiment_xml_root, None,
                                     experiments_element)
+
+            # todo remove the statuses from each experiment
 
         # todo also include content from the config.xml file
 
