@@ -42,10 +42,11 @@ class StudyStatus():
 
             experiment_xml_root = etree.parse(output_path).getroot()
 
+            # Remove statuses from the experiment tree.
+            move_field_from_element(experiment_xml_root, "statuses")
+
             move_field_from_element(experiment_xml_root, None,
                                     experiments_element)
-
-            # todo remove the statuses from each experiment
 
         # todo also include content from the config.xml file
 
