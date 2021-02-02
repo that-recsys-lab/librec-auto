@@ -27,6 +27,131 @@
 		<item-reg>0.01</item-reg>
 		<bias-reg>0.01</bias-reg>
 		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
+	</alg>
+	
+	<alg name="alg:listrankmf">
+		<class>listrankmf</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<num-factors>20</num-factors>
+	</alg>
+	
+	<alg name="alg:svdpp">
+		<class>svdpp</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<bias-reg>0.01</bias-reg>
+		<implicit-reg>0.01</implicit-reg>
+		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
+	</alg>
+	
+	<alg name="alg:asvdpp">
+		<class>asvdpp</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<bias-reg>0.01</bias-reg>
+		<num-factors>20</num-factors>
+	</alg>
+	
+	<alg name="alg:nmf">
+		<class>nmf</class>
+		<iterator-max>10</iterator-max>
+		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
+	</alg>
+	
+	<alg name="alg:bpr">
+		<class>bpr</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
+	</alg>
+	
+	<alg name="alg:nmfitemitem">
+		<class>nmfitemitem</class>
+		<iterator-max>10</iterator-max>
+		<parallel-split-size>5000</parallel-split-size>
+		<adaptive-update>true</adaptive-update>
+		<no-self-estimate>true</no-self-estimate>
+		<num-factors>20</num-factors>
+	</alg>
+	
+	<alg name="alg:rankals">
+		<class>rankals</class>
+		<iterator-max>10</iterator-max>
+		<num-factors>20</num-factors>
+		<support-weight>true</support-weight>
+	</alg>
+	
+	<alg name="alg:climf">
+		<class>climf</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
+	</alg>
+	
+	<alg name="alg:eals">
+		<class>eals</class>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<num-factors>20</num-factors>
+		<confidence-weight>4.0</confidence-weight>
+		<judge>1</judge>
+		<missing-data-weight>128.0</missing-data-weight>
+		<significance-ratio>0.4</significance-ratio>
+	</alg>
+	
+	<alg name="alg:wrmf">
+		<class>wrmf</class>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<num-factors>20</num-factors>
+		<confidence-wt-coef>4.0</confidence-wt-coef>
+	</alg>
+	
+	<alg name="alg:wbpr">
+		<class>wbpr</class>
+		<learn-rate>0.01</learn-rate>
+		<learn-rate-max>0.01</learn-rate-max>
+		<learn-rate-decay>1.0</learn-rate-decay>
+		<bold-driver>false</bold-driver>
+		<iterator-max>10</iterator-max>
+		<user-reg>0.01</user-reg>
+		<item-reg>0.01</item-reg>
+		<bias-reg>0.01</bias-reg>
+		<num-factors>20</num-factors>
+		<early-stop>true</early-stop>
 	</alg>
 	
 	<alg name="alg:slim">
