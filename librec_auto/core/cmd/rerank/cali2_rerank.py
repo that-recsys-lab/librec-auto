@@ -144,11 +144,12 @@ class User_Helper():
         self.id = user_id
 
         user_rating = rating_df.loc[rating_df["userid"] == user_id, [
-            "rating"]].to_numpy()
+            "rating"]].to_numpy().transpose()[0]
 
-        scaler = MinMaxScaler()
+        # scaler = MinMaxScaler()
 
-        self.scaled_rating = scaler.fit_transform(user_rating).flatten()
+        # self.scaled_rating = scaler.fit_transform(user_rating).flatten()
+        self.scaled_rating = user_rating
 
         self.item_list = rating_df.loc[rating_df["userid"] == user_id, [
             "itemid"]].to_numpy().flatten()
@@ -206,38 +207,39 @@ class Reranker():
 
     def greedy_enhance(self):
         self.user_helper.item_so_far = []
-        item_idx = np.argmax(self.user_helper.scaled_rating)
+        # item_idx = np.argmax(self.user_helper.scaled_rating)
 
-        self.user_helper.item_so_far.append(self.user_helper.item_list[item_idx])
+        # self.user_helper.item_so_far.append(self.user_helper.item_list[item_idx])
         num_item = self.rerank_helper.max_len
 
         rec = self.user_helper.scaled_rating.copy()
-        # score_sum = 0
-        self.user_helper.item_list = np.delete(self.user_helper.item_list, item_idx)
+        
+        # self.user_helper.item_list = np.delete(self.user_helper.item_list, item_idx)
 
         all_scores = np.zeros(num_item)
         # all_scores[0] = user_helper.scaled_rating[item_idx] * rerank_helper.lamb
-        all_scores[0] = self.user_helper.scaled_rating[item_idx]
-        scaler = MinMaxScaler()
+        # all_scores[0] = self.user_helper.scaled_rating[item_idx]
+        # scaler = MinMaxScaler()
 
-        for k in range(num_item - 1):
-            # score_sum += rec[max_idx]
-            rec = np.delete(rec, item_idx)
-            # self.user_helper.distribution = self.rerank_helper.compute_genre_distribution(self.user_helper.profile['itemid'].tolist())
+        # for k in range(num_item - 1):
+        for k in range(num_item):
+
+            # rec = np.delete(rec, item_idx)
 
             # scoring function
             scores, self.rerank_helper, self.user_helper = self.scoring_function(rec, self.rerank_helper,
                                                                                  self.user_helper)
 
             max_idx = np.argmax(np.array(scores))
-            all_scores[k + 1] = scores[max_idx]
+            all_scores[k] = scores[max_idx]
 
             self.user_helper.item_so_far.append(self.user_helper.item_list[max_idx])
             self.user_helper.item_list = np.delete(self.user_helper.item_list, max_idx)
-            item_idx = max_idx
+            # item_idx = max_idx
+            rec = np.delete(rec, max_idx)
 
-        self.user_helper.item_so_far_score = list(scaler.fit_transform(all_scores.reshape(-1, 1)).flatten())
-        # return rerank_helper, item_helper, user_helper
+        #self.user_helper.item_so_far_score = list(scaler.fit_transform(all_scores.reshape(-1, 1)).flatten())
+        self.user_helper.item_so_far_score = list(all_scores)
 
 
 class CALI(Reranker):
@@ -260,8 +262,6 @@ class CALI(Reranker):
 
         def cali(rec, rerank_helper: Rerank_Helper, user_helper: User_Helper):
             num_remain = len(user_helper.item_list)
-            num_curr = len(user_helper.item_so_far)
-            num_future = num_curr + 1
 
             interact_dist = compute_genre_distribution(user_helper.profile['itemid'].tolist(),
                                                        rerank_helper.item_feature_matrix)
