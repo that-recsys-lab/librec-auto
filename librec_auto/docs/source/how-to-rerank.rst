@@ -37,15 +37,22 @@ In the ``rerank`` section of the configuration file, for example:
     </rerank>
 
 ``mmr_rerank.py`` is the rerank script. 
-``max_len`` is the maximum length to return for each user. 
+
+``max_len`` is the maximum length to return for each user.
+
 ``lambda`` is the trade-off hyper-parameter. Higher means better diversity; lower means better accuracy. (for fairstar / FA*IR, this parameter should be “alpha”, which is the error rate of type I error) 
+
 ``binary`` shows if the data is binary type.
 
-4. Available rerank algorithms
+3. Available rerank algorithms
+==============================
 
 The available rerank files are:
 
 FAR rerank, based on W. Liu, R. Burke, Personalizing Fairness-aware Re-ranking
+
 PFAR rerank, based on W. Liu, R. Burke, Personalizing Fairness-aware Re-ranking
+
 MMR rerank, Maximal Marginal Relevance, diversity-based reranking algorithm
+
 FA*IR rerank, based on the paper https://arxiv.org/abs/1706.06368 and the python package fairsearchcore.
