@@ -117,6 +117,7 @@ rec.user.regularization: 0.01
 rec.item.regularization: 0.001
 rec.bias.regularization: 0.01
 rec.factor.number: 20
+rec.recommender.earlystop: true
 rec.similarity.class: pcc
 rec.recommender.similarities: item
 rec.recommender.isranking: true
