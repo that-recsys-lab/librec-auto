@@ -1,9 +1,7 @@
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files
 from librec_auto.core import ConfigCmd
-from librec_auto.core.util import LogFile, Status
-import sys
-import subprocess
+from librec_auto.core.util import Status
 
 
 class StatusCmd(Cmd):
