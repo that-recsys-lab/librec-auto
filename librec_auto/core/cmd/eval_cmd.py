@@ -23,5 +23,8 @@ class EvalCmd(Cmd):
         metrics = config.get_python_metrics()
         cv_dirs = config.get_cv_directories()
 
+        # todo run evaluation for each cv
+        # todo run in parallel
+
         import pdb
         pdb.set_trace()
