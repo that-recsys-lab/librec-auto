@@ -1,13 +1,16 @@
 from collections import OrderedDict, defaultdict
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
     xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
+from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 from librec_auto.core.util.xml_utils import single_xpath
+
 from lxml import etree
+from typing import List
 import copy
 import logging
 from pathlib import Path
-from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 import re
+import os
 
 
 class ConfigCmd:
@@ -209,6 +212,32 @@ class ConfigCmd:
             return 1
         else:
             return int(thread_elems[0].text)
+
+    def get_python_metrics(self):
+        """
+        Gets the XML elements for python-side metrics
+        """
+        return self._xml_input.xpath('//librec-auto/metric[@python="true"]')
+
+    def get_data_directory(self) -> Path:
+        """
+        Gets the directory for the study data.
+        """
+        data_dir = self._xml_input.xpath('//librec-auto/data/data-dir')[0].text
+        cwd = os.getcwd()
+
+        return Path(cwd) / Path(data_dir)
+
+    def get_cv_directories(self) -> List[Path]:
+        """
+        Gets the list of cv directories as Path objects.
+        """
+        data_dir = self.get_data_directory()
+        split_dir = data_dir / 'split'  # cv splits live here
+
+        cv_dir_strings = os.listdir(split_dir)  # ['cv_1', 'cv_2', ...]
+
+        return [split_dir / cv_dir_string for cv_dir_string in cv_dir_strings]
 
 
 def read_config_file(config_file, target):
