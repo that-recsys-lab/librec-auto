@@ -1,12 +1,13 @@
+from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
 from librec_auto.core import ConfigCmd
 from librec_auto.core.cmd import Cmd
 
 from librec_auto.core.eval.metrics.ndcg_metric import NdcgMetric
-from librec_auto.core.eval.metrics.metric import Metric
+from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
 from librec_auto.core.eval.evaluator import Evaluator
 
 # todo add all metrics here
-metric_name_to_class = {'ndcg_metric': NdcgMetric}
+metric_name_to_class = {'ndcg': NdcgMetric, 'rmse': RmseMetric}
 
 
 class EvalCmd(Cmd):
@@ -45,6 +46,8 @@ class EvalCmd(Cmd):
             Returns a params dict from the metric_element's params child.
             """
             params_element = metric_element.find('params')
+            if params_element is None:
+                return []
             all_children = params_element.findall('*')
             return [{child.tag: child.text} for child in all_children]
 

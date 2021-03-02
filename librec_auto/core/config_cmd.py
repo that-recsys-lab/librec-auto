@@ -217,7 +217,7 @@ class ConfigCmd:
         """
         Gets the XML elements for python-side metrics
         """
-        return self._xml_input.xpath('//librec-auto/metric[@python="true"]')
+        return self._xml_input.findall('metric[@python="true"]')
 
     def get_data_directory(self) -> Path:
         """
