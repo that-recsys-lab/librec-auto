@@ -47,9 +47,12 @@ class EvalCmd(Cmd):
             """
             params_element = metric_element.find('params')
             if params_element is None:
-                return []
+                return {}
             all_children = params_element.findall('*')
-            return [{child.tag: child.text} for child in all_children]
+            params = {}
+            for child in all_children:
+                params[child.tag] = child.text
+            return params
 
         metric_elements = self._config.get_python_metrics()
 
