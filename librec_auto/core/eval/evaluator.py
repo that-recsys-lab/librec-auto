@@ -1,21 +1,25 @@
 from librec_auto.core import ConfigCmd
+from pathlib import Path
 
 
 class Evaluator:
     # Todo somehow load the data here? (From config?)
-    def __init__(self,
-                 config: ConfigCmd,
-                 metrics: list,
-                 list_based=True) -> None:
-        self.metrics = metrics  #  A list of metric class instances
-        self.list_based = list_based
+    # Todo make the list_based param at the metric level
+    def __init__(self, config: ConfigCmd, metrics: list,
+                 cv_directory: Path) -> None:
+        self._config = config
+        self._metrics = metrics
+        self._cv_directory = cv_directory
 
     def evaluate(self):
         # performing actual evaluation here...
-        for metric in self._metrics:
+        for metric_dict in self._metrics:
+            # Create a new instance of this metric
+            metric = metric_dict['class'](metric_dict['params'])
             metric.evaluate()
 
     def get_user_features(self):
+        # todo load data from self._cv_directory
         self.user_features = "tktktk"
         """
         This should be a list with length = the number of CVs
