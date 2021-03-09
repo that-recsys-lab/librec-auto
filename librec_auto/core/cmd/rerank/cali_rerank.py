@@ -15,110 +15,44 @@ import warnings
 warnings.filterwarnings('ignore')
 import multiprocessing
 
-class PFAR(Reranker):
+class CALI(Reranker):
     def fun(self):
-        def entropy_(labels, base=None):
-            from math import log, e
-            """ Computes entropy of label distribution. """
-            n_labels = len(labels)
-            if n_labels <= 1:
-                return 0
+        def feature_count(item_list, item_feature_matrix):
+            m = (item_feature_matrix.loc[item_list]).to_numpy()
+            return np.sum(m, axis=0)
 
-            value, counts = np.unique(labels, return_counts=True)
-            probs = counts / n_labels
-            n_classes = np.count_nonzero(probs)
-
-            if n_classes <= 1:
-                return 0
-            ent = 0.
-            # Compute entropy
-            base = e if base is None else base
-            for i in probs:
-                ent -= i * log(i, base)
-
-            return ent
-
-        def get_user_tolerance(user_profile, item_features, helper):
-            # look through the items that the user has rated before
-            # look through the item features and save a list of all these feature names in a file
-            # call entropy_() function and return the entropy result
-            user_items = user_profile['itemid'].tolist()
-            if len(user_items) == 0:
-                return 0
-            return entropy_(item_features.loc[item_features.index.isin(user_items),
-                                              'feature'].tolist())
-        def pfar(rec, rerank_helper, user_helper):
-            # num_prot = rerank_helper.num_prot(user_helper.item_so_far)
-            num_curr = len(user_helper.item_so_far)
+        def cali(rec, rerank_helper: Rerank_Helper, user_helper: User_Helper):
             num_remain = len(user_helper.item_list)
-            best_score = -1
-            scores = []
-            user_tol = get_user_tolerance(user_helper.profile, rerank_helper.item_feature_df, rerank_helper)
+            num_curr = len(user_helper.item_so_far) + 1.0
+
+            user_profile_list = user_helper.profile['itemid'].tolist()
+            interact_dist = feature_count(user_profile_list, rerank_helper.item_feature_matrix)
+            interact = np.array(interact_dist)
+            ind = np.where(interact != 0)[0]
+            interact_m = np.divide(np.tile(interact[ind], (num_remain, 1)), len(user_profile_list))
+
+            recommended_m = np.empty([num_remain, len(ind)])
 
             for i in range(num_remain):
-                item = user_helper.item_list[i]
-                score = rec[i]
-                if rerank_helper.binary:
-                    new_score = rescore_binary(item, score, user_helper.item_so_far,
-                                               user_helper.score_profile, rerank_helper, user_tol)
-                else:
-                    new_score = rescore_prop(item, score, user_helper.item_so_far,
-                                             user_helper.score_profile, rerank_helper, user_tol)
+                recommended_dist = feature_count(
+                     user_helper.item_so_far + [user_helper.item_list[i]], rerank_helper.item_feature_matrix)
+                recommended_m[i] = np.array(recommended_dist)[ind]
 
-                scores.append(new_score)
+            alpha = 0.01
+            np.divide(recommended_m, num_curr, out=recommended_m)
+            recommended_m = (1 - alpha) * recommended_m + alpha * interact_m
+
+            kl_div = np.sum(interact_m * np.log2(interact_m / recommended_m), axis=1)
+
+            scores = (1 - rerank_helper.lamb) * (rec + user_helper.total_score) / num_curr - rerank_helper.lamb * kl_div
+            # scores = (1 - rerank_helper.lamb) * (rec + user_helper.total_score) - rerank_helper.lamb * kl_div
 
             return scores, rerank_helper, user_helper
 
-        def rescore_binary(item, original_score, items_so_far, score_profile, helper, user_tol=None):
-            answer = original_score
-            div_term = 0
-
-            # If there are both kind of items in the list, no re-ranking happens
-            count_prot = helper.num_prot(items_so_far)
-            if helper.is_protected(item):
-                if count_prot == 0:
-                    div_term = score_profile
-            else:
-                if count_prot == len(items_so_far):
-                    div_term = 1 - score_profile
-
-            if user_tol is None:
-                div_term *= (1 - helper.lamb)
-                answer *= helper.lamb
-                answer += div_term
-
-            else:
-                div_term *= (1 - helper.lamb)
-                answer *= helper.lamb
-                div_term *= user_tol
-                answer += div_term
-
-            return answer
-
-        def rescore_prop(item, original_score, items_so_far, score_profile, helper, user_tol):
-            answer = original_score
-
-            count_prot = helper.num_prot(items_so_far)
-            count_items = len(items_so_far)
-            if count_items == 0:
-                div_term = score_profile
-            else:
-                if helper.is_protected(item):
-                    div_term = score_profile
-                    div_term *= 1 - count_prot / count_items
-                else:
-                    div_term = (1 - score_profile)
-                    div_term *= count_prot / count_items
-
-            div_term *= helper.lamb
-            answer += div_term
-            div_term *= user_tol
-            return answer
-        return pfar
+        return cali
 
     def __init__(self, rating, training, rerank_helper):
         Reranker.__init__(self, rating, training, rerank_helper, self.fun())
-
 
 RESULT_FILE_PATTERN = 'out-(\d+).txt'
 INPUT_FILE_PATTERN = 'cv_\d+'
@@ -197,7 +131,7 @@ def execute(rerank_helper, pat, file_path, split_path, dest_results_path):
 
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
 
-    re_ranker = PFAR(rating_df, tr_df, rerank_helper)
+    re_ranker = CALI(rating_df, tr_df, rerank_helper)
 
     reranked_df, rerank_helper = re_ranker.reranker()
     output_reranked(reranked_df, dest_results_path, file_path)
@@ -246,6 +180,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
