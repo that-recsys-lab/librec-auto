@@ -40,6 +40,7 @@ class Rerank_Helper():
         try:
             self.protected = single_xpath(config.get_xml(),
                                           '/librec-auto/metric/protected-feature').text
+        
         except:
             pass
 
@@ -67,8 +68,8 @@ class Rerank_Helper():
         return num_prot
 
     def get_protected_set(self):
-        return set((self.item_features[(self.item_features['feature'] == self.protected)
-                                       & (self.item_features['value'] == 1)].index).tolist())
+        return set((self.item_feature_df[(self.item_feature_df['feature'] == self.protected)
+                                       & (self.item_feature_df ['value'] == 1)].index).tolist())
 
     def similarity(self, feature1, feature2, binary):
         if binary:
@@ -145,13 +146,16 @@ class User_Helper():
             "itemid"]].to_numpy().flatten()
 
         if user_profile is not None:
+
             self.profile = user_profile
             self.score_profile = self.score_prot(user_profile, rerank_helper)
 
     def score_prot(self, user_profile, rerank_helper):
         user_items = user_profile['itemid'].tolist()
+        
         if len(user_items) == 0:
             return 0
+
         return rerank_helper.num_prot(user_items) * 1.0 / len(user_items)
 
 
