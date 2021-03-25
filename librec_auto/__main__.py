@@ -251,10 +251,7 @@ def setup_commands(args: dict, config: ConfigCmd):
     # todo remove this
     # This is for testing of the python side evaluation in development
     if action == 'py-eval':
-        cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = EvalCmd(args, config)  # Python side evaluation
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd = SequenceCmd([EvalCmd(args, config)])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
