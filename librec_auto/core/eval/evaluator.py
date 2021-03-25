@@ -15,8 +15,8 @@ class Evaluator:
         self._experiment_num = experiment_num
         self._cv_num = cv_num
 
-        self._user_features = genfromtxt(self._cv_directory / 'test.txt',
-                                         delimiter=',')
+        self._test_data = genfromtxt(self._cv_directory / 'test.txt',
+                                     delimiter='\t')
 
     def evaluate(self):
         # Perform the actual evaluation.
@@ -32,7 +32,7 @@ class Evaluator:
         This should be a numpy array (shape 3 x n: user_id, item_id, score)
         Load data from the data/split/cv_n directories
         """
-        return self._user_features
+        return self._test_data
 
     def get_result_data(self):
         """
