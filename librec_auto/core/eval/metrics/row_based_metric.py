@@ -5,7 +5,7 @@ class RowBasedMetric():
     def __init__(self, params: dict, test_data: np.array,
                  result_data: np.array) -> None:
         self._params = params
-        self._data = test_data
+        self._test_data = test_data
         self._result_data = result_data
         self._result = None
         self._scores = []  # This holds the metric scores for each row
@@ -18,7 +18,7 @@ class RowBasedMetric():
         """
         pass
 
-    def evaluate_row(self):
+    def evaluate_row(self, test_row: np.array, restult_row: np.array):
         # To be overridden by the subclass
         pass
 
@@ -35,7 +35,18 @@ class RowBasedMetric():
 
         print('Evaluating metric', self._name, '...')
 
-        for row in self._data:
-            self.evaluate_row()
+        for row in self._test_data:
+            # Find the result row with the same user and item IDs
+            user_id = row[0]
+            item_id = row[1]
 
-        self.post_row_processing()
+            # todo optimize this
+            match = self._result_data[(self._result_data[:, 0] == user_id)
+                                      & (self._result_data[:, 1] == item_id)]
+
+            # If there's a match...
+            if len(match) != 0:
+                # Pass the test_row and the result_row to evaluate_row
+                self._scores.append(self.evaluate_row(match[0], row))
+
+        return self.post_row_processing(self._scores)

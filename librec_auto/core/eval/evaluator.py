@@ -25,7 +25,8 @@ class Evaluator:
             metric = metric_dict['class'](metric_dict['params'],
                                           self.get_test_data(),
                                           self.get_result_data())
-            metric.evaluate()
+            result = metric.evaluate()
+            print(metric_dict['class'], result)
 
     def get_test_data(self):
         """
