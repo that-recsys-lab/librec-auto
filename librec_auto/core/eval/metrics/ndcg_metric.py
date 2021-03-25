@@ -1,9 +1,11 @@
-from .metric import Metric
+import numpy as np
+
+from .list_based_metric import ListBasedMetric
 
 
-class NdcgMetric(Metric):
-    def __init__(self, params: dict) -> None:
-        super().__init__(params)
+class NdcgMetric(ListBasedMetric):
+    def __init__(self, params: dict, data: np.array) -> None:
+        super().__init__(params, data)
         self._name = 'NDCG'
 
     def evaluate(self):

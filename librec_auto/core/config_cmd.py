@@ -219,21 +219,12 @@ class ConfigCmd:
         """
         return self._xml_input.findall('metric[@python="true"]')
 
-    def get_data_directory(self) -> Path:
-        """
-        Gets the directory for the study data.
-        """
-        data_dir = self._xml_input.xpath('//librec-auto/data/data-dir')[0].text
-        cwd = os.getcwd()
-
-        return Path(cwd) / Path(data_dir)
-
     def get_cv_directories(self) -> List[Path]:
         """
         Gets the list of cv directories as Path objects.
         """
-        data_dir = self.get_data_directory()
-        split_dir = data_dir / 'split'  # cv splits live here
+        split_dir = os.getcwd() / Path('data') / Path(
+            'split')  # cv splits live here
 
         cv_dir_strings = os.listdir(split_dir)  # ['cv_1', 'cv_2', ...]
 

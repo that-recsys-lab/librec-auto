@@ -1,4 +1,6 @@
 from librec_auto.core import ConfigCmd
+
+from numpy import genfromtxt
 from pathlib import Path
 
 
@@ -10,23 +12,23 @@ class Evaluator:
         self._config = config
         self._metrics = metrics
         self._cv_directory = cv_directory
+        self._user_features = genfromtxt(self._cv_directory / 'test.txt',
+                                         delimiter=',')
 
     def evaluate(self):
-        # performing actual evaluation here...
+        # Perform the actual evaluation.
         for metric_dict in self._metrics:
             # Create a new instance of this metric
-            metric = metric_dict['class'](metric_dict['params'])
+            metric = metric_dict['class'](metric_dict['params'],
+                                          self.get_user_features())
             metric.evaluate()
 
     def get_user_features(self):
-        # todo load data from self._cv_directory
-        self.user_features = "tktktk"
         """
-        This should be a list with length = the number of CVs
-            Each item should be a dataframe or numpy array (shape 3 x n: user_id, item_id, score)
+        This should be a numpy array (shape 3 x n: user_id, item_id, score)
         Load data from the data/split/cv_n directories
         """
-        pass
+        return self._user_features
 
     def get_item_features(self):
         self.item_features = "tktktk"
