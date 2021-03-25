@@ -76,8 +76,14 @@ class EvalCmd(Cmd):
         cv_dirs = config.get_cv_directories()
 
         # todo run this all in parallel
-        for cv_dir in cv_dirs:
-            print('Evaluating cv', str(cv_dir)[-1], '...')
-            # Create an evaluator for each cv...
-            evaluator = Evaluator(config, metrics, cv_dir)
-            evaluator.evaluate()  # Evaluate it.
+
+        # Run the evaluator for every cv in every experiment.
+        for experiment_num in range(self._config.get_sub_exp_count()):
+            for cv_dir in cv_dirs:
+                cv_num = str(cv_dir)[-1]
+                print('For experiment', experiment_num + 1, 'evaluating cv',
+                      str(cv_dir)[-1], '...')
+                # Create an evaluator for each cv...
+                evaluator = Evaluator(config, metrics, cv_dir, experiment_num,
+                                      cv_num)
+                evaluator.evaluate()  # Evaluate it.

@@ -2,11 +2,13 @@ import numpy as np
 
 
 class RowBasedMetric():
-    def __init__(self, params: dict, data: np.array) -> None:
+    def __init__(self, params: dict, test_data: np.array,
+                 result_data: np.array) -> None:
         self._params = params
-        self._data = data
+        self._data = test_data
+        self._result_data = result_data
         self._result = None
-        # todo init a metric value
+        self._scores = []  # This holds the metric scores for each row
 
     def pre_row_processing(self):
         """
