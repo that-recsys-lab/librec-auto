@@ -11,4 +11,7 @@ class NdcgMetric(ListBasedMetric):
 
     def evaluate(self):
         # Todo add custom eval here
-        return super().evaluate()
+        # todo manipulate self._result_data and self._test_data
+        import pdb
+        pdb.set_trace()
+        return -99
