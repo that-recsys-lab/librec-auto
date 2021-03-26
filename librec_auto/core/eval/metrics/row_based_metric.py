@@ -2,6 +2,9 @@ import numpy as np
 
 
 class RowBasedMetric():
+    """
+    Generic class for python-side evaluation with row-based metrics.
+    """
     def __init__(self, params: dict, test_data: np.array,
                  result_data: np.array) -> None:
         self._params = params
@@ -18,8 +21,13 @@ class RowBasedMetric():
         """
         pass
 
-    def evaluate_row(self, test_row: np.array, restult_row: np.array):
-        # To be overridden by the subclass
+    def evaluate_row(self, test_row: np.array, result_row: np.array):
+        """Perform any row-based calculations here.
+
+        Args:
+            test_row (np.array): The test row data.
+            result_row (np.array): The result row data.
+        """
         pass
 
     def post_row_processing(self):
