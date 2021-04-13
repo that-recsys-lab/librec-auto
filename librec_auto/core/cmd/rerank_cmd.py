@@ -70,6 +70,7 @@ class RerankCmd(Cmd):
                     print('librec-auto: No results. Cannot rerank ',
                           self._config.get_target())
                     return
+                # If original dir not empty, don't overwrite
                 sub_path.results2original()  # and there are results here
                 original_path = sub_path.get_path('original')
             else:  # If there is a ref, the results are in
