@@ -1,4 +1,4 @@
-.. _SaveCSV:
+.. _usefairnessmetrics:
 
 ===============================
 Use Fairness Metrics
@@ -50,7 +50,7 @@ For user features, the ``UserFeatureAppender`` class is used and the correspondi
 The information about which feature is considered protected is configured in the ``metric`` section of the configuration with the element  ``protected-feature``. 
 
 4. Available fairness metrics
-================
+=============================
 
 The available metrics for fairness are:
 
