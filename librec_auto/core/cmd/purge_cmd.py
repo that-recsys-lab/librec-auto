@@ -92,4 +92,5 @@ class PurgeCmd(Cmd):
             for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
                 print("librec-auto: Deleting reranked results:", exp_str)
-                sub_paths.results2original()
+                sub_paths.original2results()
+                # delete original?
