@@ -43,18 +43,10 @@ class RowBasedMetric():
 
         print('Evaluating metric', self._name, '...')
 
-        for row in self._test_data:
-            # Find the result row with the same user and item IDs
-            user_id = row[0]
-            item_id = row[1]
+        rows_count = len(self._result_data)
 
-            # todo optimize this
-            match = self._result_data[(self._result_data[:, 0] == user_id)
-                                      & (self._result_data[:, 1] == item_id)]
-
-            # If there's a match...
-            if len(match) != 0:
-                # Pass the test_row and the result_row to evaluate_row
-                self._scores.append(self.evaluate_row(match[0], row))
+        for i in range(rows_count):
+            self._scores.append(
+                self.evaluate_row(self._result_data[i], self._test_data[i]))
 
         return self.post_row_processing(self._scores)
