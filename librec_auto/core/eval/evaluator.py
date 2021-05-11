@@ -2,6 +2,8 @@ from librec_auto.core import ConfigCmd
 
 import numpy as np
 from pathlib import Path
+import sys
+import subprocess
 
 
 class Evaluator:
@@ -37,8 +39,12 @@ class Evaluator:
         self._experiment_num = experiment_num
         self._cv_num = cv_num
 
-        self._test_data = np.genfromtxt(self._cv_directory / 'test.txt',
-                                        delimiter='\t')
+        self._result_data_file = self._config.get_files().get_study_path(
+        ) / self._config.get_files().get_exp_paths(
+            self._experiment_num).get_path(
+                'librec_result') / 'out-{0}.txt'.format(self._cv_num)
+        self._test_data_file = self._cv_directory / 'test.txt'
+        self._test_data = np.genfromtxt(self._test_data_file, delimiter='\t')
 
     def evaluate(self):
         """
@@ -47,13 +53,33 @@ class Evaluator:
         todo: parallelize this
         """
         for metric_dict in self._metrics:
-            # Create a new instance of this metric
-            metric = metric_dict['class'](metric_dict['params'],
-                                          self.get_test_data(),
-                                          self.get_result_data())
-            result = metric.evaluate()
-            print(metric_dict['class'], result)
-            # todo identify a way to save/output the metric results
+            if metric_dict['script'] != None:
+                # Run this script with the params
+                exec_path = self._config.get_files().get_study_path()
+
+                proc_spec = [sys.executable, metric_dict['script']]
+                params = [
+                    '--test',
+                    self._test_data_file,
+                    '--result',
+                    self._result_data_file,
+                ]
+                # todo specify output destination and format
+                for key in metric_dict['params']:
+                    params.append('--' + key)
+                    params.append(metric_dict['params'][key])
+
+                result = subprocess.call(proc_spec + params,
+                                         cwd=str(exec_path.absolute()))
+
+            else:
+                # Create a new instance of this metric
+                metric = metric_dict['class'](metric_dict['params'],
+                                              self.get_test_data(),
+                                              self.get_result_data())
+                result = metric.evaluate()
+                print(metric_dict['class'], result)
+                # todo identify a way to save/output the metric results
 
     def get_test_data(self) -> np.array:
         """
@@ -67,9 +93,4 @@ class Evaluator:
         Loads result data from the main/expnnnnn/result directories
         This should be a numpy array (shape 3 x n: user_id, item_id, score)
         """
-        return np.genfromtxt(
-            self._config.get_files().get_study_path() /
-            self._config.get_files().get_exp_paths(
-                self._experiment_num).get_path('librec_result') /
-            'out-{0}.txt'.format(self._cv_num),
-            delimiter=",")
+        return np.genfromtxt(self._result_data_file, delimiter=",")

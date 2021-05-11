@@ -59,12 +59,24 @@ class EvalCmd(Cmd):
         metric_classes = []
 
         for metric_element in metric_elements:
-            metric_name = metric_element.find('name').text
-            metric_classes.append({
-                'element': metric_element,
-                'class': metric_name_to_class[metric_name],
-                'params': get_params(metric_element)
-            })
+            if metric_element.find('script-name') != None:
+                # This is a custom metric with a passed script
+                metric_classes.append({
+                    'script':
+                    metric_element.find('script-name').text,
+                    'params':
+                    get_params(metric_element)
+                })
+            else:
+                metric_name = metric_element.find('name').text
+                metric_classes.append({
+                    'element':
+                    metric_element,
+                    'class':
+                    metric_name_to_class[metric_name],
+                    'params':
+                    get_params(metric_element)
+                })
 
         return metric_classes
 
