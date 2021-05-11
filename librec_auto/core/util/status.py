@@ -167,8 +167,10 @@ def _generate_average_results_output(paths: ExpPaths) -> etree._Element:
         metric_element = etree.SubElement(averages_element,
                                           "metric",
                                           name=metric)
-        # add average value
-        metric_element.text = all_values[metric]['average_result']
+        average_result = sum(
+            float(v) for v in all_values[metric]['cv_results']) / len(
+                all_values[metric]['cv_results'])
+        metric_element.text = str(average_result)
     return root_xml
 
 
