@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 
 class ListBasedMetric:
@@ -9,6 +10,11 @@ class ListBasedMetric:
         self._result_data = result_data
         self._name = 'Generic Metric'
         self._values = []
+
+    @staticmethod
+    def read_data_from_file(file_name, delimiter='\t'):
+        data = np.genfromtxt(file_name, delimiter=delimiter)
+        return data
 
     def get_params(self) -> dict:
         return self._params
@@ -49,3 +55,12 @@ class ListBasedMetric:
                 self.evaluate_user(test_user_data, result_user_data))
 
         return self.postprocessing()
+
+    def save_custom_results(self, result: float, output_file: str):
+        with open(output_file, 'wb') as file:
+            pickle.dump(result, file)
+
+    @staticmethod
+    def read_custom_results(output_file: str):
+        with open(output_file, 'rb') as file:
+            return pickle.load(file)

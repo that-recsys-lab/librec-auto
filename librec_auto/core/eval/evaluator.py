@@ -1,4 +1,5 @@
 from librec_auto.core import ConfigCmd
+from .metrics.list_based_metric import ListBasedMetric
 
 import numpy as np
 from pathlib import Path
@@ -52,6 +53,11 @@ class Evaluator:
 
         todo: parallelize this
         """
+        # This is the destination for custom script output.
+        # The custom class files will save results here (as a pickle)
+        # so that the evaluator can retreive them.
+        custom_script_output_file = 'py-eval-temp.pickle'
+
         for metric_dict in self._metrics:
             if metric_dict.get('script') != None:
                 # Run this script with the params
@@ -59,18 +65,21 @@ class Evaluator:
 
                 proc_spec = [sys.executable, metric_dict['script']]
                 params = [
-                    '--test',
-                    self._test_data_file,
-                    '--result',
-                    self._result_data_file,
+                    '--test', self._test_data_file, '--result',
+                    self._result_data_file.absolute(), '--output-file',
+                    custom_script_output_file
                 ]
-                # todo specify output destination and format
                 for key in metric_dict['params']:
                     params.append('--' + key)
                     params.append(metric_dict['params'][key])
 
-                result = subprocess.call(proc_spec + params,
-                                         cwd=str(exec_path.absolute()))
+                subprocess.call(proc_spec + params,
+                                cwd=str(exec_path.absolute()))
+
+                custom_result = ListBasedMetric.read_custom_results(
+                    exec_path / custom_script_output_file)
+                # TODO identify a way to save results
+                print('Custom Metric', custom_result)
 
             else:
                 # Create a new instance of this metric
@@ -78,8 +87,9 @@ class Evaluator:
                                               self.get_test_data(),
                                               self.get_result_data())
                 result = metric.evaluate()
+
                 print(metric_dict['class'], result)
-                # todo identify a way to save/output the metric results
+                # TODO identify a way to save results
 
     def get_test_data(self) -> np.array:
         """
