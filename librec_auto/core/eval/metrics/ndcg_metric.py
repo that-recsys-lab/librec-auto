@@ -10,11 +10,6 @@ class NdcgMetric(ListBasedMetric):
         super().__init__(params, test_data, result_data)
         self._name = 'NDCG'
 
-    def preprocessing(self):
-        pass
-        # import pdb
-        # pdb.set_trace()
-
     def evaluate_user(self, test_user_data: np.array,
                       result_user_data: np.array) -> float:
         rec_num = int(self._params['list-size'])
@@ -38,7 +33,3 @@ class NdcgMetric(ListBasedMetric):
                     item)  # why ground truth?
                 recDCG += ((math.pow(2.0, rank) - 1) / math.log(1.0 + j + 1))
         return (recDCG / idealDCG)
-
-    def postprocessing(self):
-        # Return average for now...this is just a placeholder
-        return sum(self._values) / len(self._values)
