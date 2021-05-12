@@ -230,7 +230,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('full', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd4 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
@@ -248,8 +249,7 @@ def setup_commands(args: dict, config: ConfigCmd):
             cmd.add_command(PostCmd())
         return cmd
 
-    # todo remove this
-    # This is for testing of the python side evaluation in development
+    # Running python side evaluation
     if action == 'py-eval':
         cmd = SequenceCmd([EvalCmd(args, config)])
         if post_flag:
