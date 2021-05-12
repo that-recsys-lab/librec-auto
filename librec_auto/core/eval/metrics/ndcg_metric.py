@@ -33,3 +33,6 @@ class NdcgMetric(ListBasedMetric):
                     item)  # why ground truth?
                 recDCG += ((math.pow(2.0, rank) - 1) / math.log(1.0 + j + 1))
         return (recDCG / idealDCG)
+
+    def postprocessing(self):
+        return np.average(self._values)
