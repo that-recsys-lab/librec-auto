@@ -53,7 +53,7 @@ class Evaluator:
         todo: parallelize this
         """
         for metric_dict in self._metrics:
-            if metric_dict['script'] != None:
+            if metric_dict.get('script') != None:
                 # Run this script with the params
                 exec_path = self._config.get_files().get_study_path()
 

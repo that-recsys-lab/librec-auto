@@ -8,6 +8,7 @@ class ListBasedMetric:
         self._test_data = test_data
         self._result_data = result_data
         self._name = 'Generic Metric'
+        self._values = []
 
     def get_params(self) -> dict:
         return self._params
@@ -16,13 +17,13 @@ class ListBasedMetric:
                       result_user_data: np.array) -> float:
         """Overridden by instance"""
 
-    def pre_row_processing(self):
+    def preprocessing(self):
         """
         Perform any metric setup here.
         """
         pass
 
-    def pre_row_processing(self):
+    def postprocessing(self):
         """
         Perform any metric teardown here.
         """
@@ -31,7 +32,7 @@ class ListBasedMetric:
     def evaluate(self):
         print('Evaluating metric', self._name, '...')
 
-        self.pre_row_processing()
+        self.preprocessing()
 
         # A unique list of users in the data
         users = np.unique(self._test_data[:, 0])
@@ -44,6 +45,7 @@ class ListBasedMetric:
             result_mask = self._result_data[:, 0] == user
             result_user_data = self._result_data[result_mask, :]
 
-            self.evaluate_user(test_user_data, result_user_data)
+            self._values.append(
+                self.evaluate_user(test_user_data, result_user_data))
 
-        self.post_row_processing()
+        return self.postprocessing()
