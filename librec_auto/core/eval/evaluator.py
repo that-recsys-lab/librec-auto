@@ -1,6 +1,7 @@
 from librec_auto.core import ConfigCmd
 from .metrics.list_based_metric import ListBasedMetric
 
+import re
 import numpy as np
 from pathlib import Path
 import sys
@@ -58,6 +59,8 @@ class Evaluator:
         # so that the evaluator can retreive them.
         custom_script_output_file = 'py-eval-temp.pickle'
 
+        metric_results = []
+
         for metric_dict in self._metrics:
             if metric_dict.get('script') != None:
                 # Run this script with the params
@@ -78,8 +81,12 @@ class Evaluator:
 
                 custom_result = ListBasedMetric.read_custom_results(
                     exec_path / custom_script_output_file)
-                # TODO identify a way to save results
-                print('Custom Metric', custom_result)
+                metric_name = metric_dict['script'].replace('.py', '')
+                metric_results.append({
+                    'name': metric_name,
+                    'value': custom_result
+                })
+                print(metric_name, ':', custom_result)
 
             else:
                 # Create a new instance of this metric
@@ -88,8 +95,20 @@ class Evaluator:
                                               self.get_result_data())
                 result = metric.evaluate()
 
-                print(metric_dict['class'], result)
-                # TODO identify a way to save results
+                metric_name = str(metric_dict['class'])
+
+                # Try to coerce the class name into a string
+                try:
+                    metric_name = re.search(r"<class '.*\.([A-z]*)'>",
+                                            metric_name).group(1)
+                except Exception:
+                    pass
+
+                metric_results.append({'name': metric_name, 'value': result})
+
+                print(metric_name, result)
+
+        return metric_results
 
     def get_test_data(self) -> np.array:
         """
