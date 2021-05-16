@@ -7,18 +7,67 @@ Existing Metrics
 ================
 
 To use existing python-side metrics, use the ``python="true"`` flag in your
-configuration file's metrics:
+configuration file's metrics. The ``params`` element shown here can be empty.
 
 ::
 
 	<metric python="true">
 		<name>rmse</name>
+		<params>
+			<foo>bar</foo>
+		</params>
 	</metric>
 
 Custom Metrics
 ==============
 
 ``librec-auto`` supports custom evaluation metrics implemented in python.
+
+
+Required boilerplate
+--------------------
+
+Regardless of the type of metric you're implementing, you will need some boilerplate code.
+
+A ``read_args`` method to handle input to the custom metric.
+
+::
+
+    def read_args():
+        """
+        Parse command line arguments.
+        """
+        parser = argparse.ArgumentParser(description='My custom metric')
+        parser.add_argument('--test', help='Path to test.')
+        parser.add_argument('--result', help='Path to results.')
+        parser.add_argument('--output-file', help='The output pickle file.')
+    
+        # Custom params defined in the config go here
+        parser.add_argument('--foo', help='The weight for re-ranking.')
+    
+        input_args = parser.parse_args()
+        return vars(input_args)
+
+
+You will also need to start the main function with the following lines.
+Params specified in the ``config.xml`` are passed as args and are accessible
+via the ``args['param-name']`` syntax.
+
+::
+
+    if __name__ == '__main__':
+        args = read_args()
+    
+        params = {'foo': args['foo']}
+    
+        test_data = ListBasedMetric.read_data_from_file(
+            args['test']
+        )
+        result_data = ListBasedMetric.read_data_from_file(
+            args['result'],
+            delimiter=','
+        )
+
 
 Adding a row-based metric (i.e., RMSE)
 --------------------------------------
@@ -30,11 +79,20 @@ superclass.
 1. Create the new class file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, make a file in the ``librec_auto/core/eval/metrics`` directory. Name the file
-``<metric_name>_metric.py``, like ``rmse_metric.py``.
+First, make a file in your study directory. Name the file something clear.
+Let's assume a file named ``custom_rmse_metric.py``
 
 2. Override the ``RowBasedMetric`` methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this ``custom_rmse_metric.py`` file, we'll want to create a subclass of
+``RowBasedMetric``, like this:
+
+::
+    class CustomRmseMetric(RowBasedMetric):
+        ...
+
+We'll also want to override the following methods.
 
 ``__init__``
 """"""""""""
@@ -44,10 +102,10 @@ Do not forget to call ``super().__init__``.
 
 ::
 
-	def __init__(self, params: dict, test_data: np.array,
-	             result_data: np.array) -> None:
-	    super().__init__(params, test_data, result_data)
-	    self._name = 'RMSE'
+    def __init__(self, params: dict, test_data: np.array,
+                 result_data: np.array, output_file) -> None:
+        super().__init__(params, test_data, result_data, output_file)
+        self._name = 'RMSE'
 
 ``evaluate_row``
 """"""""""""""""
@@ -89,7 +147,63 @@ method.
 	    return (sum(values) / T)**0.5
 
 
-todo add info to update mapping dict
+Below is a final file for a custom implementation of RMSE
+
+::
+
+    import argparse
+    import numpy as np
+
+    from librec_auto.core.eval.metrics.row_based_metric import RowBasedMetric
+
+
+    def read_args():
+        """
+        Parse command line arguments.
+        """
+        parser = argparse.ArgumentParser(description='My custom metric')
+        parser.add_argument('--test', help='Path to test.')
+        parser.add_argument('--result', help='Path to results.')
+        parser.add_argument('--output-file', help='The output pickle file.')
+
+        # Custom params defined in the config go here
+        parser.add_argument('--foo', help='The weight for re-ranking.')
+
+        input_args = parser.parse_args()
+        return vars(input_args)
+
+
+    class CustomRmseMetric(RowBasedMetric):
+        def __init__(self, params: dict, test_data: np.array,
+                    result_data: np.array, output_file) -> None:
+            super().__init__(params, test_data, result_data, output_file)
+            self._name = 'RMSE'
+
+        def evaluate_row(self, test: np.array, result: np.array):
+            test_ranking = test[2]
+            result_ranking = result[2]
+            return (test_ranking - result_ranking)**2
+
+        def post_row_processing(self, values):
+            T = len(values)
+            return (sum(values) / T)**0.5
+
+
+    if __name__ == '__main__':
+        args = read_args()
+
+        params = {'foo': args['foo']}
+
+        test_data = CustomRmseMetric.read_data_from_file(args['test'])
+
+        result_data = CustomRmseMetric.read_data_from_file(args['result'],
+                                                        delimiter=',')
+
+        custom = CustomRmseMetric(params, test_data, result_data,
+                                args['output_file'])
+
+        custom.evaluate()
+
 
 Adding a list-based metric (i.e., NDCG)
 ---------------------------------------
