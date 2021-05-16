@@ -104,4 +104,5 @@ class EvalCmd(Cmd):
                 evaluator.evaluate()  # Evaluate it.
 
         # Remove temporary eval binary
-        os.remove(self._config.get_files().get_study_path() / Path('py-eval-temp.pickle'))
+        os.remove(self._config.get_files().get_study_path() /
+                  Path('py-eval-temp.pickle'))
