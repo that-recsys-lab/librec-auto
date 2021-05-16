@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 
 class RowBasedMetric():
@@ -6,11 +7,12 @@ class RowBasedMetric():
     Generic class for python-side evaluation with row-based metrics.
     """
     def __init__(self, params: dict, test_data: np.array,
-                 result_data: np.array) -> None:
+                 result_data: np.array, output_file) -> None:
         self._params = params
         self._test_data = test_data
         self._result_data = result_data
         self._result = None
+        self._output_file = output_file
         self._scores = []  # This holds the metric scores for each row
 
     def pre_row_processing(self):
@@ -38,6 +40,10 @@ class RowBasedMetric():
         """
         pass
 
+    def _save_custom_results(self, result: float):
+        with open(self._output_file, 'wb') as file:
+            pickle.dump(result, file)
+
     def evaluate(self):
         self.pre_row_processing()
 
@@ -49,4 +55,16 @@ class RowBasedMetric():
             self._scores.append(
                 self.evaluate_row(self._result_data[i], self._test_data[i]))
 
-        return self.post_row_processing(self._scores)
+        result = self.post_row_processing(self._scores)
+        self._save_custom_results(result)
+        return result
+
+    @staticmethod
+    def read_data_from_file(file_name, delimiter='\t'):
+        data = np.genfromtxt(file_name, delimiter=delimiter)
+        return data
+
+    @staticmethod
+    def read_custom_results(output_file: str):
+        with open(output_file, 'rb') as file:
+            return pickle.load(file)

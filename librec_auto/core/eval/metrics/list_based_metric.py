@@ -4,11 +4,12 @@ import pickle
 
 class ListBasedMetric:
     def __init__(self, params: dict, test_data: np.array,
-                 result_data: np.array) -> None:
+                 result_data: np.array, output_file) -> None:
         self._params = params
         self._test_data = test_data
         self._result_data = result_data
         self._name = 'Generic Metric'
+        self._output_file = output_file
         self._values = []
 
     @staticmethod
@@ -35,6 +36,10 @@ class ListBasedMetric:
         """
         pass
 
+    def _save_custom_results(self, result: float):
+        with open(self._output_file, 'wb') as file:
+            pickle.dump(result, file)
+
     def evaluate(self):
         print('Evaluating metric', self._name, '...')
 
@@ -54,11 +59,9 @@ class ListBasedMetric:
             self._values.append(
                 self.evaluate_user(test_user_data, result_user_data))
 
-        return self.postprocessing()
-
-    def save_custom_results(self, result: float, output_file: str):
-        with open(output_file, 'wb') as file:
-            pickle.dump(result, file)
+        result = self.postprocessing()
+        self._save_custom_results(result)
+        return result
 
     @staticmethod
     def read_custom_results(output_file: str):
