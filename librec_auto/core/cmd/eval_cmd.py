@@ -1,3 +1,6 @@
+from pathlib import Path
+import os
+
 from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
 from librec_auto.core import ConfigCmd
 from librec_auto.core.cmd import Cmd
@@ -99,3 +102,6 @@ class EvalCmd(Cmd):
                 evaluator = Evaluator(config, metrics, cv_dir, experiment_num,
                                       cv_num)
                 evaluator.evaluate()  # Evaluate it.
+
+        # Remove temporary eval binary
+        os.remove(self._config.get_files().get_study_path() / Path('py-eval-temp.pickle'))
