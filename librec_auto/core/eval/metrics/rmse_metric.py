@@ -13,6 +13,6 @@ class RmseMetric(RowBasedMetric):
         result_ranking = result[2]
         return (test_ranking - result_ranking)**2
 
-    def post_row_processing(self, values):
-        T = len(values)
-        return (sum(values) / T)**0.5
+    def post_row_processing(self):
+        T = len(self._scores)
+        return (sum(self._scores) / T)**0.5

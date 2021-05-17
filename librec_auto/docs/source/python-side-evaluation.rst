@@ -18,6 +18,11 @@ configuration file's metrics. The ``params`` element shown here can be empty.
 		</params>
 	</metric>
 
+The following metrics are implemented in python:
+
+* RMSE
+* NDCG
+
 Custom Metrics
 ==============
 
@@ -50,8 +55,8 @@ A ``read_args`` method to handle input to the custom metric.
 
 
 You will also need to start the main function with the following lines.
-Params specified in the ``config.xml`` are passed as args and are accessible
-via the ``args['param-name']`` syntax.
+Params specified in the ``config.xml`` are passed to the custom metric files
+and are accessible via the ``args['param-name']`` syntax.
 
 ::
 
@@ -85,10 +90,11 @@ Let's assume a file named ``custom_rmse_metric.py``
 2. Override the ``RowBasedMetric`` methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this ``custom_rmse_metric.py`` file, we'll want to create a subclass of
-``RowBasedMetric``, like this:
+In this ``custom_rmse_metric.py`` file, we'll want to copy the boilerplate from
+above and then create a subclass of ``RowBasedMetric``, like this:
 
 ::
+
     class CustomRmseMetric(RowBasedMetric):
         ...
 
@@ -111,12 +117,15 @@ Do not forget to call ``super().__init__``.
 """"""""""""""""
 
 This method performs the actual evaluation of the results. The first parameter contains
-the test (expected) values for the item,user combination. The second
-parameter contains the actual values for the item,user combination. Both are numpy
-arrays, and should be indexed to access the row values. This method should
-return the value of the metric for the given user,item combination.
+the test (expected) values for a given ``item,user`` combination. The second
+parameter contains the actual values for that ``item,user`` combination. Both are numpy
+arrays, and need to be indexed to access the row values. This method should
+return the value of the metric for the given ``user,item`` combination.
 
-``evaluate_row`` for RMSE using ``librec-auto`` Python-side Evaluation:
+Every time that ``evaluate_row`` is executed, the results are saved to a ``_scores``
+list in the metric class, which we'll access in ``post_row_processing``.
+
+``evaluate_row`` for RMSE follows:
 
 ::
 
@@ -125,29 +134,27 @@ return the value of the metric for the given user,item combination.
 	    result_ranking = result[2]
 	    return (test_ranking - result_ranking)**2
 
+
 ``pre_row_processing`` and ``post_row_processing``
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-The ``pre_row_processing`` method allows for setting initial values or other
-processing that should be performed before any of the rows are processed.
+The ``pre_row_processing`` method allows for setting initial values or for other
+processing that should be performed before _any_ of the rows are processed.
 Think of this like setting up the metric.
 
-The ``post_row_processing`` method is passed an array of values, and returns
+The ``post_row_processing`` method should manipulate ``self._scores`` and return
 a single value that represents the final value of the metric.
 
-The array of values is an array created from the results of the ``evaluate_row``
-method.
-
-``post_row_processing`` for RMSE using ``librec-auto`` Python-side Evaluation:
+``post_row_processing`` for RMSE follows:
 
 ::
 
-	def post_row_processing(self, values):
-	    T = len(values)
-	    return (sum(values) / T)**0.5
+    def post_row_processing(self):
+        T = len(self._scores)
+        return (sum(self._scores) / T)**0.5
 
 
-Below is a final file for a custom implementation of RMSE
+Below is the complete file for an implementation of RMSE.
 
 ::
 
@@ -184,9 +191,9 @@ Below is a final file for a custom implementation of RMSE
             result_ranking = result[2]
             return (test_ranking - result_ranking)**2
 
-        def post_row_processing(self, values):
-            T = len(values)
-            return (sum(values) / T)**0.5
+		def post_row_processing(self):
+			T = len(self._scores)
+			return (sum(self._scores) / T)**0.5
 
 
     if __name__ == '__main__':
