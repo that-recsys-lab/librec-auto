@@ -32,6 +32,9 @@ Custom Metrics
 Required boilerplate
 --------------------
 
+Argument parsing
+~~~~~~~~~~~~~~~~
+
 Regardless of the type of metric you're implementing, you will need some boilerplate code.
 
 A ``read_args`` method to handle input to the custom metric.
@@ -53,6 +56,9 @@ A ``read_args`` method to handle input to the custom metric.
         input_args = parser.parse_args()
         return vars(input_args)
 
+
+Main function
+~~~~~~~~~~~~~
 
 You will also need to start the main function with the following lines.
 Params specified in the ``config.xml`` are passed to the custom metric files
@@ -94,6 +100,8 @@ In this ``custom_rmse_metric.py`` file, we'll want to copy the boilerplate from
 above and then create a subclass of ``RowBasedMetric``, like this:
 
 ::
+
+    from librec_auto.core.eval.metrics.row_based_metric import RowBasedMetric
 
     class CustomRmseMetric(RowBasedMetric):
         ...
@@ -218,3 +226,208 @@ Adding a list-based metric (i.e., NDCG)
 For metrics that require the entire result list for computation, ``librec-auto``
 provides the ``ListBasedMetric`` superclass, which can be inherited by custom class
 metrics.
+
+Required boilerplate
+~~~~~~~~~~~~~~~~~~~~
+
+See above for the argument parsing and main function boilerplate.
+These are both required for both row- and list-based metrics, and are
+identical for either.
+
+1. Create the new class file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Make a file in your study directory. Name is something clear. Let's assume a
+file named ``custom_ndcg_metric.py``.
+
+2. Override the ``ListBasedMetric`` methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``custom_ndcg_metric.py`` file, we'll want to copy the boilerplate from
+above and then then import and instantiate the ``ListBasedMetric`` superclass.
+
+::
+
+    from librec_auto.core.eval.metrics.list_based_metric import ListBasedMetric
+
+    class CustomRmseMetric(ListBasedMetric):
+        ...
+
+
+``__init__``
+""""""""""""
+
+Override ``__init__`` and set ``self._name`` equal to the name of the metric.
+Do not forget to call ``super().__init__``.
+
+::
+
+    def __init__(self, params: dict, test_data: np.array,
+                 result_data: np.array, output_file) -> None:
+        super().__init__(params, test_data, result_data, output_file)
+        self._name = 'RMSE'
+
+
+
+``evaluate_user``
+"""""""""""""""""
+
+This method produces a metric value for a given user, based on test and result
+arrays of user data. These arrays contain values for all rows where this user is
+the user.
+
+``evaluate_user`` for NDCG follows:
+
+(Note the ``self._list_size`` is set in ``config.xml``, in ``__init__``, and in
+``__main__``.)
+
+::
+
+    def evaluate_user(self, test_user_data: np.array,
+                      result_user_data: np.array) -> float:
+        rec_num = int(self._list_size)
+
+        idealOrder = test_user_data
+        idealDCG = 0.0
+
+        for j in range(min(rec_num, len(idealOrder))):
+            idealDCG += ((math.pow(2.0,
+                                   len(idealOrder) - j) - 1) /
+                         math.log(2.0 + j))
+
+        recDCG = 0.0
+        test_user_items = list(test_user_data[:, 1])
+
+        for j in range(rec_num):
+            item = int(result_user_data[j][1])
+            if item in test_user_items:
+                rank = len(test_user_items) - test_user_items.index(
+                    item)  # why ground truth?
+                recDCG += ((math.pow(2.0, rank) - 1) / math.log(1.0 + j + 1))
+        return (recDCG / idealDCG)
+
+
+
+``preprocessing`` and ``postprocessing``
+""""""""""""""""""""""""""""""""""""""""
+
+``preprocessing`` should be used to set up initial values for the metric that
+are not passed from ``config.xml``.
+
+Results from every execution of ``evaluate_user`` are saved to ``self._values``,
+which should be accessed in ``postprocessing`` to produce a single final value.
+
+``postprocessing`` for NDCG follows:
+
+::
+
+    def postprocessing(self):
+        return np.average(self._values)
+
+
+``__main__``
+""""""""""""
+
+Use the main function to parse any file arguments to class parameters, to
+initialize the custom metric class, and to call ``.evaluate()``.
+
+
+The main function for NDCG follows:
+
+::
+
+	if __name__ == '__main__':
+		args = read_args()
+
+		params = {'list_size': args['list_size']}
+
+		test_data = ListBasedMetric.read_data_from_file(
+			args['test']
+		)
+		result_data = ListBasedMetric.read_data_from_file(
+			args['result'],
+			delimiter=','
+		)
+
+		custom = CustomNdcgMetric(params, test_data, result_data,
+								args['output_file'])
+
+		custom.evaluate()
+
+Below is the complete file for a custom implementation of NDCG.
+
+::
+
+    import argparse
+    import numpy as np
+    import math
+
+    from librec_auto.core.eval.metrics.list_based_metric import ListBasedMetric
+
+    def read_args():
+        """
+        Parse command line arguments.
+        """
+        parser = argparse.ArgumentParser(description='My custom metric')
+        parser.add_argument('--test', help='Path to test.')
+        parser.add_argument('--result', help='Path to results.')
+        parser.add_argument('--output-file', help='The output pickle file.')
+
+        # Custom params defined in the config go here
+        parser.add_argument('--list-size', help='Size of the list for NDCG.')
+
+        input_args = parser.parse_args()
+        return vars(input_args)
+
+    class CustomNdcgMetric(ListBasedMetric):
+        def __init__(self, params: dict, test_data: np.array,
+                    result_data: np.array, output_file: str) -> None:
+            super().__init__(params, test_data, result_data, output_file)
+            self._name = 'NDCG'
+            self._list_size = params['list_size']
+
+        def evaluate_user(self, test_user_data: np.array,
+                        result_user_data: np.array) -> float:
+            rec_num = int(self._list_size)
+
+            idealOrder = test_user_data
+            idealDCG = 0.0
+
+            for j in range(min(rec_num, len(idealOrder))):
+                idealDCG += ((math.pow(2.0,
+                                    len(idealOrder) - j) - 1) /
+                            math.log(2.0 + j))
+
+            recDCG = 0.0
+            test_user_items = list(test_user_data[:, 1])
+
+            for j in range(rec_num):
+                item = int(result_user_data[j][1])
+                if item in test_user_items:
+                    rank = len(test_user_items) - test_user_items.index(
+                        item)  # why ground truth?
+                    recDCG += ((math.pow(2.0, rank) - 1) / math.log(1.0 + j + 1))
+            return (recDCG / idealDCG)
+
+        def postprocessing(self):
+            return np.average(self._values)
+
+
+    if __name__ == '__main__':
+        args = read_args()
+
+
+        params = {'list_size': args['list_size']}
+
+        test_data = ListBasedMetric.read_data_from_file(
+            args['test']
+        )
+        result_data = ListBasedMetric.read_data_from_file(
+            args['result'],
+            delimiter=','
+        )
+
+        custom = CustomNdcgMetric(params, test_data, result_data,
+                                args['output_file'])
+
+        custom.evaluate()
+
