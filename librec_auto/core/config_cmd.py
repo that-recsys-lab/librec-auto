@@ -21,6 +21,7 @@ class ConfigCmd:
     """
 
     _PARAM_NAME_PATH_RE = ".+\[@name='(.+)'\]"
+    _CV_DIR_RE = "cv_\d+"
 
     def __init__(self, config_file, target):
 
@@ -229,7 +230,11 @@ class ConfigCmd:
         split_dir = os.getcwd() / Path('data') / Path(
             'split')  # cv splits live here
 
-        cv_dir_strings = os.listdir(split_dir)  # ['cv_1', 'cv_2', ...]
+        dir_strings = os.listdir(split_dir)  # ['cv_1', 'cv_2', ...]
+
+        dir_pat = re.compile(self._CV_DIR_RE)
+
+        cv_dir_strings = list(filter(dir_pat.match, dir_strings))
 
         return [split_dir / cv_dir_string for cv_dir_string in cv_dir_strings]
 

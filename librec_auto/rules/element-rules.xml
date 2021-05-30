@@ -216,6 +216,7 @@
 		<class>rec.eval.classes</class>
 		<list-size>rec.recommender.ranking.topn</list-size>
 		<protected-feature>data.protected.feature</protected-feature>
+		<script action="no-translate"/>
 	</metric>
 	<post action="no-translate"/>
 	<rerank action="no-translate"/>

@@ -19,20 +19,19 @@ class Status():
         if output_path.exists():
             self._name = sub_paths.exp_name
             self._status_xml = xml_load_from_path(output_path)
-            self._message = single_xpath(self._status_xml,
-                                         '/librec-auto-status/message').text
+            self._messages = self._status_xml.xpath('/experiment/statuses/status/message')
 
         if self._subpaths.get_path('log').exists():
             self._log = LogFile(self._subpaths)
         else:
             self._log = None
 
-            params = self._status_xml.xpath('//param')
-            if params != None:
-                self.process_params(params)
-            else:
-                self._params = []
-                self.m_vals = []
+        params = self._status_xml.xpath('//param')
+        if params != None:
+            self.process_params(params)
+        else:
+            self._params = []
+            self.m_vals = []
 
     def __str__(self):
         params_string = self.get_params_string()
@@ -40,10 +39,10 @@ class Status():
             results_string = self.get_log_info()
         else:
             results_string = "No LibRec results"
-        return f'Status({self._name}:{self._message}{params_string} Overall{results_string})'
+        return f'Status({self._name}:{self._messages[-1].text}{params_string} Overall{results_string})'
 
     def is_completed(self):
-        return self._message == 'Completed'
+        return any([elem.text == 'Completed' for elem in self._messages])
 
     def process_params(self, param_elements):
         param_list = []
@@ -81,6 +80,8 @@ class Status():
             metric_info = metric_info + f' {metric_name}: {float(metric_value):.3f}'
         return metric_info
 
+    # 2021-05-30 RB I think this method should be deleted. Status is now consolitated
+    # in output.xml.
     @staticmethod
     def save_status(msg: str, exp_count: int, config, paths: ExpPaths) -> None:
         """Generate and save the experiment status
@@ -316,7 +317,8 @@ def move_field_from_element(
     element_to_move = None
     if to_remove is not None:
         element_to_move = original_parent.find(to_remove)
-        element_to_move.getparent().remove(element_to_move)
+        if element_to_move is not None:
+            element_to_move.getparent().remove(element_to_move)
     else:
         # We want to move the original parent here.
         element_to_move = original_parent
