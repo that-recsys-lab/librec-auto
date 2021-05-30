@@ -316,3 +316,6 @@ class ExpPaths:
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         fname = ExpPaths.DEFAULT_LOG_PATTERN.format(stamp)
         return self.get_path('log') / fname
+
+    def get_custom_metrics_log_path(self):
+        return self.get_path('log') / 'python-metrics.json'

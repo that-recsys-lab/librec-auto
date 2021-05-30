@@ -1,5 +1,8 @@
 import datetime
 import os.path
+import json
+
+from pathlib import PosixPath
 from librec_auto.core.util import xml_load_from_path, ExpPaths, LogFile
 from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
@@ -122,14 +125,28 @@ class Status():
 
         output_file_path_string = output_file.absolute().as_posix()
 
-        _update_output(output_file_path_string, status_xml, paths)
+        python_metric_path = config.get_files().get_exp_paths(
+            exp_count).get_custom_metrics_log_path()
+
+        _update_output(output_file_path_string, status_xml, paths,
+                       python_metric_path)
 
 
-def _generate_folds_results_output(paths: ExpPaths) -> etree._Element:
+def _get_python_side_metric_results(path: PosixPath) -> list:
+    if not os.path.exists(path):
+        return None
+
+    with open(path, 'r') as file:
+        return json.load(file)
+
+
+def _generate_folds_results_output(
+        paths: ExpPaths, python_metric_path: PosixPath) -> etree._Element:
     """Generates XML data for CV fold results
 
     Args:
         paths (ExpPaths): The paths object for this experiment
+        python_metric_path (PosixPath): The path to the python metrics log file
 
     Returns:
         etree._Element: An XML tree containing cv fold results
@@ -141,6 +158,7 @@ def _generate_folds_results_output(paths: ExpPaths) -> etree._Element:
     log = LogFile(paths)
     root_xml = etree.Element("root")
     results_element = etree.SubElement(root_xml, "folds")
+    python_metric_results = _get_python_side_metric_results(python_metric_path)
     for _, index in enumerate(range(log.get_kcv_count())):
         # using index + 1 to one-index the folds
         cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
@@ -151,10 +169,17 @@ def _generate_folds_results_output(paths: ExpPaths) -> etree._Element:
                                               name=metric)
             metric_element.text = all_values[metric]['cv_results'][
                 index]  # add cv value
+        if python_metric_results is not None:
+            for python_metric in python_metric_results[index]:
+                metric_element = etree.SubElement(cv_element,
+                                                  "metric",
+                                                  name=python_metric['name'])
+                metric_element.text = str(python_metric['value'])
     return root_xml
 
 
-def _generate_average_results_output(paths: ExpPaths) -> etree._Element:
+def _generate_average_results_output(
+        paths: ExpPaths, python_metric_path: PosixPath) -> etree._Element:
     # check if the log directory exists and has contents
     if not paths.get_path('log').exists() or not os.listdir(
             paths.get_path('log')):
@@ -167,13 +192,15 @@ def _generate_average_results_output(paths: ExpPaths) -> etree._Element:
         metric_element = etree.SubElement(averages_element,
                                           "metric",
                                           name=metric)
-        # add average value
-        metric_element.text = all_values[metric]['average_result']
+        average_result = sum(
+            float(v) for v in all_values[metric]['cv_results']) / len(
+                all_values[metric]['cv_results'])
+        metric_element.text = str(average_result)
     return root_xml
 
 
 def _update_output(output_file_path: str, status_xml: etree._Element,
-                   paths: ExpPaths) -> None:
+                   paths: ExpPaths, python_metric_path: PosixPath) -> None:
     """Saves or updates the output file with this Status object's new status.
 
 
@@ -181,12 +208,15 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         output_file_path (str): The path of the output file
         status_xml (etree._Element): The XML for this status update
         paths (ExpPaths): The paths object for this experiment
+        python_metric_path (PosixPath): The path to the python metrics log file
     """
     status_xml.tag = "status"
 
     # update the results objects
-    results_folds_xml = _generate_folds_results_output(paths)
-    results_average_xml = _generate_average_results_output(paths)
+    results_folds_xml = _generate_folds_results_output(paths,
+                                                       python_metric_path)
+    results_average_xml = _generate_average_results_output(
+        paths, python_metric_path)
 
     if _output_file_exists(output_file_path):
         # append this status to an existing file

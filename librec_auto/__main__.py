@@ -1,4 +1,5 @@
 import argparse
+from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
@@ -20,10 +21,11 @@ def read_args():
         'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
     )
 
+    # todo remove py-eval AS
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check'
+                            'status', 'describe', 'check', 'py-eval'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -228,7 +230,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('full', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd4 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
@@ -242,6 +245,13 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('eval', args, config)
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        if post_flag:
+            cmd.add_command(PostCmd())
+        return cmd
+
+    # Running python side evaluation
+    if action == 'py-eval':
+        cmd = SequenceCmd([EvalCmd(args, config)])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
