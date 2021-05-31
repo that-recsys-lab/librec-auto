@@ -218,7 +218,7 @@ def _generate_average_results_output(
     return root_xml
 
 
-# Input is list of dicts name, value.
+# Input is list of lists of dicts name, value.
 # Output is dict: name [list of values] (as in the log format)
 def _consolidate_results(python_metric_results) -> defaultdict:
     result_dict = defaultdict(list)
