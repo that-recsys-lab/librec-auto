@@ -5,10 +5,12 @@ import os
 
 class LogFile:
     """
-    Uses pattern matching to create an object our of the librec log files
+    Uses pattern matching to create an object out of the librec log files
     
     By default, this uses the most recent log file in the directory.
     """
+    _LOG_FILE_RE = r'librec-\d+_\d+.log'
+
     def __str__(self):
         return f'LogFile({self._values}'
 
@@ -24,7 +26,10 @@ class LogFile:
 
     def newest_log(self, paths):
         log_dir = paths.get_path('log')
-        log_files = os.listdir(log_dir)
+        log_dir_files = os.listdir(log_dir)
+        log_pat = re.compile(self._LOG_FILE_RE)
+
+        log_files = list(filter(log_pat.match, log_dir_files))
         newest_file = sorted(log_files, reverse=True)[0]
         return log_dir / newest_file
 

@@ -1,6 +1,9 @@
 import datetime
 import os.path
 import json
+import numpy as np
+from collections import defaultdict
+from typing import Optional
 
 from pathlib import PosixPath
 from librec_auto.core.util import xml_load_from_path, ExpPaths, LogFile
@@ -8,10 +11,13 @@ from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
 
 
-class Status():
+# 2021-05-31 RB Ideally the python metric results would be loaded here just like the
+# LibRec log file.
+class Status:
     """
     The output (status) from an experiment.
     """
+
     def __init__(self, sub_paths: ExpPaths):
         self._subpaths = sub_paths
         output_path = self._subpaths.get_path('output')
@@ -27,12 +33,13 @@ class Status():
             self._log = None
 
         params = self._status_xml.xpath('//param')
-        if params != None:
+        if params is not None:
             self.process_params(params)
         else:
             self._params = []
-            self.m_vals = []
+            self._vals = []
 
+    # 2021-05-31 RB It would be nice if the python results were printed here.
     def __str__(self):
         params_string = self.get_params_string()
         if self._log:
@@ -68,20 +75,21 @@ class Status():
 
     def get_log_info(self):
         kcv_count = self._log.get_kcv_count()
+        # Unclear how non-CV cases are handled
         if kcv_count is None:
-            return self.get_metric_info(self._log, 0)
+            return self.get_metric_info(self._log)
         else:
-            return self.get_metric_info(self._log, -1)
+            return self.get_metric_info(self._log)
 
-    def get_metric_info(self, log, idx):
+    def get_metric_info(self, log):
         metric_info = ''
         for metric_name in log.get_metrics():
-            metric_value = log.get_metric_values(metric_name)[idx]
-            metric_info = metric_info + f' {metric_name}: {float(metric_value):.3f}'
+            str_vals = log.get_metric_values(metric_name)['cv_results']
+            num_vals = [float(val) for val in str_vals]
+            avg_metric_value = np.average(num_vals)
+            metric_info = metric_info + f' {metric_name}: {float(avg_metric_value):.3f}'
         return metric_info
 
-    # 2021-05-30 RB I think this method should be deleted. Status is now consolitated
-    # in output.xml.
     @staticmethod
     def save_status(msg: str, exp_count: int, config, paths: ExpPaths) -> None:
         """Generate and save the experiment status
@@ -133,7 +141,7 @@ class Status():
                        python_metric_path)
 
 
-def _get_python_side_metric_results(path: PosixPath) -> list:
+def _get_python_side_metric_results(path: PosixPath) -> Optional[list]:
     if not os.path.exists(path):
         return None
 
@@ -142,7 +150,7 @@ def _get_python_side_metric_results(path: PosixPath) -> list:
 
 
 def _generate_folds_results_output(
-        paths: ExpPaths, python_metric_path: PosixPath) -> etree._Element:
+        paths: ExpPaths, python_metric_path: PosixPath) -> Optional[etree._Element]:
     """Generates XML data for CV fold results
 
     Args:
@@ -155,7 +163,7 @@ def _generate_folds_results_output(
     # check if the log directory exists and has contents
     if not paths.get_path('log').exists() or not os.listdir(
             paths.get_path('log')):
-        return
+        return None
     log = LogFile(paths)
     root_xml = etree.Element("root")
     results_element = etree.SubElement(root_xml, "folds")
@@ -180,24 +188,47 @@ def _generate_folds_results_output(
 
 
 def _generate_average_results_output(
-        paths: ExpPaths, python_metric_path: PosixPath) -> etree._Element:
+        paths: ExpPaths, python_metric_path: PosixPath) -> Optional[etree._Element]:
     # check if the log directory exists and has contents
     if not paths.get_path('log').exists() or not os.listdir(
             paths.get_path('log')):
-        return
+        return None
     log = LogFile(paths)
     root_xml = etree.Element("root")
     averages_element = etree.SubElement(root_xml, "averages")
     all_values = log.get_all_values()
+    python_metric_results = _get_python_side_metric_results(python_metric_path)
+    if python_metric_results is not None:
+        python_metrics = _consolidate_results(python_metric_results)
     for metric in all_values:
         metric_element = etree.SubElement(averages_element,
                                           "metric",
                                           name=metric)
         average_result = sum(
             float(v) for v in all_values[metric]['cv_results']) / len(
-                all_values[metric]['cv_results'])
+            all_values[metric]['cv_results'])
         metric_element.text = str(average_result)
+    if python_metric_results is not None:
+        for metric_name, metric_values in python_metrics.items():
+            metric_element = etree.SubElement(averages_element,
+                                              "metric",
+                                              name=metric_name)
+            average_result = np.average(list(float(v) for v in metric_values))
+            metric_element.text = str(average_result)
     return root_xml
+
+
+# Input is list of dicts name, value.
+# Output is dict: name [list of values] (as in the log format)
+def _consolidate_results(python_metric_results) -> defaultdict:
+    result_dict = defaultdict(list)
+    for entry_list in python_metric_results:
+        for entry in entry_list:
+            name = entry['name']
+            val = entry['value']
+            result_dict[name].append(val)
+
+    return result_dict
 
 
 def _update_output(output_file_path: str, status_xml: etree._Element,
@@ -285,14 +316,14 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         if results_folds_xml is not None:
             move_field_from_element(results_folds_xml,
                                     "folds",
-                                    parent=results_element)
+                                    results_element)
         else:
             etree.SubElement(results_element, "folds")
 
         if results_average_xml is not None:
             move_field_from_element(results_average_xml,
                                     "averages",
-                                    parent=results_element)
+                                    results_element)
         else:
             etree.SubElement(results_element, "averages")
 
@@ -301,9 +332,9 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
 
 
 def move_field_from_element(
-    original_parent: etree._Element,
-    to_remove: str,
-    replacement_parent: etree._Element = None,
+        original_parent: etree._Element,
+        to_remove: str,
+        replacement_parent: etree._Element = None,
 ) -> None:
     """ An XML utility function to move or remove a field from an element.
     If replacement_parent is None, this performs a removal.
@@ -311,10 +342,11 @@ def move_field_from_element(
 
     Args:
         original_parent (etree._Element): The initial parent of the field to be moved/removed.
-        to_remove (str): The name of the field to be moved/removed. None means to move the root. None can only be used to move and not remove.
-        replacement_parent (etree._Element, optional): The new parent for the field to be moved. Defaults to None.
+        to_remove (str): The name of the field to be moved/removed. None means to move the root.
+        None can only be used to move and not remove.
+        replacement_parent (etree._Element, optional): The new parent for the field to be moved.
+        Defaults to None.
     """
-    element_to_move = None
     if to_remove is not None:
         element_to_move = original_parent.find(to_remove)
         if element_to_move is not None:
