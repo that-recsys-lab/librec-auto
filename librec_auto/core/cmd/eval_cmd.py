@@ -2,17 +2,18 @@ from pathlib import Path
 import os
 import json
 
-from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
+#from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
 from librec_auto.core import ConfigCmd
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Status
+from librec_auto.core.util import Status, utils
 
-from librec_auto.core.eval.metrics.ndcg_metric import NdcgMetric
-from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
+#from librec_auto.core.eval.metrics.ndcg_metric import NdcgMetric
+#from librec_auto.core.eval.metrics.rmse_metric import RmseMetric
 from librec_auto.core.eval.evaluator import Evaluator
 
 # todo add all metrics here
-metric_name_to_class = {'ndcg': NdcgMetric, 'rmse': RmseMetric}
+# Not sure we want to support this
+#metric_name_to_class = {'ndcg': NdcgMetric, 'rmse': RmseMetric}
 
 
 class EvalCmd(Cmd):
@@ -50,13 +51,12 @@ class EvalCmd(Cmd):
             """
             Returns a params dict from the metric_element's params child.
             """
-            params_element = metric_element.find('params')
-            if params_element is None:
+            params_elements = metric_element.xpath('//param')
+            if params_elements is None:
                 return {}
-            all_children = params_element.findall('*')
             params = {}
-            for child in all_children:
-                params[child.tag] = child.text
+            for child in params_elements:
+                params[child.get('name')] = child.text
             return params
 
         metric_elements = self._config.get_python_metrics()
@@ -64,24 +64,26 @@ class EvalCmd(Cmd):
         metric_classes = []
 
         for metric_element in metric_elements:
-            if metric_element.find('script-name') != None:
-                # This is a custom metric with a passed script
-                metric_classes.append({
-                    'script':
-                    metric_element.find('script-name').text,
-                    'params':
+            script_path = utils.get_script_path(metric_element, 'eval')
+            metric_classes.append({
+                'script':
+                    script_path,
+                'params':
                     get_params(metric_element)
-                })
-            else:
-                metric_name = metric_element.find('name').text
-                metric_classes.append({
-                    'element':
-                    metric_element,
-                    'class':
-                    metric_name_to_class[metric_name],
-                    'params':
-                    get_params(metric_element)
-                })
+            })
+                # Not sure we want to support this
+            #            if metric_element.find('script-name') != None:
+            # This is a custom metric with a passed script
+            # else:
+            #     metric_name = metric_element.find('name').text
+            #     metric_classes.append({
+            #         'element':
+            #         metric_element,
+            #         'class':
+            #         metric_name_to_class[metric_name],
+            #         'params':
+            #         get_params(metric_element)
+            #     })
 
         return metric_classes
 

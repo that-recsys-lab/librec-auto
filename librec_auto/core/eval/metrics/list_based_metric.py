@@ -1,11 +1,13 @@
 import numpy as np
 import pickle
+from librec_auto.core import ConfigCmd
 
 
 class ListBasedMetric:
-    def __init__(self, params: dict, test_data: np.array,
+    def __init__(self, params: dict, conf: ConfigCmd, test_data: np.array,
                  result_data: np.array, output_file) -> None:
         self._params = params
+        self._conf = conf
         self._test_data = test_data
         self._result_data = result_data
         self._name = 'Generic Metric'

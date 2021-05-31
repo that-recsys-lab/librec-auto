@@ -19,12 +19,13 @@ class Evaluator:
       - For each CV:
         * Initialize an Evaluator <- gets all the data here
           - Runs Metric1 (i.e., implementation of ListBasedMetric)
-          - Runs Metric2 (i.e., implementation of RowBasedMetric)
+          - Runs Metric2
           - ...
+    Must all be of the same type (ListBased or RowBased)
 
     AS 3-26-21
     """
-    def __init__(self, config: ConfigCmd, metrics: list, cv_directory: Path,
+    def __init__(self, conf: ConfigCmd, metrics: list, cv_directory: Path,
                  experiment_num: int, cv_num: int) -> None:
         """Init
 
@@ -35,16 +36,24 @@ class Evaluator:
             experiment_num (int): The experiment number of this experiment, zero indexed.
             cv_num (int): The CV number for this CV, one indexed.
         """
-        self._config = config
+        self._conf = conf
         self._metrics = metrics
         self._cv_directory = cv_directory
         self._experiment_num = experiment_num
         self._cv_num = cv_num
 
-        self._result_data_file = self._config.get_files().get_study_path(
-        ) / self._config.get_files().get_exp_paths(
-            self._experiment_num).get_path(
-                'librec_result') / 'out-{0}.txt'.format(self._cv_num)
+        files = self._conf.get_files()
+
+        self._result_data_file = files.get_study_path() / \
+            files.get_exp_paths(self._experiment_num).get_path('librec_result') / \
+                                 'out-{0}.txt'.format(self._cv_num)
+
+        # This is the destination for custom script output.
+        # The custom class files will save results here (as a pickle)
+        # so that the evaluator can retreive them.
+        self._temp_output_file = files.get_study_path() / \
+            files.get_exp_paths(self._experiment_num).get_path('librec_result') / \
+                                 'py-eval-temp.pickle'
         self._test_data_file = self._cv_directory / 'test.txt'
         self._test_data = np.genfromtxt(self._test_data_file, delimiter='\t')
 
@@ -54,39 +63,37 @@ class Evaluator:
 
         todo: parallelize this
         """
-        # This is the destination for custom script output.
-        # The custom class files will save results here (as a pickle)
-        # so that the evaluator can retreive them.
-        custom_script_output_file = 'py-eval-temp.pickle'
 
         metric_results = []
 
         for metric_dict in self._metrics:
             if metric_dict.get('script') != None:
                 # Run this script with the params
-                exec_path = self._config.get_files().get_study_path()
+                exec_path = self._conf.get_files().get_study_path()
 
                 proc_spec = [sys.executable, metric_dict['script']]
                 params = [
-                    '--test', self._test_data_file, '--result',
-                    self._result_data_file.absolute(), '--output-file',
-                    custom_script_output_file
+                    '--conf', self._conf.get_files().get_config_file_path().name,
+                    '--test', str(self._test_data_file),
+                    '--result', str(self._result_data_file.absolute()),
+                    '--output-file', str(self._temp_output_file.absolute())
                 ]
+
                 for key in metric_dict['params']:
                     params.append('--' + key)
                     params.append(metric_dict['params'][key])
 
-                subprocess.call(proc_spec + params,
+                subprocess.check_call(proc_spec + params,
                                 cwd=str(exec_path.absolute()))
 
                 custom_result = ListBasedMetric.read_custom_results(
-                    exec_path / custom_script_output_file)
-                metric_name = metric_dict['script'].replace('.py', '')
+                    self._temp_output_file.absolute())
+                script_name = metric_dict['script'].name
                 metric_results.append({
-                    'name': metric_name,
+                    'name': script_name,
                     'value': custom_result
                 })
-                print(metric_name, ':', custom_result)
+                print(script_name, ':', custom_result)
 
             else:
                 # Create a new instance of this metric

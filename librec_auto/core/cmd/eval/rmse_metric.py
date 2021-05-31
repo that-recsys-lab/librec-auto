@@ -1,5 +1,5 @@
 import numpy as np
-from .row_based_metric import RowBasedMetric
+from librec_auto.core.eval import RowBasedMetric
 
 
 class RmseMetric(RowBasedMetric):

@@ -99,7 +99,6 @@ def get_script_path(script_xml, cmd_type):
     else:
         return None
 
-
 def create_param_spec(script_xml):
     params = script_xml.xpath('param')
     param_list = []

@@ -221,7 +221,7 @@ class ConfigCmd:
         """
         Gets the XML elements for python-side metrics
         """
-        return self._xml_input.findall('metric[@python="true"]')
+        return self._xml_input.findall('metric/script[@lang="python3"]')
 
     def get_cv_directories(self) -> List[Path]:
         """
