@@ -21,6 +21,7 @@ class PurgeCmd(Cmd):
     def dry_run(self, config):
         print(f"librec-auto (DR): Executing purge command {self}")
 
+    # 2021-05-31 TODO RB Need purge for the eval command
     def execute(self, config: ConfigCmd):
         self.status = Cmd.STATUS_INPROC
         self._files = config.get_files()
@@ -52,6 +53,10 @@ class PurgeCmd(Cmd):
 
     def purge_subexperiments(self):
         target = self._files.get_study_path()
+
+        output_path = target / 'output.xml'
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
         print("librec-auto: Purging sub-experiments", target)
         if self._files.get_exp_count() > 0:

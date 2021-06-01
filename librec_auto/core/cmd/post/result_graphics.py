@@ -5,6 +5,7 @@ import webbrowser
 
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 matplotlib.use('Agg')  # For non-windowed plotting
 
@@ -32,6 +33,9 @@ def get_metric_info(files):
 
     return metric_info
 
+def metric_values_float(log, metric):
+    str_values = log.get_metric_values(metric)['cv_results']
+    return [float(val) for val in str_values]
 
 def create_bar(path, metric_name, params, settings, metric_values):
     x_range = range(0, len(settings))
@@ -65,7 +69,7 @@ def create_bars(path, metric_info):
         for params, vals, log in metric_info.values():
             param_string = ', '.join(params)
             settings.append('\n'.join(vals))
-            metric_vals.append(float(log.get_metric_values(metric)[-1]))
+            metric_vals.append(np.average(metric_values_float(log, metric)))
 
         bar_paths.append(
             create_bar(path, metric, param_string, settings, metric_vals))
@@ -100,8 +104,8 @@ def create_boxes(path, metric_info):
         for params, vals, log in metric_info.values():
             param_string = ', '.join(params)
             settings.append('\n'.join(vals))
-            metric_vals = log.get_metric_values(metric)[:-1]
-            fold_vals.append([float(val) for val in metric_vals])
+            metric_vals = metric_values_float(log, metric)
+            fold_vals.append(metric_vals)
 
         box_paths.append(
             create_box(path, metric, param_string, settings, fold_vals))

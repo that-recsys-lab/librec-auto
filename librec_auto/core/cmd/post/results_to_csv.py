@@ -44,7 +44,7 @@ def extract_full_info(config):
             table_values[param] = np.repeat(val, entry_count)
 
         for metric in log.get_metrics():
-            table_values[metric] = log.get_metric_values(metric)[0:entry_count]
+            table_values[metric] = metric_values_float(log, metric)
 
         exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
@@ -67,10 +67,14 @@ def extract_summary_info(config):
             table_values[param].append(val)
 
         for metric in log.get_metrics():
-            table_values[metric].append(log.get_metric_values(metric)[-1])
+            table_values[metric].append(np.average(metric_values_float(log, metric)))
 
     exp_results = pd.DataFrame(table_values)
     return (exp_results, time_stamp)
+
+def metric_values_float(log, metric):
+    str_values = log.get_metric_values(metric)['cv_results']
+    return [float(val) for val in str_values]
 
 
 def save_data(df, choice, time_stamp):

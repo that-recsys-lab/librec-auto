@@ -207,7 +207,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd2 = SetupCmd()
         cmd3 = RerankCmd()
         cmd4 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
+        cmd5 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4, cmd5])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
@@ -244,17 +245,18 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('eval', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd4 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
         if post_flag:
             cmd.add_command(PostCmd())
         return cmd
 
-    # Running python side evaluation
-    if action == 'py-eval':
-        cmd = SequenceCmd([EvalCmd(args, config)])
-        if post_flag:
-            cmd.add_command(PostCmd())
-        return cmd
+    # # Running python side evaluation
+    # if action == 'py-eval':
+    #     cmd = SequenceCmd([EvalCmd(args, config)])
+    #     if post_flag:
+    #         cmd.add_command(PostCmd())
+    #     return cmd
 
     if action == 'check':
         cmd = build_librec_commands('check', args, config)
