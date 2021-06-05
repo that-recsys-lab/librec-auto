@@ -45,6 +45,7 @@ class Files:
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
+    _DEFAULT_DEEPREC_WRAPPER = "deep_rec_wrapper.py"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
@@ -80,6 +81,10 @@ class Files:
     def get_classpath(self):
         return (self.get_jar_path() /
                 self._DEFAULT_LA_JAR).absolute().as_posix()
+
+    def get_deeprec_classpath(self):
+        return (self.get_jar_path() /
+                self._DEFAULT_DEEPREC_WRAPPER).absolute().as_posix()
 
     # Paths related to the current study
     def get_study_path(self):

@@ -6,3 +6,8 @@ from .post_cmd import PostCmd
 from .rerank_cmd import RerankCmd
 from .status_cmd import StatusCmd
 from .parallel_cmd import ParallelCmd
+<<<<<<< Updated upstream
+=======
+from .install_cmd import InstallCmd
+from .deeprec_cmd import deeprec_cmd
+>>>>>>> Stashed changes

@@ -3,8 +3,13 @@ from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
+<<<<<<< Updated upstream
 from librec_auto.core.util import Files, create_study_output
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
+=======
+from librec_auto.core.util import Files
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd, DeeprecCmd
+>>>>>>> Stashed changes
 import logging
 import librec_auto
 
@@ -25,7 +30,11 @@ def read_args():
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
+<<<<<<< Updated upstream
                             'status', 'describe', 'check', 'py-eval'
+=======
+                            'status', 'describe', 'check', 'install', 'deeprun'
+>>>>>>> Stashed changes
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -92,7 +101,13 @@ def read_args():
     parser.add_argument(
         "-k",
         "--key_password",
-        help="Password for the API keys used by post-processing scripts")
+        help="Password for the API keys used by post-processing scripts"),
+
+    parser.add_argument(
+        "-deeprun",
+        "--deeprun",
+        help="Deep Rec algorithm to replace Librec algorithm",
+        action="store_true")
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -170,6 +185,16 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd):
     else:
         return SequenceCmd(librec_commands)
 
+def build_deeprec_commands(deeprec_action, args, config):
+    deeprec_commands = [
+        DeeprecCmd(deeprec_action, i) for i in range(config.get_sub_exp_count())
+    ]
+    threads = config.thread_count()
+
+    if threads > 1 and not args['no_parallel']:
+        return ParallelCmd(deeprec_commands, threads)
+    else:
+        return SequenceCmd(deeprec_commands)
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
 def setup_commands(args: dict, config: ConfigCmd):
@@ -239,6 +264,22 @@ def setup_commands(args: dict, config: ConfigCmd):
             cmd.add_command(PostCmd())
         return cmd
 
+        # DeepRec
+    if action == 'deeprun':
+        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd2 = SetupCmd()
+        cmd3 = build_librec_commands('split', args, config)
+        cmd4 = build_deeprec_commands('deep_algo', args, config)
+        cmd5 = build_librec_commands('eval', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4, cmd5])
+        #Continue here
+        if rerank_flag:
+            cmd.add_command(RerankCmd())
+            cmd.add_command(build_deeprec_commands('eval', args, config))
+        if post_flag:
+            cmd.add_command(PostCmd())
+        return cmd
+
     # eval-only
     if action == 'eval':
         cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
@@ -259,6 +300,7 @@ def setup_commands(args: dict, config: ConfigCmd):
     if action == 'check':
         cmd = build_librec_commands('check', args, config)
         return cmd
+
 
 
 # -------------------------------------
