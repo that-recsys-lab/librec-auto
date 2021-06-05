@@ -27,6 +27,7 @@ class Rerank_Helper():
         self.item_feature_df = None
         self.sim_matrix_dic = {}
         self.item_feature_matrix = None
+        self.weight = None
 
     def set_rerank_helper(self, args, config, item_feature_df):
         # basic info
@@ -76,13 +77,8 @@ class Rerank_Helper():
             return np.count_nonzero(np.logical_and(feature1, feature2)) / \
                    np.count_nonzero(np.logical_or(feature1, feature2))
 
-        try:
-            return 1 - distance.cosine(feature1, feature2)
-        except:
-            tol = 0.0001
-            feature1 = np.append(feature1, tol)
-            feature2 = np.append(feature2, tol)
-            return 1 - distance.cosine(feature1, feature2)
+        return 1 - distance.cosine(feature1, feature2)
+
 
     def update_sim_matrix_dic(self, index1, index2, binary):
 
@@ -94,10 +90,16 @@ class Rerank_Helper():
         vec_proj2 = self.item_feature_df.loc[[index2, ]]
 
         joined = pd.concat([vec_proj1, vec_proj2], axis=0)
+        
+        if self.weight is not None:
+            for label in self.weight.keys():
+                joined.loc[(joined.feature == label), 'value'] *= self.weight[label]
+
         pivoted = joined.pivot(columns='feature').fillna(0)
 
         vec1 = pivoted.loc[index1].to_numpy()
         vec2 = pivoted.loc[index2].to_numpy()
+
         sim_score = self.similarity(vec1, vec2, binary)
 
         sim1 = self.sim_matrix_dic.get(index1, {})
