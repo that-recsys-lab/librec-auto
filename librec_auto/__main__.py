@@ -3,13 +3,10 @@ from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
-<<<<<<< Updated upstream
 from librec_auto.core.util import Files, create_study_output
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
-=======
 from librec_auto.core.util import Files
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd, DeeprecCmd
->>>>>>> Stashed changes
 import logging
 import librec_auto
 
@@ -30,11 +27,8 @@ def read_args():
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-<<<<<<< Updated upstream
                             'status', 'describe', 'check', 'py-eval'
-=======
                             'status', 'describe', 'check', 'install', 'deeprun'
->>>>>>> Stashed changes
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -266,7 +260,7 @@ def setup_commands(args: dict, config: ConfigCmd):
 
         # DeepRec
     if action == 'deeprun':
-        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd1 = PurgeCmd('results', noask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('split', args, config)
         cmd4 = build_deeprec_commands('deep_algo', args, config)
@@ -325,7 +319,7 @@ if __name__ == '__main__':
                         command.dry_run(config)
                     else:
                         command.execute(config)
-                        create_study_output(config)
+                        # create_study_output(config)
                 else:
                     logging.error("Command instantiation failed.")
             else:
