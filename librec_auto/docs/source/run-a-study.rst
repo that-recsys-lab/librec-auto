@@ -20,9 +20,9 @@ This is what happens when you call the ``librec`` jar from the command line.
 What is a study?
 ----------------
 
-A study is a collection of experiments. ``librec_auto`` automates running
-multiple experiments at once, and the entity that encompasses a set of related
-experiments is called a study.
+A study is a collection of experiments using the same algorithm and the same data set. ``librec_auto`` automates running
+multiple experiments at once by varying algorithm hyperparameters, and the entity that encompasses a set of related
+experiments is called a study. If you want to examine multiple algorithms, you will need to define multiple studies.
 
 File Structure
 ==============
@@ -108,10 +108,8 @@ Let's consider a single experiment directory:
 
 * ``conf`` holds the auto-generated configuration file for this *experiment* (not for the study), as well as the ``librec.properties`` equivalent of the ``config.xml``.
     * Don't tamper with these files: to edit the experiment configurations, modify the study-wide ``movies/conf/config.xml`` file.
-* ``log`` holds the log output from running the experiment.
-* ``result`` holds the computed recommendation lists from the ``librec`` experiment.
-* ``original`` can be used for re-ranking, without having to recompute the original recommendations. To use this feature:
-    * Copy the results from ``results`` to ``original`` (since the new re-ranking results will soon live in ``results``).
+* ``log`` holds the log output from running the experiment. Many LibRec algorithms output log information containing training phase information and this can be found here.
+* ``result`` holds the computed recommendation lists or predictions from the ``librec`` experiment.
+* ``original`` is a directory used for experiments involving result re-ranking. The re-ranker will copy the original recommendation output from the algorithm to this directory. Re-ranked results are then place in the ``result`` directory so they can be located by subsequent processes. You can experiment with multiple hyperparameters for a re-ranking algorithm without recomputing the base recommendations. For example:
     * Re-rank the results with ``python -m librec_auto rerank movies``
 
-.. include:: supported-algorithms.rst

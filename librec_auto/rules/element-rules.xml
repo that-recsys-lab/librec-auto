@@ -43,7 +43,13 @@
 	
 	<alg>
 		<class>rec.recommender.class</class>
-		
+
+		<!-- optimization -->
+		<optimize>
+			<metric action="no-translate"/>
+			<iterations action="no-translate"/>
+		</optimize>
+
 		<!--general algorithm parameters -->
 		<iterator-max>rec.iterator.maximum</iterator-max>
 		<burn-in>rec.pgm.burnin</burn-in>
