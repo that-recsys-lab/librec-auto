@@ -42,6 +42,7 @@ class Files:
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
     _EXP_DIR_FORMAT = "exp{:05d}"
     _EXP_DIR_PATTERN = "exp(\d+)"
+    _OUTPUT_FILE_NAME = "output.xml"
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
@@ -84,6 +85,9 @@ class Files:
     # Paths related to the current study
     def get_study_path(self):
         return self._study_path
+
+    def get_status_path(self):
+        return self._study_path / self._OUTPUT_FILE_NAME
 
     def get_config_file_path(self):
         return self._study_path / self._config_dir_path / self._config_file_name
