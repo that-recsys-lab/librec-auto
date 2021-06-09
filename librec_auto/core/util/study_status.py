@@ -1,7 +1,39 @@
 from datetime import datetime
+from librec_auto.core.util.files import ExpPaths, Files
+from librec_auto.core.util.xml_utils import xml_load_from_path
 
 from lxml import etree
 from .status import move_field_from_element
+
+
+class StudyStatus:
+    '''
+    The output (status) from a study.
+    '''
+
+    def __init__(self, config):
+        self._config = config
+        study_xml = xml_load_from_path(config.get_files().get_status_path())
+        self._metric_info = {}
+
+        # First check if the study xml exists.
+        if study_xml is None:
+            # If it does, loop over all experiments
+            create_study_output(config)
+            study_xml = xml_load_from_path(config.get_files().get_status_path())
+            
+        for exp in study_xml.xpath('//experiment'):
+                # In each experiment, get the cross validation numbers
+                for cv in exp.xpath('//cv'):
+                    # For each of the cv values, store them into a data structure
+                    for met in cv.children:
+                        print(met.attrib['name'])
+                        print(met.text)
+            
+
+
+
+
 
 
 def create_study_output(config) -> None:
@@ -12,6 +44,8 @@ def create_study_output(config) -> None:
     """
     study_path = config.get_files().get_study_path()
     output_file_path = str(study_path / "output.xml")
+
+    StudyStatus(config)
 
     # Create the root level tree.
     output_tree = etree.Element("study")

@@ -21,6 +21,7 @@ class Status:
     def __init__(self, sub_paths: ExpPaths):
         self._subpaths = sub_paths
         output_path = self._subpaths.get_path('output')
+        self._metric_info = defaultdict()
 
         if output_path.exists():
             self._name = sub_paths.exp_name
@@ -38,6 +39,9 @@ class Status:
         else:
             self._params = []
             self._vals = []
+        
+        if self.is_completed():
+            self._metric_info[self._name] = (self._params, self._vals, self._log)
 
     # 2021-05-31 RB It would be nice if the python results were printed here.
     def __str__(self):
