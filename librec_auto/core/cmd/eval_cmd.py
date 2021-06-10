@@ -51,7 +51,7 @@ class EvalCmd(Cmd):
             """
             Returns a params dict from the metric_element's params child.
             """
-            params_elements = metric_element.xpath('//param')
+            params_elements = metric_element.xpath('param')
             if params_elements is None:
                 return {}
             params = {}

@@ -1,6 +1,6 @@
 import argparse
 from librec_auto.core import read_config_file
-from librec_auto.core.util import Status
+from librec_auto.core.util import Status, StudyStatus
 import webbrowser
 
 import matplotlib
@@ -146,6 +146,7 @@ def create_html(path, metric_info, bars, boxes):
 def create_graphics(config, display):
     files = config.get_files()
     metric_info = get_metric_info(files)
+    StudyStatus(config)
 
     print("Post path")
     print(files.get_post_path())

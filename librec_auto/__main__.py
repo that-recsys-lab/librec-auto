@@ -286,7 +286,7 @@ if __name__ == '__main__':
                     else:
                         command.execute(config)
                         create_study_output(config)
-                        StudyStatus(config)
+                        # StudyStatus(config)
                 else:
                     logging.error("Command instantiation failed.")
             else:
