@@ -1,9 +1,53 @@
 from datetime import datetime
-from librec_auto.core.util.files import ExpPaths, Files
-from librec_auto.core.util.xml_utils import xml_load_from_path
+# from librec_auto.core.util.files import ExpPaths, Files
+from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
+from collections import defaultdict
+from pprint import pprint as pp
 
 from lxml import etree
 from .status import move_field_from_element
+
+class ExperimentData:
+    '''
+    The Python metric data from an experiment.
+    '''
+
+    def __init__(self, experiment):
+        # Used for storing parameters changed
+        self._param = []
+        # Dictionary mapping paramters to their values
+        self._param_vals = {}
+        # Dicitonary of lists to keep track of metric values
+        self._metric_info = defaultdict(list)
+        # Dictionary of average metric values
+        self._metric_avg = {}
+
+        # Parameters
+        params = experiment.xpath('meta/param')
+        for i, param in enumerate(params):
+            # getting names of adjusted parameters
+            self._param.append(param.find('name').text)
+            # getting values each paramter was set to
+            self._param_vals[self._param[i]] = float(param.find('value').text)
+
+        # Folds
+        folds = experiment.xpath('results/folds')
+        print("vals:")
+        for fold in folds:
+            for cv in fold:
+                for met in cv.getchildren():
+                    # Add each 
+                    self._metric_info[met.attrib['name']].append(float(met.text))
+        pp(self._metric_info)
+        
+        # Averages
+        averages = experiment.xpath('results/averages')
+        print("averages:")
+        for ave in averages:
+            for met in ave.getchildren():
+                self._metric_avg[met.attrib['name']] = float(met.text)
+
+        pp(self._metric_avg)
 
 
 class StudyStatus:
@@ -13,22 +57,23 @@ class StudyStatus:
 
     def __init__(self, config):
         self._config = config
+        self._experiments = {}
         study_xml = xml_load_from_path(config.get_files().get_status_path())
-        self._metric_info = {}
-
+        
         # First check if the study xml exists.
         if study_xml is None:
-            # If it does, loop over all experiments
+            # If it doesn't, create one
             create_study_output(config)
             study_xml = xml_load_from_path(config.get_files().get_status_path())
-            
+                    
         for exp in study_xml.xpath('//experiment'):
-                # In each experiment, get the cross validation numbers
-                for cv in exp.xpath('//cv'):
-                    # For each of the cv values, store them into a data structure
-                    for met in cv.children:
-                        print(met.attrib['name'])
-                        print(met.text)
+            # keep track of experiment's name
+            exp_name = "exp" + exp.attrib['count']
+            
+            self._experiments[exp_name] = ExperimentData(exp)
+            
+        pp(self._experiments)
+            
             
 
 
@@ -45,7 +90,6 @@ def create_study_output(config) -> None:
     study_path = config.get_files().get_study_path()
     output_file_path = str(study_path / "output.xml")
 
-    StudyStatus(config)
 
     # Create the root level tree.
     output_tree = etree.Element("study")

@@ -13,6 +13,9 @@
 ## PyCharm
 venv/
 
+# VS Code
+.vscode
+
 # OS
 
 ## Mac
