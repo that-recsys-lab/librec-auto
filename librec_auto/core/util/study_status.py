@@ -1,6 +1,5 @@
 from datetime import datetime
-# from librec_auto.core.util.files import ExpPaths, Files
-from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
+from librec_auto.core.util.xml_utils import xml_load_from_path #, single_xpath
 from collections import defaultdict
 from pprint import pprint as pp
 
@@ -52,7 +51,7 @@ class ExperimentData:
 
 class StudyStatus:
     '''
-    The output (status) from a study.
+    The output (metrics) from a study.
     '''
 
     def __init__(self, config):
