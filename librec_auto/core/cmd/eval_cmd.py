@@ -51,12 +51,13 @@ class EvalCmd(Cmd):
             """
             Returns a params dict from the metric_element's params child.
             """
-            params_elements = metric_element.xpath('//param')
+            params_elements = metric_element.xpath('param')
             if params_elements is None:
                 return {}
             params = {}
             for child in params_elements:
                 params[child.get('name')] = child.text
+                print("param name: " + child.text)
             return params
 
         metric_elements = self._config.get_python_metrics()
