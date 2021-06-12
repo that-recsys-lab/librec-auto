@@ -4,7 +4,7 @@ from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files, create_study_output
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, BBO
 import logging
 import librec_auto
 
@@ -159,13 +159,22 @@ def purge_type(args: dict) -> str:
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
 # and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
 # variation its own parameters.
-def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd):
-    librec_commands = [
-        LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
-    ]
+def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO = False):
+    librec_commands = []
     threads = config.thread_count()
 
-    if threads > 1 and not args['no_parallel']:
+    if BBO is False:
+        librec_commands = [
+            LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
+        ]
+    else:
+        librec_commands = [
+            LibrecCmd(librec_action, i) for i in range(BBO)
+        ]
+
+    if BBO:
+        return librec_commands
+    elif threads > 1 and not args['no_parallel']:
         return ParallelCmd(librec_commands, threads)
     else:
         return SequenceCmd(librec_commands)
@@ -226,6 +235,32 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd = SequenceCmd([cmd1, cmd2, cmd3])
         return cmd
 
+    # re-run experiment
+    if action == 'bbo':
+        cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
+        cmd2 = SetupCmd()
+        cmd3 = [cmd1, cmd2]
+        cmd_store = build_librec_commands('full', args, config, BBO = 200)
+        store_post = [PostCmd() for _ in range(len(cmd_store))]
+
+        for i in range(len(cmd_store)+len(store_post)):
+            if i%2 == 1:
+                cmd3.append(PostCmd())
+            else:
+                cmd3.append(cmd_store[int(i/2)])
+
+        cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
+        cmd = [cmd1, cmd2] + cmd
+
+        if rerank_flag:
+            cmd.append(RerankCmd())
+            print(build_librec_commands('eval', args, config))
+            cmd.append(build_librec_commands('eval', args, config))
+        if post_flag:
+            pass
+        return cmd
+
+
     # re-run experiment and continue
     if action == 'run':
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
@@ -280,12 +315,82 @@ if __name__ == '__main__':
 
             if config.is_valid():
                 command = setup_commands(args, config)
+
+                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
+                    args['action'] = 'bbo'
+                    print('Running BBO')
+                    config = load_config(args)
+                    command = setup_commands(args, config)
+
                 if isinstance(command, Cmd):
                     if args['dry_run']:
                         command.dry_run(config)
                     else:
                         command.execute(config)
                         create_study_output(config)
+
+                elif isinstance(command, list):
+                    vconf = config._var_coll.var_confs
+
+                    num_of_vars = len([0 for var in vconf[0].vars])
+                    
+                    range_val_store = [[i.val for i in j.vars] for j in vconf]
+
+                    print(range_val_store)
+
+                    range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
+
+                    range_val_store = [[min(array), max(array)] for array in range_val_store]
+
+                    print(range_val_store)
+
+                    exponent_expected = num_of_vars
+
+                    for tup in range_val_store:
+                        if tup[0] == tup[1]:
+                            exponent_expected -= 1
+
+                    if 2**exponent_expected == config.get_sub_exp_count():
+                        range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(exponent_expected)]
+                        value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/iterations')]
+
+                        continue_rerank = False
+
+                        if isinstance(command[-2], RerankCmd):
+
+                            final_commands = command[-2:]
+
+                            command = command[:int(value_elems[0])+2]
+
+                            continue_rerank = True
+
+                            command = command + final_commands
+
+                        bbo = BBO.BBO(range_list, exponent_expected, command[2:], config)
+                        file_path = bbo.run_purge(command[0])
+
+                        metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/metric')][0]
+
+                        if metric in bbo.metric_map:
+                            bbo.set_optimization_direction(metric)
+                        else:
+                            bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
+
+                        command[1].execute(config, startval = 0.5, exp_no = int(value_elems[0]))
+
+                        bbo.file_path = file_path
+                        bbo.create_space()
+                        
+                        bbo.run(int(value_elems[0]))
+
+                        if continue_rerank:
+                            command[-2].execute(config)
+                            command[-1].execute(config)
+
+                    else:
+                        print("Each range must have only two values!")
+                        print("Expected", exponent_expected, "values, got", config.get_sub_exp_count())
+                     
                 else:
                     logging.error("Command instantiation failed.")
             else:
