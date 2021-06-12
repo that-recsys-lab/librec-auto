@@ -243,13 +243,9 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd_store = build_librec_commands('full', args, config, BBO = 200)
         store_post = [PostCmd() for _ in range(len(cmd_store))]
 
-        for i in range(len(cmd_store)+len(store_post)):
-            if i%2 == 1:
-                cmd3.append(PostCmd())
-            else:
-                cmd3.append(cmd_store[int(i/2)])
+        for i in range(len(cmd_store):
+            cmd3.append(cmd_store[int(i)])
 
-        cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
         cmd = [cmd1, cmd2] + cmd
 
         if rerank_flag:
