@@ -18,6 +18,6 @@ class SetupCmd(Cmd):
         config.ensure_experiments()
         config.setup_exp_configs()
 
-    def execute(self, config: ConfigCmd):
-        config.ensure_experiments()
-        config.setup_exp_configs()
+    def execute(self, config: ConfigCmd, BBO = False, startval = None, exp_no = None):
+        config.ensure_experiments(exp_no)
+        config.setup_exp_configs(BBO, startval)
