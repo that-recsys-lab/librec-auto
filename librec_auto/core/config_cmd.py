@@ -160,6 +160,7 @@ class ConfigCmd:
                 val_lower = [elem.text for elem in parent.iterchildren(tag='lower')]
                 val_upper = [elem.text for elem in parent.iterchildren(tag='upper')]
                 vals = []
+                print(val_lower,val_upper)
                 for i in range(len(val_lower)):
                     vals.append(val_lower[i])
                     vals.append(val_upper[i])
