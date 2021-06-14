@@ -4,7 +4,7 @@ from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files, create_study_output
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, BBOPostCmd, BBO
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, BBO
 import logging
 import librec_auto
 
@@ -243,13 +243,11 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd_store = build_librec_commands('full', args, config, BBO = 200)
         store_post = [PostCmd() for _ in range(len(cmd_store))]
 
-        for i in range(len(cmd_store)+len(store_post)-1):
+        for i in range(len(cmd_store)+len(store_post)):
             if i%2 == 1:
-                cmd3.append(BBOPostCmd())
+                cmd3.append(PostCmd())
             else:
                 cmd3.append(cmd_store[int(i/2)])
-
-        cmd3.append(PostCmd())
 
         cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
         cmd = [cmd1, cmd2] + cmd
@@ -318,10 +316,9 @@ if __name__ == '__main__':
             if config.is_valid():
                 command = setup_commands(args, config)
 
-                print(len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]))
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
                     args['action'] = 'bbo'
-                    print('Running BBO. Recreating Config.')
+                    print('Running BBO')
                     config = load_config(args)
                     command = setup_commands(args, config)
 
