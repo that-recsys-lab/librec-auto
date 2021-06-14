@@ -100,6 +100,9 @@ def read_args():
 
 if __name__ == '__main__':
     args = read_args()
+
+    print(args)
+
     config = read_config_file(args['conf'], ".")
     study = StudyStatus(config)
     choice = args['option']
