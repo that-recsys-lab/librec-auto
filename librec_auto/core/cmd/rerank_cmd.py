@@ -1,4 +1,5 @@
 import sys
+import os
 import subprocess
 from lxml import etree
 import logging
@@ -71,8 +72,10 @@ class RerankCmd(Cmd):
                     print('librec-auto: No results. Cannot rerank ',
                           self._config.get_target())
                     return
+                original_path = sub_path.get_path('original')
                 # If original dir not empty, don't overwrite
-                sub_path.results2original()  # and there are results here
+                if not os.listdir(original_path):
+                    sub_path.results2original()  # and there are results here
                 original_path = sub_path.get_path('original')
             else:  # If there is a ref, the results are in
                 ref_sub_path = sub_path.get_ref_exp_path(
