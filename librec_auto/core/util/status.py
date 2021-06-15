@@ -81,14 +81,22 @@ class Status:
         else:
             return self.get_metric_info(self._log)
 
-    def get_metric_info(self, log):
+    def get_metric_info(self, log, BBO = False):
+        list_metrics = {}
         metric_info = ''
         for metric_name in log.get_metrics():
             str_vals = log.get_metric_values(metric_name)['cv_results']
             num_vals = [float(val) for val in str_vals]
             avg_metric_value = np.average(num_vals)
             metric_info = metric_info + f' {metric_name}: {float(avg_metric_value):.3f}'
-        return metric_info
+
+            if BBO is True:
+                list_metrics[metric_name] = float(avg_metric_value)
+
+        if BBO is True:
+            return list_metrics
+        else:
+            return metric_info
 
     @staticmethod
     def save_status(msg: str, exp_count: int, config, paths: ExpPaths) -> None:
