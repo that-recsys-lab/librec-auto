@@ -1,6 +1,6 @@
 from collections import OrderedDict, defaultdict
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
-    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
+    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl, Status
 from librec_auto.core.util.xml_utils import single_xpath
 from lxml import etree
 import copy
@@ -54,20 +54,32 @@ class BBO:
             self.direction = self.metric_map[metric]
     
     def get_data(self):
-        directory = ""
+        # directory = ""
         
-        while len(directory) < 5:
-            if len(directory) == 0:
-                directory += str(self.exp_no)
-            else:
-                directory = "0" + directory
+        # while len(directory) < 5:
+        #     if len(directory) == 0:
+        #         directory += str(self.exp_no)
+        #     else:
+        #         directory = "0" + directory
 
-        directory = "/exp" + directory + "/output.xml"
-        directory = str(str(self.file_path) + directory)
+        # directory = "/exp" + directory + "/output.xml"
+        # directory = str(str(self.file_path) + directory)
 
-        tree = etree.parse(directory)
+        # tree = etree.parse(directory)
 
-        store_val = float([elem.text for elem in tree.xpath('/experiment/results/averages/metric') if elem.attrib['name'] == self.title_map[self.metric]][0])
+        # store_val = float([elem.text for elem in tree.xpath('/experiment/results/averages/metric') if elem.attrib['name'] == self.title_map[self.metric]][0])
+
+        i = 0
+        for sub_paths in self.config._files.get_exp_paths_iterator():
+
+            if i != self.exp_no:
+                i += 1
+                continue
+            print("exp_no:", self.exp_no)
+            status = Status(sub_paths)
+            store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
+            break
+
 
         # directory = "/exp" + directory + "/log"
         # directory = str(str(self.file_path) + directory)
