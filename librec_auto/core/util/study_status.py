@@ -18,7 +18,7 @@ class ExperimentData:
         self._param_vals = {}
         # Dicitonary of lists to keep track of metric values
         self._metric_info = defaultdict(list)
-        # Dictionary of average metric values
+        # Dictionary with metric as key and average metric value as value
         self._metric_avg = {}
 
         # Parameters
@@ -26,27 +26,27 @@ class ExperimentData:
         for i, param in enumerate(params):
             # getting names of adjusted parameters
             self._param.append(param.find('name').text)
+            print(self._param)
             # getting values each paramter was set to
             self._param_vals[self._param[i]] = float(param.find('value').text)
+        
 
         # Folds
         folds = experiment.xpath('results/folds')
-        print("vals:")
         for fold in folds:
             for cv in fold:
                 for met in cv.getchildren():
                     # Add each 
                     self._metric_info[met.attrib['name']].append(float(met.text))
-        pp(self._metric_info)
+        # pp(self._metric_info)
         
         # Averages
         averages = experiment.xpath('results/averages')
-        print("averages:")
         for ave in averages:
             for met in ave.getchildren():
                 self._metric_avg[met.attrib['name']] = float(met.text)
 
-        pp(self._metric_avg)
+        # pp(self._metric_avg)
 
 
 class StudyStatus:
@@ -71,7 +71,46 @@ class StudyStatus:
             
             self._experiments[exp_name] = ExperimentData(exp)
             
-        pp(self._experiments)
+        #pp(self._experiments)
+
+    # get metric names: keys from metric_info dict
+    # get averages: take metric name as argument
+    # get exp_params: return list of (parameter name, value), input experiment number
+    # get parameter names
+
+    def get_metric_names(self):
+        curr = self._experiments['exp0']
+        print('***** Get metric names: *****')
+        print(list(curr._metric_info.keys()))
+
+    def get_metric_averages(self, metric):
+        print(f'***** Get metric averages for {metric}: *****')
+        avgs = []
+        for exp in self._experiments:
+            avgs.append(self._experiments[exp]._metric_avg[metric])
+        print(avgs)
+
+    def get_exp_param_values(self, experiment):
+        if not experiment in self._experiments.keys():
+            print(f'** Error: ** Invalid experiment name: {experiment}')
+            return
+        
+        print(f'***** Get parameters of experiment {experiment}: *****')
+        param_value_list = []
+    
+        exp_params = self._experiments[experiment]._param_vals
+        print(exp_params)
+        for param in exp_params:
+            param_value_list.append((param, exp_params[param]))
+        print(param_value_list)
+
+    def get_exp_params(self):
+        curr = self._experiments['exp0']
+        print("***** Get adjusted parameter names: *****")
+        print(curr._param)
+
+
+
             
             
 

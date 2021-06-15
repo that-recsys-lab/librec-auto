@@ -4,6 +4,7 @@ Description:
        This script is used to extract the experimental parameters and store it into csv
 '''
 import argparse
+from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Status
 from collections import defaultdict
@@ -28,6 +29,7 @@ def get_metric_info(files):
 
 
 def extract_full_info(config):
+    # change to passing a study
     metric_info = get_metric_info(config.get_files())
     exp_frames = []
     table_values = defaultdict(list)
@@ -50,13 +52,19 @@ def extract_full_info(config):
         exp_frames.append(exp_df)
 
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
+    print(exp_results)
     return (exp_results, time_stamp)
 
 
-def extract_summary_info(config):
+def extract_summary_info(config, study):
+    # change to passing a study
     metric_info = get_metric_info(config.get_files())
     table_values = defaultdict(list)
     time_stamp = None
+
+    # need to keep track of names?
+    for exp in study:
+        print(study[exp])
 
     for exp in metric_info.keys():
         params, vals, log = metric_info[exp]
@@ -70,6 +78,7 @@ def extract_summary_info(config):
             table_values[metric].append(np.average(metric_values_float(log, metric)))
 
     exp_results = pd.DataFrame(table_values)
+    print(exp_results)
     return (exp_results, time_stamp)
 
 def metric_values_float(log, metric):
@@ -101,10 +110,11 @@ if __name__ == '__main__':
     args = read_args()
     config = read_config_file(args['conf'], ".")
 
+    study = StudyStatus(config)
     choice = args['option']
 
     if choice == "summary":
-        df, time_stamp = extract_summary_info(config)
+        df, time_stamp = extract_summary_info(config, study)
         save_data(df, choice, time_stamp)
     elif choice == "full":
         df, time_stamp = extract_full_info(config)
