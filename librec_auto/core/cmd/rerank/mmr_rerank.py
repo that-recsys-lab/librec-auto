@@ -1,6 +1,4 @@
-# MMR rerank
-# Ziyue Guo
-# Fall 2020
+from librec_auto.core.cmd.rerank import Rerank_Helper, User_Helper, Reranker
 
 import numpy as np
 import pandas as pd
@@ -13,160 +11,40 @@ import re
 from pathlib import Path
 from librec_auto.core.util.xml_utils import single_xpath
 import warnings
+
 warnings.filterwarnings('ignore')
+import multiprocessing
 
+class MMR(Reranker):
+    def fun(self):
+        def mmr(rec, rerank_helper, user_helper):
+            num_remain = len(user_helper.item_list)
+            num_curr = len(user_helper.item_so_far)
 
-def similarity(feature1, feature2, method):
-    if method == 'jaccard':
+            if num_curr <= 0:
+                scores = rerank_helper.lamb * rec
 
-        return np.count_nonzero(np.logical_and(feature1, feature2)) / \
-               np.count_nonzero(np.logical_or(feature1, feature2))
+            else:
+                sim = np.zeros([num_remain, num_curr])
+                sim_max = np.zeros(num_remain)
 
-    if method == 'cosine':
-        try:
-            return 1 - distance.cosine(feature1, feature2)
-        except:
-            method = 'cosine_advance'
+                for i in range(num_remain):
+                    for j in range(num_curr):
+                        index1 = user_helper.item_list[i]
+                        index2 = user_helper.item_so_far[j]
+                        sim[i][j] = rerank_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
 
-    if method == 'cosine_advance':
-        tol = 0.0001
-        feature1 = np.append(feature1, tol)
-        feature2 = np.append(feature2, tol)
-        return 1 - distance.cosine(feature1, feature2)
+                    sim_max[i] = np.max(sim[i])
+                scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_max
 
+            return scores, rerank_helper, user_helper
+        return mmr
 
-# RB 2020-09-22 Would be (much) faster to pivot the item feature data set up front. Then the
-# similarity calculations will be much faster. Better yet would be to build a similarity matrix
-# of just the items that are in the result set, and consult that.
+    def __init__(self, rating, training, rerank_helper):
+        Reranker.__init__(self, rating, training, rerank_helper, self.fun())
 
-# ZG 2020-10-12 Build a similarity dictionary. Now it is much faster
-
-
-def MMR_algorithm(lamb, user_id, item_feature_df, scaled_ratings,
-                  user_item_list, scaler, sim_method, top_k, sim_matrix_dic):
-
-    current_result = []
-    remain_list = user_item_list.copy()
-    item_idx = np.argmax(scaled_ratings)
-    current_result.append(remain_list[item_idx])
-    num_item = len(remain_list)
-
-    if (top_k <= 0 or top_k > num_item):
-        top_k = num_item
-
-    if (top_k == 1):
-        return user_id, current_result, np.array([scaled_ratings[item_idx]])
-
-    rec = scaled_ratings.copy()
-    remain_list = np.delete(remain_list, item_idx)
-    all_scores = np.zeros(top_k)
-    all_scores[0] = scaled_ratings[item_idx] * lamb
-
-    for k in range(top_k - 1):
-        rec = np.delete(rec, item_idx)
-        num_remain = len(remain_list)
-        num_curr = len(current_result)
-        sim = np.zeros([num_remain, num_curr])
-        sim_max = np.zeros(num_remain)
-
-        for i in range(num_remain):
-
-            for j in range(num_curr):
-                index1 = remain_list[i]
-                index2 = current_result[j]
-
-                # try to find record of similarity in matrix (dictionary)
-                try:
-                    sim[i][j] = sim_matrix_dic[index1][index2]
-
-                # if not found, calculate similarity
-                except:
-                    vec_proj1 = item_feature_df.loc[[
-                        index1,
-                    ]]
-                    vec_proj2 = item_feature_df.loc[[
-                        index2,
-                    ]]
-
-                    joined = pd.concat([vec_proj1, vec_proj2], axis=0)
-
-                    pivoted = joined.pivot(columns='feature').fillna(0)
-
-                    vec1 = pivoted.loc[index1].to_numpy()
-                    vec2 = pivoted.loc[index2].to_numpy()
-                    sim_score = similarity(vec1, vec2, sim_method)
-                    sim[i][j] = sim_score
-
-                    # fill in the similarity matrix (dictionary)
-                    sim1 = sim_matrix_dic.get(index1, {})
-                    sim1[index2] = sim_score
-                    sim_matrix_dic[index1] = sim1
-
-                    sim2 = sim_matrix_dic.get(index2, {})
-                    sim2[index1] = sim_score
-                    sim_matrix_dic[index2] = sim2
-                # vec_proj1 = item_feature_df.loc[[index1,]]
-                # vec_proj2 = item_feature_df.loc[[index2,]]
-                #
-                # joined = pd.concat([vec_proj1, vec_proj2], axis=0)
-                #
-                # pivoted = joined.pivot(columns='feature').fillna(0)
-                #
-                # vec1 = pivoted.loc[index1].to_numpy()
-                # vec2 = pivoted.loc[index2].to_numpy()
-                # sim[i][j] = similarity(vec1, vec2, sim_method)
-
-            sim_max[i] = np.max(sim[i])
-
-        scores = lamb * rec - (1 - lamb) * sim_max
-
-        max_idx = np.argmax(scores)
-        all_scores[k + 1] = scores[max_idx]
-        current_result.append(remain_list[max_idx])
-        remain_list = np.delete(remain_list, max_idx)
-        item_idx = max_idx
-
-    return [user_id] * top_k, current_result, scaler.fit_transform(
-        all_scores.reshape(-1, 1)).flatten(), sim_matrix_dic
-    # return [user_id] * top_k, current_result, all_scores
-
-
-def reranker(lamb, rating_file, item_feature_df, binary, top_k,
-             sim_matrix_dic):
-
-    all_user_id = np.unique(rating_file['userid'].to_numpy())
-    num_user = len(all_user_id)
-
-    scaler = MinMaxScaler()
-    sim_method = 'jaccard' if binary else 'cosine'
-
-    user = []
-    item = []
-    score = []
-
-    for i in range(num_user):
-        user_id = all_user_id[i]
-        user_rating = rating_file.loc[rating_file["userid"] == user_id,
-                                      ["rating"]].to_numpy()
-        scaled_ratings = scaler.fit_transform(user_rating).flatten()
-        user_item_list = rating_file.loc[rating_file["userid"] == user_id,
-                                         ["itemid"]].to_numpy().flatten()
-
-        result = MMR_algorithm(lamb, user_id, item_feature_df, scaled_ratings,
-                               user_item_list, scaler, sim_method, top_k,
-                               sim_matrix_dic)
-
-        user = user + [user_id] * top_k
-        item = item + list(result[1])
-        score = score + list(result[2])
-        sim_matrix_dic = result[3]
-
-    ziplist = list(zip(user, item, score))
-    df = pd.DataFrame(ziplist, columns=['Users', 'Items', 'Ratings'])
-    return df, sim_matrix_dic
-
-
-RESULT_FILE_PATTERN = 'out-\d+.txt'
+RESULT_FILE_PATTERN = 'out-(\d+).txt'
+INPUT_FILE_PATTERN = 'cv_\d+'
 
 
 def read_args():
@@ -178,14 +56,12 @@ def read_args():
     parser.add_argument('conf', help='Name of configuration file')
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
-    parser.add_argument(
-        '--max_len',
-        help='The maximum number of items to return in each list',
-        default=10)
+    parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
     parser.add_argument('--lambda', help='The weight for re-ranking.')
-    parser.add_argument('--binary',
-                        help='Whether P(\\bar{s)|d) is binary or real-valued',
-                        default=True)
+    parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
+    parser.add_argument('--alpha', help='alpha.')
+    parser.add_argument('--protected', help='protected feature', default="new")
+    parser.add_argument('--method', help='reranking method')
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -219,6 +95,37 @@ def output_reranked(reranked_df, dest_results_path, file_path):
     reranked_df.to_csv(output_file_path, header=False, index=False)
 
 
+def load_training(split_path, cv_count):
+    tr_file_path = split_path / f'cv_{cv_count}' / 'train.txt'
+
+    if not tr_file_path.exists():
+        print('Cannot locate training data: ' + str(tr_file_path.absolute()))
+        return None
+
+    tr_df = pd.read_csv(tr_file_path, names=['userid', 'itemid', 'score'], sep='\t')
+
+    return tr_df
+
+
+# def execute(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path, dest_results_path):
+def execute(rerank_helper, pat, file_path, split_path, dest_results_path):
+    tr_df = None
+
+    m = re.match(pat, file_path.name)
+    cv_count = m.group(1)
+    tr_df = load_training(split_path, cv_count)
+    if tr_df is None:
+        print("no traning data")
+        exit(-1)
+
+    rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
+
+    re_ranker = MMR(rating_df, tr_df, rerank_helper)
+
+    reranked_df, rerank_helper = re_ranker.reranker()
+    output_reranked(reranked_df, dest_results_path, file_path)
+
+
 def main():
     args = read_args()
     config = read_config_file(args['conf'], '.')
@@ -228,8 +135,7 @@ def main():
 
     dest_results_path = Path(args['result'])
 
-    data_dir = single_xpath(config.get_xml(),
-                            '/librec-auto/data/data-dir').text
+    data_dir = single_xpath(config.get_xml(), '/librec-auto/data/data-dir').text
 
     data_path = Path(data_dir)
     data_path = data_path.resolve()
@@ -238,20 +144,27 @@ def main():
     if item_feature_df is None:
         exit(-1)
 
-    lamb = float(args['lambda'])
-    top_k = int(args['max_len'])
-    binary = args['binary'] == 'True'
-    sim_matrix_dic = {}
+    # item_helper = set_item_helper(item_feature_df)
+
+    # rerank_helper = set_rerank_helper(args, config, item_helper)
+    rerank_helper = Rerank_Helper()
+    rerank_helper.set_rerank_helper(args, config, item_feature_df)
+
+    split_path = data_path / 'split'
+    pat = re.compile(RESULT_FILE_PATTERN)
+
+    method = args['method']
+
+    p = []
 
     for file_path in result_files:
+        p1 = multiprocessing.Process(target=execute, args=(
+            rerank_helper, pat, file_path, split_path, dest_results_path))
+        p.append(p1)
+        p1.start()
 
-        results_df = pd.read_csv(file_path,
-                                 names=['userid', 'itemid', 'rating'])
-        reranked_df, sim_matrix_dic = reranker(lamb, results_df,
-                                               item_feature_df, binary, top_k,
-                                               sim_matrix_dic)
-
-        output_reranked(reranked_df, dest_results_path, file_path)
+    for p1 in p:
+        p1.join()
 
 
 if __name__ == '__main__':
