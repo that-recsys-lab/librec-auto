@@ -3,8 +3,8 @@ from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
-from librec_auto.core.util import Files, create_study_output
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, BBOPostCmd, BBO
+from librec_auto.core.util import Files, create_study_output, BBO
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
 import librec_auto
 
@@ -243,23 +243,26 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd_store = build_librec_commands('full', args, config, BBO = 200)
         store_post = [PostCmd() for _ in range(len(cmd_store))]
 
-        for i in range(len(cmd_store)+len(store_post)-1):
-            if i%2 == 1:
-                cmd3.append(BBOPostCmd())
-            else:
-                cmd3.append(cmd_store[int(i/2)])
+        # for i in range(len(cmd_store)+len(store_post)):
+        #     if i%2 == 1:
+        #         cmd3.append(PostCmd())
+        #     else:
+        #         cmd3.append(cmd_store[int(i/2)])
 
-        cmd3.append(PostCmd())
+        for i in range(len(cmd_store)):
+            cmd3.append(cmd_store[i])
 
-        cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
+        # cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
+        cmd = [SequenceCmd([cmd3[i]]) for i in range (2,len(cmd3))]
+        # cmd = cmd + [SequenceCmd([PostCmd(),cmd3[len(cmd_store)+len(store_post)-1]])]
         cmd = [cmd1, cmd2] + cmd
 
         if rerank_flag:
             cmd.append(RerankCmd())
-            print(build_librec_commands('eval', args, config))
+            # print(build_librec_commands('eval', args, config))
             cmd.append(build_librec_commands('eval', args, config))
         if post_flag:
-            pass
+            cmd.append(PostCmd())
         return cmd
 
 
@@ -336,10 +339,10 @@ if __name__ == '__main__':
                     vconf = config._var_coll.var_confs
 
                     num_of_vars = len([0 for var in vconf[0].vars])
-                    
-                    range_val_store = [[i.val for i in j.vars] for j in vconf]
 
-                    print(range_val_store)
+                    print(vconf[0].vars)
+                    
+                    range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
 
                     range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
 
@@ -354,7 +357,7 @@ if __name__ == '__main__':
                             exponent_expected -= 1
 
                     if 2**exponent_expected == config.get_sub_exp_count():
-                        range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(exponent_expected)]
+                        range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
                         value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/iterations')]
 
                         continue_rerank = False
@@ -369,7 +372,7 @@ if __name__ == '__main__':
 
                             command = command + final_commands
 
-                        bbo = BBO.BBO(range_list, exponent_expected, command[2:], config)
+                        bbo = BBO.BBO(range_list, len(range_val_store), command[2:], config)
                         file_path = bbo.run_purge(command[0])
 
                         metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/metric')][0]
@@ -387,7 +390,10 @@ if __name__ == '__main__':
                         bbo.run(int(value_elems[0]))
 
                         if continue_rerank:
+                            command[-3].execute(config)
                             command[-2].execute(config)
+                            command[-1].execute(config)
+                        else:
                             command[-1].execute(config)
 
                     else:

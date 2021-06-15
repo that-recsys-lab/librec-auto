@@ -36,7 +36,7 @@ def extract_full_info(config):
     for exp in metric_info.keys():
         params, vals, log = metric_info[exp]
         time_stamp = log.get_time_stamp()
-        entry_count = log.get_kcv_count()
+        entry_count = sum( 1 for _ in config._files.get_exp_paths_iterator())
         table_values['Experiment'] = np.repeat(exp, entry_count)
         table_values['Split'] = range(0, entry_count)
 
@@ -99,8 +99,6 @@ def read_args():
 
 if __name__ == '__main__':
     args = read_args()
-
-    print(args)
 
     config = read_config_file(args['conf'], ".")
 

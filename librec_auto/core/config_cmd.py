@@ -144,6 +144,7 @@ class ConfigCmd:
         elif len(value_optimize_elems) > 0:
             value_elems = value_optimize_elems + self._xml_input.xpath(
             '/librec-auto/alg/*//upper')
+            parents = [elem.getparent() for elem in value_elems]
 
             Tag = 'lower'
 
@@ -160,12 +161,13 @@ class ConfigCmd:
                 val_lower = [elem.text for elem in parent.iterchildren(tag='lower')]
                 val_upper = [elem.text for elem in parent.iterchildren(tag='upper')]
                 vals = []
-                print(val_lower,val_upper)
+                # print(val_lower,val_upper)
                 for i in range(len(val_lower)):
                     vals.append(val_lower[i])
                     vals.append(val_upper[i])
 
                 parent_path = build_parent_path(parent)
+                print(parent, parent_path)
                 self._var_coll.add_var('librec', parent_path, vals)
 
     def collect_rerank_vars(self):
@@ -184,7 +186,6 @@ class ConfigCmd:
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
                     iter(self._var_coll.var_confs)))
-                    
         if BBO:
             configs = [configs[0]]
             i = 0
@@ -193,6 +194,7 @@ class ConfigCmd:
                 # print("VCONF VARS:", vconf.vars, vconf.vars[0])
                 print(val)
                 for x in range(len(val)):
+                    print(vconf.vars[x])
                     vconf.vars[x].val = val[x] 
                 vconf.exp_no = None
                 vconf.exp_dir = exp.exp_name
