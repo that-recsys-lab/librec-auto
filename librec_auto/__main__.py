@@ -258,11 +258,13 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd = [cmd1, cmd2] + cmd
 
         if rerank_flag:
+            # pass
             cmd.append(RerankCmd())
             # print(build_librec_commands('eval', args, config))
             cmd.append(build_librec_commands('eval', args, config))
         if post_flag:
             cmd.append(PostCmd())
+
         return cmd
 
 
@@ -320,11 +322,13 @@ if __name__ == '__main__':
 
             if config.is_valid():
                 command = setup_commands(args, config)
+                print(args)
 
-                print(len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]))
+                # print(len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]))
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
                     args['action'] = 'bbo'
                     print('Running BBO. Recreating Config.')
+                    print(args)
                     config = load_config(args)
                     command = setup_commands(args, config)
 
@@ -389,9 +393,12 @@ if __name__ == '__main__':
                         
                         bbo.run(int(value_elems[0]))
 
-                        if continue_rerank:
+                        print("continue_rerank", config.has_rerank())
+                        if config.has_rerank():
+                            print("rerank continued")
                             command[-3].execute(config)
-                            command[-2].execute(config)
+                            print("end rerank")
+                            # command[-2].execute(config)
                             command[-1].execute(config)
                         else:
                             command[-1].execute(config)
