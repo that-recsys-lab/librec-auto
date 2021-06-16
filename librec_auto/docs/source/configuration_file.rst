@@ -4,7 +4,7 @@ Configuration File
 
 librec-auto uses an XML configuration file to specify all aspects of the experimental pipeline. A configuration file defines a *study*, which computes evaluation results for a single algorithm and a single data set, possibly over multiple choices of hyperparameters, each of which constitutes an *experiment*. The configuration file is divided into sections, some of which are optional.
 
-Global elements
+Global elements (all optional)
 ============
 
 Example
@@ -60,7 +60,6 @@ There are two feature appender classes `net.librec.data.convertor.appender.ItemF
 Splitter Section
 ================
 Example:
-
 ::
 	<splitter>
 		<model count="5">kcv</model>
