@@ -102,7 +102,7 @@ class LogFile:
         * Evaluator values
         """
         evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is (-?[0-9.]*)'
-        kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[../data/split/cv_(\d+)/test.txt\]'
+        kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[.+split/cv_(\d+)/test.txt\]'
         # Old pattern
         # kcv_pattern_str = r'.*Splitting training and testing with [.0-9]*% ratio on fold ([0-9]*)'
         final_pattern_str = r'.*Evaluator value:([A-z]*) is (-?[0-9.]*)'
