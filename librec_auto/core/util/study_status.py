@@ -62,7 +62,11 @@ class StudyStatus:
     def __init__(self, config):
         self._config = config
         self._experiments = {}
-        study_xml = xml_load_from_path(config.get_files().get_status_path())
+
+        status_path = config.get_files().get_status_path()
+        study_xml = None
+        if status_path.exists():
+            study_xml = xml_load_from_path(status_path)
         
         # First check if the study xml exists.
         if study_xml is None:
