@@ -170,6 +170,10 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd):
     else:
         return SequenceCmd(librec_commands)
 
+    # detect alg type
+    # if librec then build_librec_commands
+    # if external script then cmd = external script with appropriate parameters + eval cmd
+
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
 def setup_commands(args: dict, config: ConfigCmd):
@@ -233,6 +237,18 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd3 = build_librec_commands('full', args, config)
         cmd4 = EvalCmd(args, config)  # python-side eval
         cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
+        if rerank_flag:
+            cmd.add_command(RerankCmd())
+            cmd.add_command(build_librec_commands('eval', args, config))
+        if post_flag:
+            cmd.add_command(PostCmd())
+        return cmd
+
+    if action == 'run':
+        cmd1 = PurgeCmd('results', noask=purge_noask)
+        cmd2 = SetupCmd()
+        cmd3 = build_alg_commands('full', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))

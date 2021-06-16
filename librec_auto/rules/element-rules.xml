@@ -39,16 +39,14 @@
 		<ratio>data.splitter.trainset.ratio</ratio>
 		<save>data.splitter.save</save>
 	</splitter>
-	
+
+	<optimize>
+		<metric action="no-translate"/>
+		<iterations action="no-translate"/>
+	</optimize>
 	
 	<alg>
 		<class>rec.recommender.class</class>
-
-		<!-- optimization -->
-		<optimize>
-			<metric action="no-translate"/>
-			<iterations action="no-translate"/>
-		</optimize>
 
 		<!--general algorithm parameters -->
 		<iterator-max>rec.iterator.maximum</iterator-max>
@@ -215,8 +213,7 @@
 		<min-sim>rec.bnslim.minsimilarity</min-sim>
 		
 	</alg>
-	
-	
+
 	<metric>
 		<ranking>rec.recommender.isranking</ranking>
 		<class>rec.eval.classes</class>
