@@ -243,25 +243,16 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd_store = build_librec_commands('full', args, config, BBO = 200)
         store_post = [PostCmd() for _ in range(len(cmd_store))]
 
-        # for i in range(len(cmd_store)+len(store_post)):
-        #     if i%2 == 1:
-        #         cmd3.append(PostCmd())
-        #     else:
-        #         cmd3.append(cmd_store[int(i/2)])
-
         for i in range(len(cmd_store)):
             cmd3.append(cmd_store[i])
 
-        # cmd = [SequenceCmd([cmd3[i],cmd3[i+1]]) for i in range (2,len(cmd3),2)]
         cmd = [SequenceCmd([cmd3[i]]) for i in range (2,len(cmd3))]
-        # cmd = cmd + [SequenceCmd([PostCmd(),cmd3[len(cmd_store)+len(store_post)-1]])]
         cmd = [cmd1, cmd2] + cmd
 
         if rerank_flag:
-            # pass
-            cmd.append(RerankCmd())
-            # print(build_librec_commands('eval', args, config))
-            cmd.append(build_librec_commands('eval', args, config))
+            # cmd.append(RerankCmd())
+            # cmd.append(build_librec_commands('eval', args, config))
+            raise Exception("Optimization is not currently supported with Reranking")
         if post_flag:
             cmd.append(PostCmd())
 
@@ -344,7 +335,7 @@ if __name__ == '__main__':
 
                     num_of_vars = len([0 for var in vconf[0].vars])
 
-                    print(vconf[0].vars)
+                    # print(vconf[0].vars)
                     
                     range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
 
@@ -352,7 +343,12 @@ if __name__ == '__main__':
 
                     range_val_store = [[min(array), max(array)] for array in range_val_store]
 
-                    print(range_val_store)
+                    # print(range_val_store)
+
+                    check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//value')])
+
+                    if check_rerank > 0:
+                        raise Exception("Optimization is not currently supported with Reranking")
 
                     exponent_expected = num_of_vars
 
@@ -393,15 +389,13 @@ if __name__ == '__main__':
                         
                         bbo.run(int(value_elems[0]))
 
-                        print("continue_rerank", config.has_rerank())
-                        if config.has_rerank():
-                            print("rerank continued")
-                            command[-3].execute(config)
-                            print("end rerank")
-                            # command[-2].execute(config)
-                            command[-1].execute(config)
-                        else:
-                            command[-1].execute(config)
+                        # print("continue_rerank", config.has_rerank())
+                        # if config.has_rerank():
+                        #     command[-3].execute(config)
+                        #     # command[-2].execute(config)
+                        #     command[-1].execute(config)
+                        # else:
+                        command[-1].execute(config)
 
                     else:
                         print("Each range must have only two values!")

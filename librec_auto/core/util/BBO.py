@@ -54,68 +54,20 @@ class BBO:
             self.direction = self.metric_map[metric]
     
     def get_data(self):
-        # directory = ""
         
-        # while len(directory) < 5:
-        #     if len(directory) == 0:
-        #         directory += str(self.exp_no)
-        #     else:
-        #         directory = "0" + directory
-
-        # directory = "/exp" + directory + "/output.xml"
-        # directory = str(str(self.file_path) + directory)
-
-        # tree = etree.parse(directory)
-
-        # store_val = float([elem.text for elem in tree.xpath('/experiment/results/averages/metric') if elem.attrib['name'] == self.title_map[self.metric]][0])
+        store_val = ''
 
         i = 0
+
         for sub_paths in self.config._files.get_exp_paths_iterator():
 
             if i != self.exp_no:
                 i += 1
                 continue
-            print("exp_no:", self.exp_no)
+
             status = Status(sub_paths)
             store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
             break
-
-
-        # directory = "/exp" + directory + "/log"
-        # directory = str(str(self.file_path) + directory)
-        
-        # dirs = os.listdir(directory)
-        # temp_dir = ""
-        # for File in dirs:
-        #     temp_dir = open(str(directory + '/' + str(File)),'r')
-
-        # pre = False
-        # store_val = ""
-
-        # for line_temp in temp_dir:
-        #     line = line_temp[17:]
-
-        #     if 'Average Evaluation Result of Cross Validation:' in line:
-        #         pre = True
-
-        #     if pre and ('Evaluator value:' in line) and self.title_map[self.metric] in line:
-        #         print("line:" , line)
-
-        #         check_sentence = False
-
-        #         for j in range(len(line)):
-        #             letter = line[j]
-
-        #             if check_sentence:
-        #                 store_val += letter
-
-        #             elif letter.isdigit():
-        #                 check_sentence = True
-        #                 store_val += letter
-
-
-        #         print('value:', store_val)
-        #         pre = False
                 
         return float(store_val)
     
@@ -130,7 +82,6 @@ class BBO:
         if self.exp_no != self.total_exp_no:
             self.change_current_command()
 
-        # print(self.exp_no - 1, "exp data:", data)
         if self.direction == 'positive':
             return {'loss': -data, 'status': STATUS_OK}
         else:
