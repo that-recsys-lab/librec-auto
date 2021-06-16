@@ -169,7 +169,6 @@ class ConfigCmd:
                     vals.append(val_upper[i])
 
                 parent_path = build_parent_path(parent)
-                print(parent, parent_path)
                 self._var_coll.add_var('librec', parent_path, vals)
 
     def collect_rerank_vars(self):
@@ -193,10 +192,7 @@ class ConfigCmd:
             i = 0
             j = 0
             for exp, vconf in configs:
-                # print("VCONF VARS:", vconf.vars, vconf.vars[0])
-                print(val)
                 for x in range(len(val)):
-                    print(vconf.vars[x])
                     vconf.vars[x].val = val[x] 
                 vconf.exp_no = None
                 vconf.exp_dir = exp.exp_name
