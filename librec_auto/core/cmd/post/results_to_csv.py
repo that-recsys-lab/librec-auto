@@ -27,7 +27,7 @@ def get_metric_info(files):
     return metric_info
 
 
-def extract_full_info(config):
+def extract_full_info(config, entries = None, repeat = False):
     metric_info = get_metric_info(config.get_files())
     exp_frames = []
     table_values = defaultdict(list)
@@ -36,7 +36,8 @@ def extract_full_info(config):
     for exp in metric_info.keys():
         params, vals, log = metric_info[exp]
         time_stamp = log.get_time_stamp()
-        entry_count = sum( 1 for _ in config._files.get_exp_paths_iterator())
+        entry_count =log.get_kcv_count()
+        
         table_values['Experiment'] = np.repeat(exp, entry_count)
         table_values['Split'] = range(0, entry_count)
 
@@ -46,7 +47,11 @@ def extract_full_info(config):
         for metric in log.get_metrics():
             table_values[metric] = metric_values_float(log, metric)
 
-        exp_df = pd.DataFrame(table_values)
+        try:
+            exp_df = pd.DataFrame(table_values)
+        except:
+            print(table_values)
+            
         exp_frames.append(exp_df)
 
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
@@ -69,8 +74,12 @@ def extract_summary_info(config):
         for metric in log.get_metrics():
             table_values[metric].append(np.average(metric_values_float(log, metric)))
 
-    exp_results = pd.DataFrame(table_values)
-    return (exp_results, time_stamp)
+    try:
+        exp_results = pd.DataFrame(table_values)
+        return (exp_results, time_stamp)
+    except:
+        exp_results = pd.DataFrame([ pd.Series(table_values[value]) for value in table_values.keys() ])
+        return (exp_results, time_stamp)
 
 def metric_values_float(log, metric):
     str_values = log.get_metric_values(metric)['cv_results']

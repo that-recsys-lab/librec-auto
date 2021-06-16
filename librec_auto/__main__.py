@@ -313,13 +313,11 @@ if __name__ == '__main__':
 
             if config.is_valid():
                 command = setup_commands(args, config)
-                print(args)
 
                 # print(len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]))
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
                     args['action'] = 'bbo'
                     print('Running BBO. Recreating Config.')
-                    print(args)
                     config = load_config(args)
                     command = setup_commands(args, config)
 
