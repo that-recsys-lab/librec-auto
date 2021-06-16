@@ -3,7 +3,7 @@ import hashlib
 import inspect
 import librec_auto
 from librec_auto.core.util.utils import force_path
-from librec_auto.core.util.xml_utils import xml_load_from_path
+from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
 from collections import OrderedDict
 import glob
 import shutil
@@ -36,7 +36,7 @@ class Files:
     _DEFAULT_RULES_DIR_NAME = "rules"
     _DEFAULT_LIB_DIR_NAME = "librec_auto/library"
     _DEFAULT_RES_DIR_NAME = "result"
-    #    _DEFAULT_SPLIT_DIR_NAME = "split"
+    _DEFAULT_DATA_DIR_NAME = "data"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
     _DEFAULT_POST_DIR_NAME = "post"
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
@@ -53,7 +53,7 @@ class Files:
 
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
-        #        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
+        self._data_dir_path = Path(self._DEFAULT_DATA_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
@@ -68,6 +68,16 @@ class Files:
 
     def set_global_path(self, path):
         self._global_path = Path(path)
+
+    def get_data_path(self):
+        return self.get_study_path() / self._data_dir_path
+
+    def set_data_path(self, config_xml):
+        data_dir_elem = single_xpath(config_xml, '/librec-auto/data/data-dir')
+        if data_dir_elem is None:
+            logging.warning("Configuration file missing data-dir element. Assuming 'data'.")
+        else:
+            self._data_dir_path = data_dir_elem.text
 
     def get_rules_path(self):
         return self.get_global_path() / self._DEFAULT_RULES_FILE
