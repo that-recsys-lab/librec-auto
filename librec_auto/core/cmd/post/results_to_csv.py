@@ -28,54 +28,46 @@ def get_metric_info(files):
     return metric_info
 
 
-def extract_full_info(config):
-    # change to passing a study
-    metric_info = get_metric_info(config.get_files())
+def extract_full_info(study):
     exp_frames = []
     table_values = defaultdict(list)
-    time_stamp = None
+    time_stamp = study._timestamp
 
-    for exp in metric_info.keys():
-        params, vals, log = metric_info[exp]
-        time_stamp = log.get_time_stamp()
-        entry_count = log.get_kcv_count()
-        table_values['Experiment'] = np.repeat(exp, entry_count)
-        table_values['Split'] = range(0, entry_count)
+    # iterate over experiments in study for metric info
+    for exp in study._experiments.keys():
+        
+        curr_exp = study._experiments[exp]
+        exp_count = curr_exp._kcv_count
+        # each experiment has a _kcv_count attribute, used twice here
+        table_values['Experiment'] = np.repeat(curr_exp._name, exp_count)
+        table_values['Split'] = range(0, exp_count)
 
-        for (param, val) in zip(params, vals):
-            table_values[param] = np.repeat(val, entry_count)
-
-        for metric in log.get_metrics():
-            table_values[metric] = metric_values_float(log, metric)
-
+        for (param, val) in study.get_exp_param_values(exp):
+            table_values[param] = np.repeat(val, exp_count)
+        
+        for metric in study.get_metric_names():
+            table_values[metric] = curr_exp._metric_info[metric]
+        
         exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
-
+    
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
     print(exp_results)
     return (exp_results, time_stamp)
 
 
-def extract_summary_info(config, study):
-    # change to passing a study
-    metric_info = get_metric_info(config.get_files())
+def extract_summary_info(study):
     table_values = defaultdict(list)
-    time_stamp = None
+    time_stamp = study._timestamp
 
-    # need to keep track of names?
-    for exp in study:
-        print(study[exp])
-
-    for exp in metric_info.keys():
-        params, vals, log = metric_info[exp]
-        time_stamp = log.get_time_stamp()
-        table_values['Experiment'].append(exp)
-
-        for (param, val) in zip(params, vals):
+    for exp in study._experiments.keys():
+        curr_exp = study._experiments[exp]
+        table_values['Experiment'].append(curr_exp._name)
+        for (param, val) in study.get_exp_param_values(exp):
             table_values[param].append(val)
 
-        for metric in log.get_metrics():
-            table_values[metric].append(np.average(metric_values_float(log, metric)))
+        for metric in study.get_metric_names():
+            table_values[metric].append(curr_exp._metric_avg[metric])
 
     exp_results = pd.DataFrame(table_values)
     print(exp_results)
@@ -109,20 +101,19 @@ def read_args():
 if __name__ == '__main__':
     args = read_args()
     config = read_config_file(args['conf'], ".")
-
     study = StudyStatus(config)
     choice = args['option']
 
     if choice == "summary":
-        df, time_stamp = extract_summary_info(config, study)
+        df, time_stamp = extract_summary_info(study)
         save_data(df, choice, time_stamp)
     elif choice == "full":
-        df, time_stamp = extract_full_info(config)
+        df, time_stamp = extract_full_info(study)
         save_data(df, choice, time_stamp)
     elif choice == "all":
-        df, time_stamp = extract_summary_info(config)
+        df, time_stamp = extract_summary_info(study)
         save_data(df, "summary", time_stamp)
-        df, time_stamp = extract_full_info(config)
+        df, time_stamp = extract_full_info(study)
         save_data(df, "full", time_stamp)
 
     else:

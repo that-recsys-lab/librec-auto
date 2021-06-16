@@ -1,5 +1,5 @@
 from datetime import datetime
-from librec_auto.core.util.xml_utils import xml_load_from_path #, single_xpath
+from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
 from collections import defaultdict
 from pprint import pprint as pp
 
@@ -11,10 +11,12 @@ class ExperimentData:
     The Python metric data from an experiment.
     '''
 
-    def __init__(self, experiment):
+    def __init__(self, experiment, exp_name):
+        # create name attribute for various post-processing uses
+        self._name = exp_name
         # Used for storing parameters changed
         self._param = []
-        # Dictionary mapping paramters to their values
+        # Dictionary mapping paramters to their values, for each experiment
         self._param_vals = {}
         # Dicitonary of lists to keep track of metric values
         self._metric_info = defaultdict(list)
@@ -26,14 +28,16 @@ class ExperimentData:
         for i, param in enumerate(params):
             # getting names of adjusted parameters
             self._param.append(param.find('name').text)
-            print(self._param)
+            # print(self._param)
             # getting values each paramter was set to
             self._param_vals[self._param[i]] = float(param.find('value').text)
         
 
         # Folds
         folds = experiment.xpath('results/folds')
+
         for fold in folds:
+            self._kcv_count = len(fold)
             for cv in fold:
                 for met in cv.getchildren():
                     # Add each 
@@ -53,6 +57,7 @@ class StudyStatus:
     '''
     The output (metrics) from a study.
     '''
+    _EXP_DIR_FORMAT = "exp{:05d}"
 
     def __init__(self, config):
         self._config = config
@@ -64,12 +69,14 @@ class StudyStatus:
             # If it doesn't, create one
             create_study_output(config)
             study_xml = xml_load_from_path(config.get_files().get_status_path())
+
+        time = single_xpath(study_xml, 'completed_at')
+        self._timestamp = time.text
                     
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
-            exp_name = "exp" + exp.attrib['count']
-            
-            self._experiments[exp_name] = ExperimentData(exp)
+            exp_name = self._EXP_DIR_FORMAT.format(int(exp.attrib['count']))
+            self._experiments[exp_name] = ExperimentData(exp, exp_name)
             
         #pp(self._experiments)
 
@@ -79,35 +86,29 @@ class StudyStatus:
     # get parameter names
 
     def get_metric_names(self):
-        curr = self._experiments['exp0']
-        print('***** Get metric names: *****')
-        print(list(curr._metric_info.keys()))
+        curr = self._experiments['exp00000']
+        return list(curr._metric_info.keys())
 
     def get_metric_averages(self, metric):
-        print(f'***** Get metric averages for {metric}: *****')
         avgs = []
         for exp in self._experiments:
             avgs.append(self._experiments[exp]._metric_avg[metric])
-        print(avgs)
+        return avgs
 
     def get_exp_param_values(self, experiment):
         if not experiment in self._experiments.keys():
             print(f'** Error: ** Invalid experiment name: {experiment}')
             return
         
-        print(f'***** Get parameters of experiment {experiment}: *****')
         param_value_list = []
-    
         exp_params = self._experiments[experiment]._param_vals
-        print(exp_params)
         for param in exp_params:
             param_value_list.append((param, exp_params[param]))
-        print(param_value_list)
+        return param_value_list
 
     def get_exp_params(self):
-        curr = self._experiments['exp0']
-        print("***** Get adjusted parameter names: *****")
-        print(curr._param)
+        curr = self._experiments['exp00000']
+        return curr._param
 
 
 

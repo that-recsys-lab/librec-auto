@@ -147,11 +147,11 @@ def create_graphics(config, display):
     files = config.get_files()
     metric_info = get_metric_info(files)
     status = StudyStatus(config)
-    status.get_metric_names()
-    status.get_exp_param_values('exp0')
-    status.get_exp_param_values('exp6')
-    status.get_metric_averages('PrecisionEvaluator')
-    status.get_exp_params()
+    # status.get_metric_names()
+    # status.get_exp_param_values('exp0')
+    # status.get_exp_param_values('exp6')
+    # status.get_metric_averages('PrecisionEvaluator')
+    # status.get_exp_params()
 
 
     print("Post path")
