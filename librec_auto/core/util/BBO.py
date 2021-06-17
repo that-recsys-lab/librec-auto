@@ -12,6 +12,7 @@ import hyperopt as hp
 from hyperopt import fmin, tpe, STATUS_OK
 import os
 
+#module to optimize
 class BBO:
     
     def __init__(self, Ranges, num_of_vars, command, config, file_path = None):
@@ -36,10 +37,12 @@ class BBO:
                 'csp': 'CStatisticalParityEvaluator', 'psp': 'PStatisticalParityEvaluator','miscalib': 'MiscalibrationEvaluator','nonpar': 'NonParityUnfairnessEvaluator','valunfairness': 'ValueUnfairnessEvaluator', \
                 'absunfairness': 'AbsoluteUnfairnessEvaluator','overestimate': 'OverestimationUnfairnessEvaluator','underestimate': 'UnderestimationUnfairnessEvaluator','ppr': 'PPercentRuleEvaluator'        
                 }
-        
+
+    #creates hyperparameter dictionary in hyperopt format    
     def create_space(self):
         self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
 
+    #uses direction from existing metrics or user chosen direction if custom
     def set_optimization_direction(self, metric):
         self.metric = metric
 
@@ -53,8 +56,8 @@ class BBO:
 
             self.direction = self.metric_map[metric]
     
+    #Uses status object in order to get data from most recent iteration
     def get_data(self):
-        
         store_val = ''
 
         i = 0
@@ -71,9 +74,8 @@ class BBO:
                 
         return float(store_val)
     
-    
+    #All function required for experiement are called from here
     def run_experiments(self,params):
-#         self.store_params = [params[self.alphabet[i]] for i in range(len(self.space.keys()))]
         if self.exp_no != 0:
             self.modify_xml(params)
         self.current_command.execute(self.config)
@@ -87,13 +89,16 @@ class BBO:
         else:
             return {'loss': data, 'status': STATUS_OK}
     
+    #sends values to write configs to create next experiment
     def modify_xml(self, params):
         self.config.write_exp_configs(BBO = True, val = list(params.values()), iteration = self.exp_no)
         
+    # changes which command needs to be run    
     def change_current_command(self):
         self.index += 1
         self.current_command = self.command[self.index]
 
+    #purge is run at the beginning, must be handled seperatly from remaining steps
     def run_purge(self, command):
         command.execute(self.config)
         return command._files._study_path
@@ -102,5 +107,4 @@ class BBO:
         self.store_params = self.space
         self.exp_no = 0
         self.total_exp_no = total_exp_no
-        # best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
         best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
