@@ -314,7 +314,6 @@ if __name__ == '__main__':
             if config.is_valid():
                 command = setup_commands(args, config)
 
-                # print(len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]))
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
                     args['action'] = 'bbo'
                     print('Running BBO. Recreating Config.')
@@ -332,16 +331,12 @@ if __name__ == '__main__':
                     vconf = config._var_coll.var_confs
 
                     num_of_vars = len([0 for var in vconf[0].vars])
-
-                    # print(vconf[0].vars)
                     
                     range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
 
                     range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
 
                     range_val_store = [[min(array), max(array)] for array in range_val_store]
-
-                    # print(range_val_store)
 
                     check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//value')])
 

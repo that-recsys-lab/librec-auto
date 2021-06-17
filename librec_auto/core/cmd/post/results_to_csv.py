@@ -47,11 +47,7 @@ def extract_full_info(config, entries = None, repeat = False):
         for metric in log.get_metrics():
             table_values[metric] = metric_values_float(log, metric)
 
-        try:
-            exp_df = pd.DataFrame(table_values)
-        except:
-            print(table_values)
-            
+        exp_df = pd.DataFrame(table_values)     
         exp_frames.append(exp_df)
 
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
