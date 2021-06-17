@@ -93,7 +93,7 @@ def create_box(path, metric, params, settings, fold_values):
 
 def create_boxes(path, metric_info, study):
     metric_names = list(metric_info.values())[0][2].get_metrics()
-    print(metric_names)
+    # print(metric_names)
     box_paths = []
     for metric in metric_names:
 
@@ -105,7 +105,7 @@ def create_boxes(path, metric_info, study):
             param_string = ', '.join(params)
             settings.append('\n'.join(vals))
             metric_vals = metric_values_float(log, metric)
-            print(f'params {param_string}')
+            # print(f'params {param_string}')
             fold_vals.append(metric_vals)
 
         box_paths.append(
