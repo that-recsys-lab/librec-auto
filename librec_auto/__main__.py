@@ -389,6 +389,7 @@ if __name__ == '__main__':
                         #     command[-1].execute(config)
                         # else:
                         command[-1].execute(config)
+                        create_study_output(config)
 
                     else:
                         print("Each range must have only two values!")

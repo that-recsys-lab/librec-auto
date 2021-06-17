@@ -6,4 +6,3 @@ from .post_cmd import PostCmd
 from .rerank_cmd import RerankCmd
 from .status_cmd import StatusCmd
 from .parallel_cmd import ParallelCmd
-from .bbo_post_cmd import BBOPostCmd
