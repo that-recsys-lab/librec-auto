@@ -4,6 +4,7 @@ Description:
        This script is used to extract the experimental parameters and store it into csv
 '''
 import argparse
+from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Status
 from collections import defaultdict
@@ -28,54 +29,52 @@ def get_metric_info(files):
 
 
 def extract_full_info(config, entries = None, repeat = False):
-    metric_info = get_metric_info(config.get_files())
     exp_frames = []
     table_values = defaultdict(list)
-    time_stamp = None
+    time_stamp = study._timestamp
 
-    for exp in metric_info.keys():
-        params, vals, log = metric_info[exp]
-        time_stamp = log.get_time_stamp()
-        entry_count =log.get_kcv_count()
+    # iterate over experiments in study for metric info
+    for exp in study._experiments.keys():
         
-        table_values['Experiment'] = np.repeat(exp, entry_count)
-        table_values['Split'] = range(0, entry_count)
+        curr_exp = study._experiments[exp]
+        exp_count = curr_exp._kcv_count
+        # each experiment has a _kcv_count attribute, used twice here
+        table_values['Experiment'] = np.repeat(curr_exp._name, exp_count)
+        table_values['Split'] = range(0, exp_count)
 
-        for (param, val) in zip(params, vals):
-            table_values[param] = np.repeat(val, entry_count)
-
-        for metric in log.get_metrics():
-            table_values[metric] = metric_values_float(log, metric)
-
-        exp_df = pd.DataFrame(table_values)     
+        for (param, val) in study.get_exp_param_values(exp):
+            table_values[param] = np.repeat(val, exp_count)
+        
+        for metric in study.get_metric_names():
+            table_values[metric] = curr_exp._metric_info[metric]
+        
+        exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
-
+    
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
+    # print(exp_results)
     return (exp_results, time_stamp)
 
 
-def extract_summary_info(config):
-    metric_info = get_metric_info(config.get_files())
+def extract_summary_info(study):
     table_values = defaultdict(list)
-    time_stamp = None
+    time_stamp = study._timestamp
 
-    for exp in metric_info.keys():
-        params, vals, log = metric_info[exp]
-        time_stamp = log.get_time_stamp()
-        table_values['Experiment'].append(exp)
-
-        for (param, val) in zip(params, vals):
+    for exp in study._experiments.keys():
+        curr_exp = study._experiments[exp]
+        table_values['Experiment'].append(curr_exp._name)
+        for (param, val) in study.get_exp_param_values(exp):
             table_values[param].append(val)
 
-        for metric in log.get_metrics():
-            table_values[metric].append(np.average(metric_values_float(log, metric)))
+        for metric in study.get_metric_names():
+            table_values[metric].append(curr_exp._metric_avg[metric])
 
-    try:
-        exp_results = pd.DataFrame(table_values)
-        return (exp_results, time_stamp)
-    except:
-        exp_results = pd.DataFrame([ pd.Series(table_values[value]) for value in table_values.keys() ])
-        return (exp_results, time_stamp)
+    # try:
+    exp_results = pd.DataFrame(table_values)
+    return (exp_results, time_stamp)
+    # except:
+    #     exp_results = pd.DataFrame([ pd.Series(table_values[value]) for value in table_values.keys() ])
+    #     return (exp_results, time_stamp)
 
 def metric_values_float(log, metric):
     str_values = log.get_metric_values(metric)['cv_results']
@@ -107,18 +106,20 @@ if __name__ == '__main__':
 
     config = read_config_file(args['conf'], ".")
 
+    config = read_config_file(args['conf'], ".")
+    study = StudyStatus(config)
     choice = args['option']
 
     if choice == "summary":
-        df, time_stamp = extract_summary_info(config)
+        df, time_stamp = extract_summary_info(study)
         save_data(df, choice, time_stamp)
     elif choice == "full":
-        df, time_stamp = extract_full_info(config)
+        df, time_stamp = extract_full_info(study)
         save_data(df, choice, time_stamp)
     elif choice == "all":
-        df, time_stamp = extract_summary_info(config)
+        df, time_stamp = extract_summary_info(study)
         save_data(df, "summary", time_stamp)
-        df, time_stamp = extract_full_info(config)
+        df, time_stamp = extract_full_info(study)
         save_data(df, "full", time_stamp)
 
     else:

@@ -32,6 +32,8 @@ class ConfigCmd:
         self._files.set_config_file(config_file)
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
+
+        self._files.set_data_path(self._xml_input)
         self._var_coll = VarColl()
         self._libraries = LibraryColl()
 
@@ -312,8 +314,10 @@ class ConfigCmd:
         """
         Gets the list of cv directories as Path objects.
         """
-        split_dir = os.getcwd() / Path('data') / Path(
-            'split')  # cv splits live here
+        data_path = self._files.get_data_path()
+
+        # Should really dispatch through the Files object
+        split_dir = data_path / Path('split')  # cv splits live here
 
         dir_strings = os.listdir(split_dir)  # ['cv_1', 'cv_2', ...]
 

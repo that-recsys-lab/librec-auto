@@ -3,7 +3,6 @@ lxml
 pandas
 numpy
 progressbar
-lxml
 cryptography
 slackclient>=2.0
 slack

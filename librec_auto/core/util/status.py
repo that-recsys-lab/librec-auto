@@ -38,7 +38,7 @@ class Status:
         else:
             self._params = []
             self._vals = []
-
+        
     # 2021-05-31 RB It would be nice if the python results were printed here.
     def __str__(self):
         params_string = self.get_params_string()
@@ -356,16 +356,22 @@ def move_field_from_element(
         Defaults to None.
     """
     if to_remove is not None:
-        element_to_move = original_parent.find(to_remove)
-        if element_to_move is not None:
-            element_to_move.getparent().remove(element_to_move)
+        elements_to_move = original_parent.findall(to_remove)
+        if elements_to_move is not None and len(elements_to_move) > 0:
+            for elem in elements_to_move:
+                elem.getparent().remove(elem)
+
+        if replacement_parent is not None:
+            # Replace the element
+            for elem in elements_to_move:
+                replacement_parent.append(elem)
     else:
         # We want to move the original parent here.
         element_to_move = original_parent
 
-    if replacement_parent is not None or to_remove is None:
-        # Replace the element
-        replacement_parent.append(element_to_move)
+        if replacement_parent is not None or to_remove is None:
+            # Replace the element
+            replacement_parent.append(element_to_move)
 
 
 def _output_file_exists(path: str) -> bool:

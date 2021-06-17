@@ -132,3 +132,26 @@ every split from each experiment in the study.
 
 The other is the ``study-results-summary`` file, which shows the average
 evaluation metrics (across splits) for each experiment in the study.
+
+Quickstart with your own data
+========
+
+To quickly set up a librec-auto study using your own data, you can use the setup wizard provided. This is a python script located in the ``librec-auto/bin`` folder. Run the wizard with the following arguments
+
+::
+
+    $ python path_to_librec-auto/bin/wizard.py --data your_data_file --study path_of_study_directory
+
+The wizard will create a study file structure as described above and import your data file into it. It will also create a configuration with a basic experimental setup. You can run the study with the following commands:
+
+::
+
+    $ cd path_of_study_directory
+    $ python -m librec_auto run
+
+Your results will be stored in a CSV file in the ``post`` subfolder. Use the following command to see these files.
+
+::
+
+    $ ls post
+

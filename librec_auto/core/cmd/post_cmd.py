@@ -1,5 +1,6 @@
+from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, utils
+from librec_auto.core.util import Files, utils, StudyStatus
 from librec_auto.core.util.xml_utils import single_xpath
 from librec_auto.core import ConfigCmd
 from pathlib import Path
@@ -42,6 +43,8 @@ class PostCmd(Cmd):
         self._config = config
         self.status = Cmd.STATUS_INPROC
         files = config.get_files()
+
+        StudyStatus(config)
 
         target = files.get_study_path()
 

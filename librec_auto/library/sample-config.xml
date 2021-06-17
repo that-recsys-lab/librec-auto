@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!-- Configuration file from librec-auto setup wizard. Modify as necessary.
+    Refer to https://librec-auto.readthedocs.io/en/latest/  for documentation
+    on configuration file structure. -->
+
+<librec-auto>
+        <!-- GLOBAL OPTIONS SECTION -->
+        <random-seed>202001</random-seed>
+        <thread-count>1</thread-count>
+        <library src="system">default-algorithms.xml</library>
+
+        <!-- DATA SECTION -->
+        <!-- Note: data-dir is relative to the study directory -->
+        <data>
+                <data-dir>data</data-dir>
+                <format>UIR</format>
+                <data-file format="text">ratings.csv</data-file>
+        </data>
+
+        <!-- SPLITTER SECTION -->
+        <splitter>
+                <model count="5">kcv</model>
+                <dim>userfixed</dim>
+                <ratio>0.8</ratio>
+                <save>true</save>
+        </splitter>
+
+        <!-- ALGORITHM SECTION -->
+        <!-- Biased matrix factorization to get started. See documentation for complete
+            list of available algorithms -->
+        <alg ref="alg:biasedmf" />
+
+        <!-- METRICS SECTION -->
+        <metric>
+                <ranking>true</ranking>
+                <list-size>10</list-size>
+                <class>ndcg,precision</class>
+        </metric>
+
+        <!-- POST-PROCESSING SECTION -->
+        <post>
+                <script lang="python3" src="system">
+                        <script-name>results_to_csv.py</script-name>
+                        <param name="option">all</param>
+                </script>
+        </post>
+</librec-auto>
