@@ -95,9 +95,12 @@ class StudyStatus:
 
     def get_metric_averages(self, metric):
         avgs = []
-        for exp in self._experiments:
+        for exp in sorted(self._experiments.keys()):
             avgs.append(self._experiments[exp]._metric_avg[metric])
         return avgs
+
+    def get_metric_folds(self, experiment, metric):
+        return self._experiments[experiment]._metric_info[metric]
 
     def get_exp_param_values(self, experiment):
         if not experiment in self._experiments.keys():
@@ -106,22 +109,13 @@ class StudyStatus:
         
         param_value_list = []
         exp_params = self._experiments[experiment]._param_vals
-        for param in exp_params:
+        for param in sorted(exp_params.keys()):
             param_value_list.append((param, exp_params[param]))
         return param_value_list
 
     def get_exp_params(self):
         curr = self._experiments['exp00000']
-        return curr._param
-
-
-
-            
-            
-
-
-
-
+        return sorted(curr._param)
 
 
 def create_study_output(config) -> None:
