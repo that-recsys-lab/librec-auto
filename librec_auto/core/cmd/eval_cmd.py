@@ -100,7 +100,8 @@ class EvalCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
 
         metrics = self.get_metrics()
-        cv_dirs = config.get_cv_directories()
+        # Must use absolute paths because these will be passed to a script
+        cv_dirs = config.get_cv_directories(absolute=True)
 
         # todo run this all in parallel
 

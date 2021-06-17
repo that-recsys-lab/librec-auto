@@ -310,7 +310,7 @@ class ConfigCmd:
         """
         return self._xml_input.findall('metric/script[@lang="python3"]')
 
-    def get_cv_directories(self) -> List[Path]:
+    def get_cv_directories(self, absolute=False) -> List[Path]:
         """
         Gets the list of cv directories as Path objects.
         """
@@ -325,7 +325,12 @@ class ConfigCmd:
 
         cv_dir_strings = list(filter(dir_pat.match, dir_strings))
 
-        return [split_dir / cv_dir_string for cv_dir_string in cv_dir_strings]
+        dirs = [split_dir / cv_dir_string for cv_dir_string in cv_dir_strings]
+
+        if absolute:
+            return [dir.absolute() for dir in dirs]
+        else:
+            return dirs
 
 
 def read_config_file(config_file, target):
