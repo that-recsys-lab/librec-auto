@@ -91,9 +91,9 @@ def create_box(path, metric, params, settings, fold_values):
     return filename
 
 
-def create_boxes(path, metric_info):
+def create_boxes(path, metric_info, study):
     metric_names = list(metric_info.values())[0][2].get_metrics()
-
+    print(metric_names)
     box_paths = []
     for metric in metric_names:
 
@@ -105,6 +105,7 @@ def create_boxes(path, metric_info):
             param_string = ', '.join(params)
             settings.append('\n'.join(vals))
             metric_vals = metric_values_float(log, metric)
+            print(f'params {param_string}')
             fold_vals.append(metric_vals)
 
         box_paths.append(
@@ -146,14 +147,9 @@ def create_html(path, metric_info, bars, boxes):
 def create_graphics(config, display):
     files = config.get_files()
     metric_info = get_metric_info(files)
-    status = StudyStatus(config)
-    # status.get_metric_names()
-    # status.get_exp_param_values('exp0')
-    # status.get_exp_param_values('exp6')
-    # status.get_metric_averages('PrecisionEvaluator')
-    # status.get_exp_params()
+    study_status = StudyStatus(config)
 
-
+    # print(metric_info)
     print("Post path")
     print(files.get_post_path())
 
@@ -161,7 +157,7 @@ def create_graphics(config, display):
 
     if config.cross_validation(
     ) > 1:  # Box plot only makes sense for cross-validation
-        boxes = create_boxes(files.get_post_path(), metric_info)
+        boxes = create_boxes(files.get_post_path(), metric_info, study_status)
     else:
         boxes = None
 
