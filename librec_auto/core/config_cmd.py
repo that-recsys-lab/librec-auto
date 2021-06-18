@@ -27,6 +27,7 @@ class ConfigCmd:
 
         self._files = Files()
         self._target = target
+        self._count = None
 
         self._files.set_study_path(target)
         self._files.set_config_file(config_file)
@@ -60,9 +61,15 @@ class ConfigCmd:
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]
 
-    def get_sub_exp_count(self):
+    def get_sub_exp_count(self, BBO = False):
         exp_count = len(self._var_coll.var_confs)
-        if exp_count == 0:
+
+        if BBO is not False:
+            self._count = BBO
+
+        if self._count is not None:
+            return self._count
+        elif exp_count == 0:
             return 1
         else:
             return exp_count

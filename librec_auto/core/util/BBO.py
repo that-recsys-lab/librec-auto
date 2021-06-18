@@ -107,4 +107,5 @@ class BBO:
         self.store_params = self.space
         self.exp_no = 0
         self.total_exp_no = total_exp_no
+        self.config.get_sub_exp_count(BBO = total_exp_no)
         best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
