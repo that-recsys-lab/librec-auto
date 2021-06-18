@@ -28,7 +28,7 @@ def get_metric_info(files):
     return metric_info
 
 
-def extract_full_info(study):
+def extract_full_info(config, entries = None, repeat = False):
     exp_frames = []
     table_values = defaultdict(list)
     time_stamp = study._timestamp
@@ -68,8 +68,12 @@ def extract_summary_info(study):
         for metric in study.get_metric_names():
             table_values[metric].append(curr_exp._metric_avg[metric])
 
+    # try:
     exp_results = pd.DataFrame(table_values)
     return (exp_results, time_stamp)
+    # except:
+    #     exp_results = pd.DataFrame([ pd.Series(table_values[value]) for value in table_values.keys() ])
+    #     return (exp_results, time_stamp)
 
 def metric_values_float(log, metric):
     str_values = log.get_metric_values(metric)['cv_results']
@@ -98,6 +102,9 @@ def read_args():
 
 if __name__ == '__main__':
     args = read_args()
+
+    config = read_config_file(args['conf'], ".")
+
     config = read_config_file(args['conf'], ".")
     study = StudyStatus(config)
     choice = args['option']

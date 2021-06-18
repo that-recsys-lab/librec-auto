@@ -27,6 +27,7 @@ class ConfigCmd:
 
         self._files = Files()
         self._target = target
+        self._count = None
 
         self._files.set_study_path(target)
         self._files.set_config_file(config_file)
@@ -60,9 +61,15 @@ class ConfigCmd:
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]
 
-    def get_sub_exp_count(self):
+    def get_sub_exp_count(self, BBO = False):
         exp_count = len(self._var_coll.var_confs)
-        if exp_count == 0:
+
+        if BBO is not False:
+            self._count = BBO
+
+        if self._count is not None:
+            return self._count
+        elif exp_count == 0:
             return 1
         else:
             return exp_count
@@ -78,8 +85,10 @@ class ConfigCmd:
         else:
             return None
 
-    def ensure_experiments(self):
+    def ensure_experiments(self, exp_no = None):
         exp_count = len(self._var_coll.var_confs)
+        if exp_no is not None:
+            exp_count = exp_no
         if exp_count == 0:
             exp_count = 1
         self.get_files().ensure_exp_paths(exp_count)
@@ -104,8 +113,8 @@ class ConfigCmd:
 
     # Have to wait to writes experiment-specific XML configurations to each exp directory
     # in case a purge is happening.
-    def setup_exp_configs(self):
-        self.write_exp_configs()
+    def setup_exp_configs(self, BBO = False, startval = None):
+        self.write_exp_configs(BBO, startval)
 
     def substitute_library(self):
         ref_elems = self._xml_input.xpath('//*[@ref]')
@@ -124,14 +133,50 @@ class ConfigCmd:
         self._var_coll.compute_var_configurations()
 
     def collect_librec_vars(self):
+        Tag = 'value'
+
         value_elems = self._xml_input.xpath(
             '/librec-auto/*[not(self::rerank)]/*/value')
+        
+        value_optimize_elems = self._xml_input.xpath(
+            '/librec-auto/alg/*//lower')
+
+        check_multiple_values = [elem.getparent() for elem in value_elems]
+        check_multiple_values = list(set(check_multiple_values))
+
+        if len(check_multiple_values) != len(value_elems) and len(value_optimize_elems) > 0:
+            raise Exception("You may only use upper/lower for optimizing ranges")
+        elif len(value_optimize_elems) > 0 and len(self._xml_input.xpath('/librec-auto/alg//optimize')) == 0:
+            raise Exception("You may only use upper/lower with an optimize tag")
+        elif len(value_elems) > 0 and len(self._xml_input.xpath('/librec-auto/alg//optimize')) != 0:
+            raise Exception("You may only use upper/lower with an optimize tag")
+        elif len(value_optimize_elems) > 0:
+            value_elems = value_optimize_elems + self._xml_input.xpath(
+            '/librec-auto/alg/*//upper')
+            parents = [elem.getparent() for elem in value_elems]
+
+            Tag = 'lower'
+
         parents = [elem.getparent() for elem in value_elems]
         parents = list(set(parents))
-        for parent in parents:
-            vals = [elem.text for elem in parent.iterchildren(tag='value')]
-            parent_path = build_parent_path(parent)
-            self._var_coll.add_var('librec', parent_path, vals)
+        if Tag == 'value':
+            for parent in parents:
+                vals = [elem.text for elem in parent.iterchildren(tag=Tag)]
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('librec', parent_path, vals)
+
+        else:
+            for parent in parents:
+                val_lower = [elem.text for elem in parent.iterchildren(tag='lower')]
+                val_upper = [elem.text for elem in parent.iterchildren(tag='upper')]
+                vals = []
+                # print(val_lower,val_upper)
+                for i in range(len(val_lower)):
+                    vals.append(val_lower[i])
+                    vals.append(val_upper[i])
+
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('librec', parent_path, vals)
 
     def collect_rerank_vars(self):
         value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
@@ -144,17 +189,60 @@ class ConfigCmd:
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
-    def write_exp_configs(self):
+    def write_exp_configs(self, BBO = False, startval = None, val = None, iteration = None):
+        
         configs = list(
-            zip(self.get_files().get_exp_paths_iterator(),
-                iter(self._var_coll.var_confs)))
-        i = 0
-        for exp, vconf in configs:
-            vconf.exp_no = i
-            vconf.exp_dir = exp.exp_name
-            self.write_exp_config(exp, vconf)
+                zip(self.get_files().get_exp_paths_iterator(),
+                    iter(self._var_coll.var_confs)))
+        if BBO:
+            configs = [configs[0]]
+            i = 0
+            j = 0
+            for exp, vconf in configs:
+                for x in range(len(val)):
+                    vconf.vars[x].val = val[x] 
+                vconf.exp_no = None
+                vconf.exp_dir = exp.exp_name
+                directory = ""
+                while len(directory) < 5:
+                    if len(directory) == 0:
+                        directory += str(iteration)
+                    else:
+                        directory = "0" + directory
 
-    def write_exp_config(self, exp, vconf):
+                iterat = directory
+                directory += "/conf"
+
+                new_conf = ""
+                old_path = str(exp.get_path('conf'))
+                add = False
+                for k in range(len(old_path)):
+                    if add == False:
+                        new_conf += old_path[k]
+                        if old_path[k+2] == 'x':
+                            add = True
+                    else:
+                        new_conf += "exp"
+                        new_conf += directory
+                        break
+                exp.set_path('conf', Path(new_conf))
+                self.write_exp_config(exp, vconf, iterat)
+                j += 1
+
+        elif startval is not None:
+            i = 0
+            for exp, vconf in configs[:1]:
+                vconf.exp_no = i
+                vconf.exp_dir = exp.exp_name
+                self.write_exp_config(exp, vconf)
+        else:
+            i = 0
+            for exp, vconf in configs:
+                vconf.exp_no = i
+                vconf.exp_dir = exp.exp_name
+                self.write_exp_config(exp, vconf)
+
+    def write_exp_config(self, exp, vconf, iteration = None):
         new_xml = copy.deepcopy(self._xml_input)
         # Remove libraries. All substitutions have already happened.
         for lib in new_xml.xpath('/librec-auto/library'):
@@ -185,6 +273,10 @@ class ConfigCmd:
 
         props = LibrecProperties(new_xml, self._files)
         exp.add_to_config(props.properties, 'librec_result')
+
+        if iteration is not None:
+            props.properties['dfs.result.dir'] = 'exp' + str(iteration) + '/result'
+
         props.save(exp)
 
         if vconf.ref_config:
