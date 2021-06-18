@@ -148,7 +148,8 @@ def create_html(path, study, bars, boxes):
 
 def create_graphics(config, display):
     files = config.get_files()
-    study_status = StudyStatus(config)
+    metric_info = get_metric_info(files)
+    StudyStatus(config)
 
     print("Post path")
     print(files.get_post_path())
