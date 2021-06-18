@@ -72,7 +72,7 @@ class StudyStatus:
         if study_xml is None:
             # If it doesn't, create one
             create_study_output(config)
-            study_xml = xml_load_from_path(config.get_files().get_status_path())
+            study_xml = xml_load_from_path(status_path)
 
         time = single_xpath(study_xml, 'completed_at')
         self._timestamp = time.text
