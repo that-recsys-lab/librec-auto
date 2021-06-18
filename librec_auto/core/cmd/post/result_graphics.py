@@ -54,23 +54,26 @@ def create_bar(path, metric_name, params, settings, metric_values):
     return filename
 
 
-def create_bars(path, metric_info):
-    metric_names = list(metric_info.values())[0][2].get_metrics()
+def create_bars(path, study):
     # Nasim: add list to it because in python 3 it returns a view, so it doesn't have indexing, you can't access it.
-
+    metric_names = study.get_metric_names()
     bar_paths = []
-
+    experiments = sorted(study._experiments.keys())
+    
+    # iterate over all metrics used in study
     for metric in metric_names:
-
-        param_string = ""
+        # param_string: for graph title
+        param_string = ', '.join(study.get_exp_params())
         settings = []
-        metric_vals = []
-
-        for params, vals, log in metric_info.values():
-            param_string = ', '.join(params)
+        metric_vals = study.get_metric_averages(metric)
+        
+        # iterate over all experiments to get average value of metric
+        for exp in experiments:
+            # print(f'{exp} params: {study.get_exp_param_values(exp)}')
+            param_vals_list = study.get_exp_param_values(exp)
+            vals = [str(val) for (_, val) in param_vals_list]
             settings.append('\n'.join(vals))
-            metric_vals.append(np.average(metric_values_float(log, metric)))
-
+            
         bar_paths.append(
             create_bar(path, metric, param_string, settings, metric_vals))
 
@@ -91,21 +94,21 @@ def create_box(path, metric, params, settings, fold_values):
     return filename
 
 
-def create_boxes(path, metric_info):
-    metric_names = list(metric_info.values())[0][2].get_metrics()
-
+def create_boxes(path, study):
+    metric_names = study.get_metric_names()
+    experiments = sorted(study._experiments.keys())
     box_paths = []
-    for metric in metric_names:
 
-        param_string = ""
+    for metric in metric_names:
+        param_string = ', '.join(study.get_exp_params())
         settings = []
         fold_vals = []
 
-        for params, vals, log in metric_info.values():
-            param_string = ', '.join(params)
+        for exp in experiments:
+            param_vals_list = study.get_exp_param_values(exp)
+            vals = [str(val) for (_, val) in param_vals_list]
             settings.append('\n'.join(vals))
-            metric_vals = metric_values_float(log, metric)
-            fold_vals.append(metric_vals)
+            fold_vals.append(study.get_metric_folds(exp, metric))
 
         box_paths.append(
             create_box(path, metric, param_string, settings, fold_vals))
@@ -118,10 +121,10 @@ METRIC_TEMPLATE = '<h2>Metric: {}</h2>{}'
 IMAGE_TEMPLATE = '<img src="{}" />'
 
 
-def create_html(path, metric_info, bars, boxes):
+def create_html(path, study, bars, boxes):
     html = PAGE_TEMPLATE
     metric_chunks = []
-    metric_names = list(metric_info.values())[0][2].get_metrics()
+    metric_names = study.get_metric_names()
 
     if boxes is None:
         for name, bar in zip(metric_names, bars):
@@ -145,28 +148,21 @@ def create_html(path, metric_info, bars, boxes):
 
 def create_graphics(config, display):
     files = config.get_files()
-    metric_info = get_metric_info(files)
-    status = StudyStatus(config)
-    # status.get_metric_names()
-    # status.get_exp_param_values('exp0')
-    # status.get_exp_param_values('exp6')
-    # status.get_metric_averages('PrecisionEvaluator')
-    # status.get_exp_params()
-
+    study_status = StudyStatus(config)
 
     print("Post path")
     print(files.get_post_path())
 
-    bars = create_bars(files.get_post_path(), metric_info)
+    bars = create_bars(files.get_post_path(), study_status)
 
     if config.cross_validation(
     ) > 1:  # Box plot only makes sense for cross-validation
-        boxes = create_boxes(files.get_post_path(), metric_info)
+        boxes = create_boxes(files.get_post_path(), study_status)
     else:
         boxes = None
 
     if display:
-        html_file = create_html(files.get_post_path(), metric_info, bars,
+        html_file = create_html(files.get_post_path(), study_status, bars,
                                 boxes)
         webbrowser.open('file://' + str(html_file.absolute()),
                         new=1,

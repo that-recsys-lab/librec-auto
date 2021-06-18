@@ -52,7 +52,6 @@ def extract_full_info(study):
         exp_frames.append(exp_df)
     
     exp_results = pd.concat(exp_frames, axis=0, ignore_index=True)
-    # print(exp_results)
     return (exp_results, time_stamp)
 
 
@@ -70,7 +69,6 @@ def extract_summary_info(study):
             table_values[metric].append(curr_exp._metric_avg[metric])
 
     exp_results = pd.DataFrame(table_values)
-    # print(exp_results)
     return (exp_results, time_stamp)
 
 def metric_values_float(log, metric):
