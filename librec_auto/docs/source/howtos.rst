@@ -56,7 +56,7 @@ All of the other parts of the algorithm specification would be unchanged.
 Producing graphical output
 --------------------------
 
-There is a post-processing script for producing basic summary plots of your study. Two types of visualization are produced:
+There is a post-processing script for producing basic summary plots of your study. This script was primarily designed for studies that make use of cross-validation. Two types of visualization are produced:
 
 * Bar plots with the average metric value for each experiment in the study, for each metric. 
 * Box plots that show the distribution of metric values across the different folds of each experiment in a study (if using cross-validation), for each metric.
