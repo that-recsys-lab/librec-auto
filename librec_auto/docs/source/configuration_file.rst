@@ -18,7 +18,7 @@ Example
 
 ``thread-count``: If this is greater than zero, librec-auto will spawn multiple threads for various tasks, including parallel execution of  experiments.
 
-```library``: There can be multiple ``library`` elements, from which algorithms, metrics and other elements can be imported. There is a default system library for algorithms (referenced in the example). An element from the library can be imported using the ``ref`` attribute.
+``library``: There can be multiple ``library`` elements, from which algorithms, metrics and other elements can be imported. There is a default system library for algorithms (referenced in the example). An element from the library can be imported using the ``ref`` attribute.
 
     Example: ``<alg ref="alg:biasedmf"/>`` refers to the ``biasedmf`` (Biased Matrix Factorization) algorithm as implemented in LibRec with the default hyperparameters given the library. The library file can be consulted to see what hyperparameters the algorithm accepts. These can be overridden by local declarations in the configuration file.
 
@@ -84,7 +84,7 @@ Example:
 		<num-factors>20</num-factors>
 	</alg>
 
-LibRec supports more than 70 recommendation algorithms. See :ref:`Supported Algorithms` for a list. Each has its own hyperparameters. Users are encouraged to consult the LibRec documentation and (more helpfully) source code for specific references to the algorithm details and links to original research. The ``class`` element refers to the algorithm name or (rarely necessary) the specific Java class name of the algorithm to be invoked. Algorithm names are defined in the LibRec source code in the file `librec/core/src/main/resources/driver.classes.props`.
+LibRec supports more than 70 recommendation algorithms. See :ref:`Supported Algorithms` for a list. Each has its own hyperparameters. Users are encouraged to consult the LibRec documentation and (more helpfully) source code for specific references to the algorithm details and links to original research. The ``class`` element refers to the algorithm name or (rarely necessary) the specific Java class name of the algorithm to be invoked. Algorithm names are defined in the LibRec source code in the file ``librec/core/src/main/resources/driver.classes.props``.
 
 
 The default algorithms library (described in :ref:`Using a library`) contains a number of the most common algorithms and complete lists of their hyperparameters with default values.
@@ -106,16 +106,19 @@ The black-box optimization capability requires the use of a separate *optimize* 
 
 ::
 
-<optimize><metric>precision</metric>
-    <iterations>25</iterations></optimize>
+    <optimize><metric>precision</metric>
+        <iterations>25</iterations></optimize>
 
+By default, the first 20 iterations are random samples from the parameter space, so the optimization procedure does not kick in until after this point.
 
 This option cannot be combined with grid search. If it is used, instead of providing a list of values associated with a parameter (the ``value`` element), we provide an upper and lower bound to the search range.
 
 ::
 
-<item-reg><lower>0.01</lower>
+    <item-reg><lower>0.01</lower>
           <upper>0.05</upper></item-reg>
+
+Note that black-box optimization can only be used for numeric parameters. Options that are configured as discrete choices (similarity metrics, for example) are not currently supported.
 
 Metrics Section
 ===============
@@ -128,13 +131,13 @@ Example:
 		<protected-feature>new</protected-feature>
 	</metric>
 
-A study can employ multiple metrics. See :ref:`supported` for information about the wide variety of metrics implemented in LibRec. Error-based metrics (like RMSE) require the ``ranking`` element to be set to false. Ranking metrics (like nDCG) require ``ranking`` to be true and a list-size to be specified. a
+A study can employ multiple metrics. See :ref:`Supported Algorithms` for information about the wide variety of metrics implemented in LibRec. Error-based metrics (like RMSE) require the ``ranking`` element to be set to false. Ranking metrics (like nDCG) require ``ranking`` to be true and a list-size to be specified. a
 
 Note: Despite the fact that this is the section for metrics, the ``list-size`` element here controls the lists that the algorithm computes. (We expect this behavior to change in future releases.) This means that if you are using a re-ranking design, the list size given here should be the larger pre-re-ranking value. Your re-ranking script should take a different parameter that controls the length of the output list. Therefore, it is possible that the ``list-size`` element says 100, but the value computed might actually be nDCG@10 because the re-ranker has truncated lists to length 10.
 
-Fairness-aware metrics (like `psp` (Provider-side Statistical Parity) seen here) will require a `protected-feature` element. In the current release, this must be a binary feature. Items (or users) will associated feature value of 1 will be considered "protected" for the purposes of a fairness metric. This value is also used by fairness-aware algorithms in LibRec (currently only Balanced Neighborhood SLIM).
+Fairness-aware metrics (like ``psp`` (Provider-side Statistical Parity) seen here) will require a ``protected-feature`` element. In the current release, this must be a binary feature. Items (or users) will associated feature value of 1 will be considered "protected" for the purposes of a fairness metric. This value is also used by fairness-aware algorithms in LibRec (currently only Balanced Neighborhood SLIM).
 
-Additional information on using fairness metrics can be found at :ref:`usefairnessmetrics`.
+Additional information on using fairness metrics can be found at :ref:`Use Fairness Metrics`.
 
 Rerank Section (optional)
 ==============
