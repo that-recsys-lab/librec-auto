@@ -6,7 +6,7 @@ Description:
 import argparse
 from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core import read_config_file
-from librec_auto.core.util import Status
+from librec_auto.core.util import Status, Files
 from collections import defaultdict
 from pathlib import Path
 
@@ -28,22 +28,22 @@ def get_metric_info(files):
     return metric_info
 
 
-def extract_full_info(config, entries = None, repeat = False):
+def extract_full_info(study, entries = None, repeat = False):
     exp_frames = []
     table_values = defaultdict(list)
     time_stamp = study._timestamp
+
 
     # iterate over experiments in study for metric info
     for exp in study._experiments.keys():
         
         curr_exp = study._experiments[exp]
-        exp_count = curr_exp._kcv_count
-        # each experiment has a _kcv_count attribute, used twice here
-        table_values['Experiment'] = np.repeat(curr_exp._name, exp_count)
-        table_values['Split'] = range(0, exp_count)
+
+        table_values['Experiment'] = list(np.repeat(exp, study._kcv_count))
+        table_values['Split'] = list(range(0, study._kcv_count))
 
         for (param, val) in study.get_exp_param_values(exp):
-            table_values[param] = np.repeat(val, exp_count)
+            table_values[param] = list(np.repeat(val, study._kcv_count))
         
         for metric in study.get_metric_names():
             table_values[metric] = curr_exp._metric_info[metric]
@@ -61,7 +61,7 @@ def extract_summary_info(study):
 
     for exp in study._experiments.keys():
         curr_exp = study._experiments[exp]
-        table_values['Experiment'].append(curr_exp._name)
+        table_values['Experiment'].append(Files.get_exp_name(curr_exp.exp_no))
         for (param, val) in study.get_exp_param_values(exp):
             table_values[param].append(val)
 

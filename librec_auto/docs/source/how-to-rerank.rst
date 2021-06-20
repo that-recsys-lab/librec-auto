@@ -18,7 +18,7 @@ As machine learning systems take over more decision-making, the recommender syst
 
 In order to use a rerank algorithm, you will need to specify the rerank method, hyperparameter, maximum length to return, data type (binary or not).
 
-The protected feature is not in configuration but '/librec-auto/metric/protected-feature'
+The protected feature is not in configuration but is drawn from the metric section of the configuration file. See discussion under :ref:`
 
 In the ``rerank`` section of the configuration file, for example:
 

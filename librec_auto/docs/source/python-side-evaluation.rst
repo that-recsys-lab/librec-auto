@@ -4,29 +4,6 @@ Python-side Evaluation
 ======================
 
 
-Existing Metrics
-================
-
-To use existing python-side metrics, use the ``python="true"`` flag in your
-configuration file's metrics. The ``params`` element shown here can be empty.
-
-::
-
-	<metric python="true">
-		<name>rmse</name>
-		<params>
-			<foo>bar</foo>
-		</params>
-	</metric>
-
-The following metrics are implemented in python:
-
-* RMSE
-* NDCG
-
-Custom Metrics
-==============
-
 ``librec-auto`` supports custom evaluation metrics implemented in python.
 
 

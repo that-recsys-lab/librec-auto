@@ -46,7 +46,9 @@ The feature information is added in the top-level ``features`` section of the co
 
 For user features, the ``UserFeatureAppender`` class is used and the corresponding ``user-feature-file`` element. 
 
-The information about which feature is considered protected is configured in the ``metric`` section of the configuration with the element  ``protected-feature``. 
+The information about which feature is considered protected is configured in the ``metric`` section of the configuration with the element  ``protected-feature``.
+
+Note that only a single (binary) protected feature across algorithm, metric, and re-ranking is currently supported. We expect to generalize this capability in future releases.
 
 4. Available fairness metrics
 =============================

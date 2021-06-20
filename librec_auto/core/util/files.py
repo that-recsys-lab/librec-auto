@@ -118,9 +118,11 @@ class Files:
         self._config_file_name = Path(filename)
 
     # Access to experiments within the current study
-
-    def get_exp_name(self, count):
-        return self._EXP_DIR_FORMAT.format(count)
+    @staticmethod
+    def get_exp_name(count):
+        if type(count) is str:
+            count = int(count)
+        return Files._EXP_DIR_FORMAT.format(count)
 
     def detect_exp_path(self, exp_no):
         return (self.get_study_path() / self.get_exp_name(exp_no)).exists()

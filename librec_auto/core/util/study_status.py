@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from librec_auto.core.util.xml_utils import xml_load_from_path
+from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
+from librec_auto.core.util import Files
 
 from collections import defaultdict
 
@@ -13,6 +14,8 @@ class ExperimentData:
     '''
 
     def __init__(self, experiment):
+        self.exp_no = int(experiment.attrib['count'])
+
         # Used for storing parameters changed
         self._param = []
         # Dictionary mapping paramters to their values
@@ -72,18 +75,26 @@ class StudyStatus:
                  
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
-            exp_name = "exp" + exp.attrib['count']
+            exp_name = Files.get_exp_name(exp.attrib['count'])
             
             self._experiments[exp_name] = ExperimentData(exp)
-            
+
+        model = single_xpath(study_xml, '/study/config/splitter/model')
+        if model.text == 'kcv':
+            self._kcv_count = int(model.attrib['count'])
+        else:
+            self._kcv_count = 0
+        time = single_xpath(study_xml, 'completed_at').text
+        time_obj = datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f')
+        self._timestamp = time_obj.strftime("%Y%m%d_%H%M%S")
         # pp(self._experiments)
 
     def get_metric_names(self):
-        curr = self._experiments['exp0']
+        curr = self._experiments[Files.get_exp_name(0)]
         return list(curr._metric_info.keys())
 
     def get_exp_params(self):
-        curr = self._experiments['exp0']
+        curr = self._experiments[Files.get_exp_name(0)]
         return curr._param
 
     def get_metric_averages(self, metric):

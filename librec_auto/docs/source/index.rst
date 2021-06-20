@@ -12,7 +12,7 @@ Find a section
    how-to-produce-csv
    how-to-use-fairness-metrics
    integrations
-   configuration_list
+   configuration_file
    python-side-evaluation
    supported-algorithms
 
