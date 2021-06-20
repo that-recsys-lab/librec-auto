@@ -37,7 +37,7 @@ def metric_values_float(log, metric):
     str_values = log.get_metric_values(metric)['cv_results']
     return [float(val) for val in str_values]
 
-def create_bar(path, metric_name, params, settings, metric_values):
+def create_bar(path, metric_name, params, settings, metric_values, is_bbo):
     x_range = range(0, len(settings))
 
     fig, ax = plt.subplots()
@@ -46,15 +46,16 @@ def create_bar(path, metric_name, params, settings, metric_values):
     ax.set_title('{} by\n{}'.format(metric_name, params))
     ax.set_xticks(x_range)
     ax.set_xticklabels(settings)
+    if is_bbo: plt.xticks(rotation=90, fontsize=8)
 
     filename = path / viz_file_pattern_bar.format(metric_name)
-    fig.savefig(str(filename))
+    fig.savefig(str(filename), bbox_inches="tight")
     plt.close()
 
     return filename
 
 
-def create_bars(path, study):
+def create_bars(path, study, is_bbo):
     # Nasim: add list to it because in python 3 it returns a view, so it doesn't have indexing, you can't access it.
     metric_names = study.get_metric_names()
     bar_paths = []
@@ -75,26 +76,27 @@ def create_bars(path, study):
             settings.append('\n'.join(vals))
             
         bar_paths.append(
-            create_bar(path, metric, param_string, settings, metric_vals))
+            create_bar(path, metric, param_string, settings, metric_vals, is_bbo))
 
     return bar_paths
 
 
-def create_box(path, metric, params, settings, fold_values):
+def create_box(path, metric, params, settings, fold_values, is_bbo):
     fig, ax = plt.subplots()
     ax.boxplot(fold_values)
     ax.set_ylabel(metric)
     ax.set_xticklabels(settings)
+    if is_bbo: plt.xticks(rotation=90, fontsize=8)
     ax.set_title('{} distribution by\n{}'.format(metric, params))
 
     filename = path / viz_file_pattern_box.format(metric)
 
-    fig.savefig(str(filename))
+    fig.savefig(str(filename), bbox_inches="tight")
     plt.close()
     return filename
 
 
-def create_boxes(path, study):
+def create_boxes(path, study, is_bbo):
     metric_names = study.get_metric_names()
     experiments = sorted(study._experiments.keys())
     box_paths = []
@@ -111,7 +113,7 @@ def create_boxes(path, study):
             fold_vals.append(study.get_metric_folds(exp, metric))
 
         box_paths.append(
-            create_box(path, metric, param_string, settings, fold_vals))
+            create_box(path, metric, param_string, settings, fold_vals, is_bbo))
 
     return box_paths
 
@@ -148,17 +150,15 @@ def create_html(path, study, bars, boxes):
 
 def create_graphics(config, display):
     files = config.get_files()
-    metric_info = get_metric_info(files)
-    StudyStatus(config)
+    study_status = StudyStatus(config)
 
-    print("Post path")
-    print(files.get_post_path())
-
-    bars = create_bars(files.get_post_path(), study_status)
+    bars = create_bars(files.get_post_path(), study_status,
+                       (config.get_bbo_steps() is not None))
 
     if config.cross_validation(
     ) > 1:  # Box plot only makes sense for cross-validation
-        boxes = create_boxes(files.get_post_path(), study_status)
+        boxes = create_boxes(files.get_post_path(), study_status,
+                             config.get_bbo_steps() is not None)
     else:
         boxes = None
 

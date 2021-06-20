@@ -314,8 +314,10 @@ if __name__ == '__main__':
             if config.is_valid():
                 command = setup_commands(args, config)
 
-                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/alg//*/lower')]) >0:
-                    args['action'] = 'bbo'
+                if len(config._xml_input.xpath('/librec-auto/alg//*/lower')) >0 and \
+                        (args['action'] == 'run' or args['action'] == 'dry_run'):
+                    if args['action'] == 'run':
+                        args['action'] = 'bbo'
                     print('Running BBO. Recreating Config.')
                     config = load_config(args)
                     command = setup_commands(args, config)
@@ -338,7 +340,7 @@ if __name__ == '__main__':
 
                     range_val_store = [[min(array), max(array)] for array in range_val_store]
 
-                    check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//value')])
+                    check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//lower')])
 
                     if check_rerank > 0:
                         raise Exception("Optimization is not currently supported with Reranking")
@@ -349,9 +351,9 @@ if __name__ == '__main__':
                         if tup[0] == tup[1]:
                             exponent_expected -= 1
 
-                    if 2**exponent_expected == config.get_sub_exp_count():
+                   # if 2**exponent_expected == config.get_sub_exp_count():
                         range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
-                        value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/iterations')]
+                        value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
 
                         continue_rerank = False
 
@@ -368,14 +370,14 @@ if __name__ == '__main__':
                         bbo = BBO.BBO(range_list, len(range_val_store), command[2:], config)
                         file_path = bbo.run_purge(command[0])
 
-                        metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/alg//optimize/metric')][0]
+                        metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
 
                         if metric in bbo.metric_map:
                             bbo.set_optimization_direction(metric)
                         else:
                             bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
 
-                        command[1].execute(config, startval = 0.5, exp_no = int(value_elems[0]))
+                        command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
 
                         bbo.file_path = file_path
                         bbo.create_space()
@@ -391,9 +393,11 @@ if __name__ == '__main__':
                         command[-1].execute(config)
                         create_study_output(config)
 
-                    else:
-                        print("Each range must have only two values!")
-                        print("Expected", exponent_expected, "values, got", config.get_sub_exp_count())
+
+
+                 #   else:
+                 #       print("Each range must have only two values!")
+                 #       print("Expected", exponent_expected, "values, got", config.get_sub_exp_count())
                      
                 else:
                     logging.error("Command instantiation failed.")

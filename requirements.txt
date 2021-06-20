@@ -2,6 +2,7 @@ matplotlib
 lxml
 pandas
 numpy
+hyperopt
 progressbar
 cryptography
 slackclient>=2.0

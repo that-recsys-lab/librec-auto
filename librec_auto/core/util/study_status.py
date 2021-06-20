@@ -3,7 +3,6 @@ from datetime import datetime
 from librec_auto.core.util.xml_utils import xml_load_from_path
 
 from collections import defaultdict
-from pprint import pprint as pp
 
 from lxml import etree
 from .status import move_field_from_element
@@ -34,23 +33,21 @@ class ExperimentData:
 
         # Folds
         folds = experiment.xpath('results/folds')
-        print("vals:")
         for fold in folds:
             for cv in fold:
                 for met in cv.getchildren():
                     # Add each 
                     self._metric_info[met.attrib['name']].append(float(met.text))
 
-        pp(self._metric_info)
+        # pp(self._metric_info)
         
         # Averages
         averages = experiment.xpath('results/averages')
-        print("averages:")
         for ave in averages:
             for met in ave.getchildren():
                 self._metric_avg[met.attrib['name']] = float(met.text)
 
-        pp(self._metric_avg)
+        # pp(self._metric_avg)
 
 
 class StudyStatus:
@@ -79,7 +76,36 @@ class StudyStatus:
             
             self._experiments[exp_name] = ExperimentData(exp)
             
-        pp(self._experiments)
+        # pp(self._experiments)
+
+    def get_metric_names(self):
+        curr = self._experiments['exp0']
+        return list(curr._metric_info.keys())
+
+    def get_exp_params(self):
+        curr = self._experiments['exp0']
+        return curr._param
+
+    def get_metric_averages(self, metric):
+        avgs = []
+        for exp in self._experiments.values():
+            avgs.append(exp._metric_avg[metric])
+        return avgs
+
+    def get_exp_param_values(self, experiment):
+        if not experiment in self._experiments.keys():
+            print(f'** Error: ** Invalid experiment name: {experiment}')
+            return []
+
+        param_value_list = []
+        exp_params = self._experiments[experiment]._param_vals
+        for param in exp_params:
+            param_value_list.append((param, exp_params[param]))
+        return param_value_list
+
+    def get_metric_folds(self, experiment, metric):
+        return self._experiments[experiment]._metric_info[metric]
+
 
 
 def create_study_output(config) -> None:

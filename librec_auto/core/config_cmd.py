@@ -37,6 +37,7 @@ class ConfigCmd:
         self._files.set_data_path(self._xml_input)
         self._var_coll = VarColl()
         self._libraries = LibraryColl()
+        self._bbo_steps = 0
 
         self._key_password = None
 
@@ -61,11 +62,17 @@ class ConfigCmd:
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]
 
-    def get_sub_exp_count(self, BBO = False):
+    def get_bbo_steps(self):
+        if self._bbo_steps > 0:
+            return self._bbo_steps
+        else:
+            return None
+
+    def get_sub_exp_count(self):
         exp_count = len(self._var_coll.var_confs)
 
-        if BBO is not False:
-            self._count = BBO
+        if self.get_bbo_steps() is not None:
+            self._count = self.get_bbo_steps()
 
         if self._count is not None:
             return self._count
@@ -86,11 +93,14 @@ class ConfigCmd:
             return None
 
     def ensure_experiments(self, exp_no = None):
-        exp_count = len(self._var_coll.var_confs)
-        if exp_no is not None:
-            exp_count = exp_no
-        if exp_count == 0:
-            exp_count = 1
+        if self.get_bbo_steps() is None:
+            exp_count = len(self._var_coll.var_confs)
+            if exp_no is not None:
+                exp_count = exp_no
+            if exp_count == 0:
+                exp_count = 1
+        else:
+            exp_count = self.get_bbo_steps()
         self.get_files().ensure_exp_paths(exp_count)
 
     def load_libraries(self):
@@ -105,16 +115,25 @@ class ConfigCmd:
     # or xpath-string => (range-to, range-from) pair
     # Right now, we will assume the first
     def process_config(self):
+        self.setup_bbo()
         self._var_data = defaultdict(list)
         self.substitute_library()
         self.collect_vars()
         self.ensure_experiments()
         # self.label_repeats()
 
+    def setup_bbo(self):
+        opt_elem = single_xpath(self._xml_input, '/librec-auto/optimize')
+        if opt_elem is None:
+            self._bbo_steps = 0
+        else:
+            self._bbo_steps = int(single_xpath(opt_elem,'iterations').text)
+
+
     # Have to wait to writes experiment-specific XML configurations to each exp directory
     # in case a purge is happening.
-    def setup_exp_configs(self, BBO = False, startval = None):
-        self.write_exp_configs(BBO, startval)
+    def setup_exp_configs(self, startval = None):
+        self.write_exp_configs(startval)
 
     def substitute_library(self):
         ref_elems = self._xml_input.xpath('//*[@ref]')
@@ -144,12 +163,14 @@ class ConfigCmd:
         check_multiple_values = [elem.getparent() for elem in value_elems]
         check_multiple_values = list(set(check_multiple_values))
 
+        has_optimize = len(self._xml_input.xpath('/librec-auto/optimize')) > 0
+
         if len(check_multiple_values) != len(value_elems) and len(value_optimize_elems) > 0:
             raise Exception("You may only use upper/lower for optimizing ranges")
-        elif len(value_optimize_elems) > 0 and len(self._xml_input.xpath('/librec-auto/alg//optimize')) == 0:
+        elif len(value_optimize_elems) > 0 and not has_optimize:
             raise Exception("You may only use upper/lower with an optimize tag")
-        elif len(value_elems) > 0 and len(self._xml_input.xpath('/librec-auto/alg//optimize')) != 0:
-            raise Exception("You may only use upper/lower with an optimize tag")
+        elif len(value_elems) > 0 and has_optimize:
+            raise Exception("Use of upper/lower value bounds requires optimize tag")
         elif len(value_optimize_elems) > 0:
             value_elems = value_optimize_elems + self._xml_input.xpath(
             '/librec-auto/alg/*//upper')
@@ -189,47 +210,27 @@ class ConfigCmd:
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
-    def write_exp_configs(self, BBO = False, startval = None, val = None, iteration = None):
+    def write_exp_configs(self, startflag = None, val = None, iteration = None):
         
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
                     iter(self._var_coll.var_confs)))
-        if BBO:
-            configs = [configs[0]]
-            i = 0
-            j = 0
-            for exp, vconf in configs:
-                for x in range(len(val)):
-                    vconf.vars[x].val = val[x] 
-                vconf.exp_no = None
-                vconf.exp_dir = exp.exp_name
-                directory = ""
-                while len(directory) < 5:
-                    if len(directory) == 0:
-                        directory += str(iteration)
-                    else:
-                        directory = "0" + directory
+        if self.get_bbo_steps() is not None and startflag is None:
+            exp, vconf = configs[0]
 
-                iterat = directory
-                directory += "/conf"
+            for x in range(len(val)):
+                vconf.vars[x].val = val[x]
+            vconf.exp_no = None
+            vconf.exp_dir = exp.exp_name
 
-                new_conf = ""
-                old_path = str(exp.get_path('conf'))
-                add = False
-                for k in range(len(old_path)):
-                    if add == False:
-                        new_conf += old_path[k]
-                        if old_path[k+2] == 'x':
-                            add = True
-                    else:
-                        new_conf += "exp"
-                        new_conf += directory
-                        break
-                exp.set_path('conf', Path(new_conf))
-                self.write_exp_config(exp, vconf, iterat)
-                j += 1
+            current_exp_path = self._files.get_study_path() / self._files.get_exp_name(iteration)
 
-        elif startval is not None:
+            exp.set_path('conf', current_exp_path / 'conf')
+            exp.exp_name = self._files.get_exp_name(iteration)
+            self.write_exp_config(exp, vconf, current_exp_path)
+
+
+        elif startflag is not None:
             i = 0
             for exp, vconf in configs[:1]:
                 vconf.exp_no = i
@@ -275,7 +276,7 @@ class ConfigCmd:
         exp.add_to_config(props.properties, 'librec_result')
 
         if iteration is not None:
-            props.properties['dfs.result.dir'] = 'exp' + str(iteration) + '/result'
+            props.properties['dfs.result.dir'] = exp.exp_name + '/result'
 
         props.save(exp)
 
