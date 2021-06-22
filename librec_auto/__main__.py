@@ -292,6 +292,10 @@ def setup_commands(args: dict, config: ConfigCmd):
     #     return cmd
 
     if action == 'check':
+        # TODO: command sequence should be
+        # setup_cmd (startval flag should enable just one exp configuration to be created)
+        # check_cmd
+        # 'check' librec command
         cmd = build_librec_commands('check', args, config)
         return cmd
 
