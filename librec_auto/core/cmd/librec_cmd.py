@@ -116,12 +116,14 @@ class LibrecCmd(Cmd):
         else:
             self.ensure_clean_log()
 
-            Status.save_status("Executing", self._sub_no, config,
+            if self._command != 'check':
+                Status.save_status("Executing", self._sub_no, config,
                                self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
             self.execute_librec()
-        Status.save_status("Completed", self._sub_no, config, self._exp_path)
+        if self._command != 'check':
+            Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):
