@@ -132,8 +132,8 @@ class ConfigCmd:
 
     # Have to wait to writes experiment-specific XML configurations to each exp directory
     # in case a purge is happening.
-    def setup_exp_configs(self, startval = None):
-        self.write_exp_configs(startval)
+    def setup_exp_configs(self, startflag = None):
+        self.write_exp_configs(startflag)
 
     def substitute_library(self):
         ref_elems = self._xml_input.xpath('//*[@ref]')
