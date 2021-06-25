@@ -1,4 +1,5 @@
 import argparse
+from librec_auto.core.cmd.check_cmd import CheckCmd
 from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
@@ -296,7 +297,10 @@ def setup_commands(args: dict, config: ConfigCmd):
         # setup_cmd (startval flag should enable just one exp configuration to be created)
         # check_cmd
         # 'check' librec command
-        cmd = build_librec_commands('check', args, config)
+        cmd1 = SetupCmd()
+        cmd2 = CheckCmd()
+        cmd3 = build_librec_commands('check', args, config)
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
         return cmd
 
 
