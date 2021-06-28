@@ -3,6 +3,7 @@ from librec_auto.core.config_cmd import ConfigCmd
 from librec_auto.core.util import Status, Files
 from librec_auto.core.util.xml_utils import single_xpath
 import os
+import re
 from pathlib import Path
 from lxml import etree
 
@@ -50,30 +51,45 @@ class CheckCmd(Cmd):
         files = config.get_files()
         pwd = files.get_study_path()
         config_xml = config._xml_input
+        config_elements = config._xml_input.getchildren()
 
-        print("Checking for all necessary elements.")
-        curr_elem = [e.tag for e in config_xml.getchildren()]
+        print("Performing check command.")
+        # check all paths have write access.
+        print("\nChecking paths for write access.")
+        for func in dir(files):
+            if re.match(r'get_.*path$', func):
+                getpath = getattr(files, func)
+                print(f'Checking path {getpath()} for write access.')
+                if not os.access(getpath(), os.W_OK):
+                    print(f'***** Write access not granted for {getpath()}. *****')
+                
+        print("\nChecking for all necessary sections in config file.")
+        missing_flag = False
+        curr_elem = [e.tag for e in config_elements]
         necc_elem = {'data': 'Data section',
                      'splitter': 'Splitter section', 
                      'alg': 'Algorithm section',
                      'metric': 'Metric section'}
         for elem in necc_elem.keys():
             if elem not in curr_elem:
-                print(f'** {necc_elem[elem]} missing in config file. **')
+                missing_flag = True
+                print(f'***** {necc_elem[elem]} missing in config file. *****')
+        if not missing_flag:
+            print("All necessary sections present.")
 
-        print("\nChecking path to library.")
+        print("\nChecking path to library, and that library exists.")
         library = single_xpath(config_xml, '/librec-auto/library')
-        print(f'Given file: {library.text}\n')
+        print(f'Given file: {library.text}')
         if library.attrib['src'] == "system":
             lib_path = Path(files.get_lib_path() / library.text)
         else:
             lib_path = Path(library.attrib['src'] / library.text)
         if not lib_path.exists():
-            print(f'Library not found. Given path: {lib_path}')
+            print(f'***** Library not found. Given path: {lib_path}')
         if not os.access(lib_path, os.W_OK):
-            print("Write access not granted in data directory.")
+            print("***** Write access not granted in data directory.")
         
-        print("Checking path to data.")
+        print("\nChecking path to data, and that data exists.")
         data_dir = single_xpath(config_xml, '/librec-auto/data/data-dir')
         data_dir_path = Path(pwd / data_dir.text)
         print(f'Given directory: {data_dir_path}')
@@ -81,23 +97,34 @@ class CheckCmd(Cmd):
         data_file = single_xpath(config_xml, '/librec-auto/data/data-file')
         print(f'Given file: {data_file.text}')
         data_file_path = Path(data_dir_path / data_file.text)
-        print(f'File exists? {data_file_path.exists()}\n')
+        print(f'File exists? {data_file_path.exists()}')
         if not data_file_path.exists():
-            print(f'Data file not found. Given path: {data_file_path}')
+            print(f'***** Data file not found. Given path: {data_file_path} *****')
         if not os.access(data_file_path, os.W_OK):
-            print("Write access not granted in data directory.")
+            print("***** Write access not granted in data directory.")
 
-        print("Checking path(s) to script(s).")
-        for elem in config_xml.getchildren():
+        print("\nChecking path(s) to script(s), and that scripts exist.")
+        for elem in config_elements:
             script_element = elem.findall('script')
-            if script_element is not None:
-                # if script_element.attrib['src'] == "system":
-                #     script_path = 
+            if script_element:
                 for se in script_element:
+                    if se.attrib['src'] == "system":
+                        if elem.tag == 'alg':
+                            script_path = None
+                        elif elem.tag == 'metric':
+                            script_path = Path(files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'eval')
+                        elif elem.tag == 'post':
+                            script_path = Path(files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'post')
+                    else:
+                        script_path = Path(se.attrib['src'])
                     script_name = se.find('script-name')
-                    print(script_name.text)
+                    script_path = Path(script_path / script_name.text)
+                    print(f'File name: {script_name.text}')
+                    print(f'File path: {script_path}')
+                    if not script_path.exists():
+                        print(f'***** Script {script_name.text} not found in given path. *****')
 
-        # print("Checking for optimizations.")
+        print("\nChecking for optimizations.")
         # optimization = single_xpath(config_xml, 'librec-auto/optimize')
         # if optimization is not None:
         #     algo = single_xpath(config_xml, 'librec-auto/alg')
