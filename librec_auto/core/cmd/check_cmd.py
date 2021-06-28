@@ -85,9 +85,9 @@ class CheckCmd(Cmd):
         else:
             lib_path = Path(library.attrib['src'] / library.text)
         if not lib_path.exists():
-            print(f'***** Library not found. Given path: {lib_path}')
+            print(f'***** Library not found. Given path: {lib_path} *****')
         if not os.access(lib_path, os.W_OK):
-            print("***** Write access not granted in data directory.")
+            print("***** Write access not granted in library directory. *****")
         
         print("\nChecking path to data, and that data exists.")
         data_dir = single_xpath(config_xml, '/librec-auto/data/data-dir')
@@ -101,7 +101,7 @@ class CheckCmd(Cmd):
         if not data_file_path.exists():
             print(f'***** Data file not found. Given path: {data_file_path} *****')
         if not os.access(data_file_path, os.W_OK):
-            print("***** Write access not granted in data directory.")
+            print("***** Write access not granted in data directory. *****")
 
         print("\nChecking path(s) to script(s), and that scripts exist.")
         for elem in config_elements:
