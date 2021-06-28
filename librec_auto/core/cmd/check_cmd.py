@@ -51,7 +51,7 @@ class CheckCmd(Cmd):
         files = config.get_files()
         pwd = files.get_study_path()
         config_xml = config._xml_input
-        config_elements = config._xml_input.getchildren()
+        config_elements = config_xml.getchildren()
 
         print("Performing check command.")
         # check all paths have write access.
@@ -125,16 +125,18 @@ class CheckCmd(Cmd):
                         print(f'***** Script {script_name.text} not found in given path. *****')
 
         print("\nChecking for optimizations.")
-        # optimization = single_xpath(config_xml, 'librec-auto/optimize')
-        # if optimization is not None:
-        #     algo = single_xpath(config_xml, 'librec-auto/alg')
-        #     found_upper_lower = False
-        #     for elem in algo.iterchildren():
-        #         if elem.getchildren() is None:
-        #             print(elem.text)
-        #         else:
-        #             for val in elem.iterchildren():
-        #                 print(val)
+        optimization = single_xpath(config_xml, 'librec-auto/optimize')
+        if optimization is not None:
+            algo = single_xpath(config_xml, 'librec-auto/alg')
+            found_upper_lower = False
+            for elem in algo.iterchildren():
+                if elem.getchildren() is None:
+                    print(elem.text)
+                else:
+                    for val in elem.iterchildren():
+                        print(val)
+        else:
+            print("Optimization not being used")
 
 
         
