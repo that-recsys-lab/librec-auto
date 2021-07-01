@@ -9,7 +9,6 @@ import time
 from pathlib import Path, WindowsPath
 
 class DeeprecCmd(Cmd):
-    _DEFAULT_WRAPPER_CLASS = "net.that_recsys_lab.auto.SingleJobRunner"
 
     def __str__(self):
         return f'DeeprecCmd(sub-exp: {self._sub_no}, command: {self._command})'
@@ -17,6 +16,7 @@ class DeeprecCmd(Cmd):
     def __init__(self, command, sub_no):
         self._command = command
         self._sub_no = sub_no
+        self._files = None
         self._config: ConfigCmd = None
         self._exp_path: ExpPaths = None
 
@@ -25,16 +25,14 @@ class DeeprecCmd(Cmd):
 
     def create_proc_spec(self):
         classpath = self._config.get_files().get_deeprec_classpath()
-        mainClass = self._DEFAULT_WRAPPER_CLASS
-        confpath = self._exp_path.get_librec_properties_path()
-        confpath_str = str(confpath)
 
         python_command = self.select_deeprec_action()
         if python_command is None:
             return []
         else:
             return [
-                'python', '-cp', classpath, mainClass, confpath_str, python_command
+                # 'python', classpath, confpath_str, python_command
+                'python', classpath
             ]
 
     def select_deeprec_action(self):
@@ -82,7 +80,7 @@ class DeeprecCmd(Cmd):
             self.status = Cmd.STATUS_COMPLETE
 
     def dry_run_deeprec(self):
-        cmd = self.create_proc_spec()
+        cmd = self.create_proc_spec(config)
 
         proc_spec = ' '.join(cmd)
         print(
@@ -137,16 +135,12 @@ class DeeprecCmd(Cmd):
         else:
             self.ensure_clean_log()
 
-            Status.save_status("Executing", self._sub_no, config,
-                               self._exp_path)
+            # Status.save_status("Executing", self._sub_no, config,
+            #                    self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
             self.execute_deeprec()
-        Status.save_status("Completed", self._sub_no, config, self._exp_path)
-
-
-
-
+        # Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
 
 
