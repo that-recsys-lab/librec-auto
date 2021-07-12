@@ -1,3 +1,4 @@
+from collections import defaultdict
 from librec_auto.core.util import ExpPaths
 import re
 import os
@@ -14,13 +15,17 @@ class LogFile:
     def __str__(self):
         return f'LogFile({self._values}'
 
-    def __init__(self, paths: ExpPaths):
+    def __init__(self, paths: ExpPaths, exp_ran=True):
         self._metrics = []
         self._values = {}
 
+        # adding a flag will prevent newest_log from throwing an error
+        # but parse_log can't work unless _log_path is set
         self._log_path = self.newest_log(paths)
         self._time_stamp = self.extract_time_stamp(self._log_path.name)
         self._kcv_count = 1  # one-indexed
+
+        self._err_msgs = defaultdict(list)
 
         self.parse_log()
 
@@ -100,24 +105,32 @@ class LogFile:
         * Evaluator info (result metrics)
         * The number of CV folds
         * Evaluator values
+        * Exceptions from librec log
+        * Errors from librec log 
         """
         evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is (-?[0-9.]*)'
         kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[.+split/cv_(\d+)/test.txt\]'
         # Old pattern
         # kcv_pattern_str = r'.*Splitting training and testing with [.0-9]*% ratio on fold ([0-9]*)'
         final_pattern_str = r'.*Evaluator value:([A-z]*) is (-?[0-9.]*)'
+        exception_pattern_str = r'^Exception in thread'
+        error_pattern_str = r'^prog\.java:\d*: error:'
 
         evaluator_pattern = re.compile(evaluator_pattern_str)
         kcv_pattern = re.compile(kcv_pattern_str)
         final_pattern = re.compile(final_pattern_str)
+        exception_pattern = re.compile(exception_pattern_str)
+        error_pattern = re.compile(error_pattern_str)
 
         fold_count = 1
 
         with open(str(self._log_path), 'r', newline='\n') as log_file:
-            for line in log_file:
+            for line_number, line in enumerate(log_file):
                 evaluator = re.match(evaluator_pattern, line)
                 kcv = re.match(kcv_pattern, line)
                 final = re.match(final_pattern, line)
+                exception = re.match(exception_pattern, line)
+                error = re.match(error_pattern, line)
 
                 if kcv is not None:
                     # update kcv_count from the splitting pattern
@@ -132,5 +145,11 @@ class LogFile:
                     metric_name = final.group(1)
                     metric_value = final.group(2)
                     self.add_metric_average(metric_name, metric_value)
+
+                if exception is not None:
+                    self._err_msgs['LibRec'].append((line_number+1, line))
+
+                if error is not None:
+                    self._err_msgs['LibRec'].append((line_number+1, line))
 
             self._kcv_count = fold_count  # one-indexed

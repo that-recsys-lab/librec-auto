@@ -8,6 +8,7 @@ from librec_auto.core.util import Files, create_study_output, BBO
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 import logging
 import librec_auto
+import os
 
 
 def read_args():
@@ -110,6 +111,8 @@ def load_config(args: dict) -> ConfigCmd:
     if (args['target'] != None):
         target = args['target']
 
+    # create a path: 
+    
     return read_config_file(config_file, target)
 
 
@@ -297,16 +300,18 @@ def setup_commands(args: dict, config: ConfigCmd):
         # setup_cmd (startval flag should enable just one exp configuration to be created)
         # check_cmd
         # 'check' librec command
-        cmd1 = SetupCmd()
+        # cmd1 = SetupCmd()
+        cmd1 = build_librec_commands('check', args, config)
         cmd2 = CheckCmd()
-        cmd3 = build_librec_commands('check', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        cmd = SequenceCmd([cmd1, cmd2])
         return cmd
 
 
 # -------------------------------------
 
 if __name__ == '__main__':
+    # create handler for log
+
     args = read_args()
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
@@ -316,6 +321,12 @@ if __name__ == '__main__':
     else:
         if args['action'] == 'describe':
             print_description(args)
+        elif args['action'] == 'check':
+            config = load_config(args)
+            if config.is_valid():
+                command = setup_commands(args, config)
+                command.execute(config)
+            
         else:
             config = load_config(args)
 

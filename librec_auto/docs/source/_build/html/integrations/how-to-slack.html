@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slack Integration &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Configuration File" href="../configuration_file.html" />
+    <link rel="prev" title="Dropbox Integration" href="how-to-dropbox.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="slack-integration">
+<h1>Slack Integration<a class="headerlink" href="#slack-integration" title="Permalink to this headline">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Robin Burke, Zijun Liu</p>
+</dd>
+<dt class="field-even">Version</dt>
+<dd class="field-even"><p>June 5th, 2020</p>
+</dd>
+</dl>
+<div class="section" id="introduction">
+<h2>1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The Slack Integration is based on the Slack API, and enables users to post files and message into Slack channels. The Slack API key is password-encrypted and the encrypted key can be included in a public repository (i.e. GitHub).</p>
+</div>
+<div class="section" id="installation">
+<h2>2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quickstart-slack">
+<h3>2.0. QuickStart Slack<a class="headerlink" href="#quickstart-slack" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">slackclient</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="go-to-slack-official-website">
+<h3>2.1. Go to Slack Official Website<a class="headerlink" href="#go-to-slack-official-website" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="slack-official-api-website">
+<h4>2.1.1. Slack Official API Website<a class="headerlink" href="#slack-official-api-website" title="Permalink to this headline">¶</a></h4>
+<p>We have to go to slack api official website. Here is the link: <a class="reference external" href="https://api.slack.com/">https://api.slack.com/</a></p>
+</div>
+<div class="section" id="log-in-slack-workspace">
+<h4>2.1.2. Log in Slack Workspace<a class="headerlink" href="#log-in-slack-workspace" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic simple">
+<li><p>Click button <strong>Go to Slack</strong> on the right top of website.</p></li>
+<li><p>After click <strong>Go to Slack</strong>, it would show a empty space to make you log in with you own workspace. It should show like your-workspace-url.slack.com.</p></li>
+<li><p>Please input your workspace name. If you Slack Workspace name input correct, it would show your slack email address and password.</p></li>
+<li><p>After input your email and password, you would enter in your own Slack Workspace.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="setting-on-slack-api">
+<h3>2.2. Setting on Slack API<a class="headerlink" href="#setting-on-slack-api" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="manage-tools">
+<h4>2.2.1. Manage Tools<a class="headerlink" href="#manage-tools" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic simple">
+<li><p>After we finish section 2.1, we would go to our slack workspace on Desktop application. Click <strong>downside arrow</strong> on the name of your slack workspace.</p></li>
+<li><p>Go to <strong>Setting &amp; Administration</strong>.</p></li>
+<li><p>Go to <strong>Manage Apps</strong>. See Figure1 below.</p></li>
+</ol>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="../_images/12.png"><img alt="Manage Apps on Slack Desktop" src="../_images/12.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure1</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="set-up-your-api-bots">
+<h4>2.2.2. Set up Your API Bots<a class="headerlink" href="#set-up-your-api-bots" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic simple">
+<li><p>After we finish 2.2.1, we would go to <strong>Management Apps</strong> pages. The Top page, there is an search space.</p></li>
+<li><p>Click the <strong>Search Space</strong>. And then, we input <strong>Bots</strong> word. See <em>Figure2</em> below</p></li>
+</ol>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../_images/21.png"><img alt="Search for &quot;Bots&quot; in Slack Apps" src="../_images/21.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure2</em></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>There is an green button called <strong>Add to Slack</strong>.</p></li>
+<li><p>We click the green button <strong>Add to Slack</strong>. After that, we will  See <em>Figure3</em> below.</p></li>
+</ol>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/31.png"><img alt="Adding Bots to a Slack workspace" src="../_images/31.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure3</em></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>It will show a page, it has Username informations has to be filled. This is the name for your Slack auto post robot’s name. You can name anything you want. I name it as <em>test2</em>. See <em>Figure4</em> below.</p></li>
+</ol>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="../_images/4.png"><img alt="Choosing a bot username on Slack" src="../_images/4.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure4</em></span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple" start="6">
+<li><p>There is green botton called <strong>Add bot integration</strong> below the Username page. Click this button.</p></li>
+</ol>
+</div>
+<div class="section" id="save-you-api-key">
+<h4>2.2.3. Save you API key<a class="headerlink" href="#save-you-api-key" title="Permalink to this headline">¶</a></h4>
+<p>After you follow the previous steps, you have successfully create an Slack API key. The <strong>API Token</strong> is the API key. And the <strong>Customize Name</strong> is Slack api bots name. See <em>Figure5</em>. Copy the API key to a text file. Do not store this file in your study directory with data files, etc. that you might want to share with others on GitHub, for example.</p>
+<div class="figure align-center" id="id5">
+<a class="reference internal image-reference" href="../_images/5.png"><img alt="Slack API Token" src="../_images/5.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure5</em></span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="integrating-with-librec-auto">
+<h2>3. Integrating with librec-auto<a class="headerlink" href="#integrating-with-librec-auto" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="encrypt-your-slack-api-key">
+<h3>3.1. Encrypt your Slack API key<a class="headerlink" href="#encrypt-your-slack-api-key" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>As above, your secret key should be stored in a secure location.</p></li>
+<li><p>To encrypt the key to create a file that can be shared securely, run the script <code class="docutils literal notranslate"><span class="pre">bin/encrypt.py</span></code>. Include the following arguments:</p></li>
+</ol>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--encrypted</span></code> This is the file that contains the API key in encrypted form. This will typically be placed in your study directory in a directory called <code class="docutils literal notranslate"><span class="pre">keys</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--key</span></code> This is the cleartext API key that you got from Slack.</p></li>
+</ul>
+<p>The call will look like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">bin/encrypt.py</span> <span class="pre">--encrypted</span> <span class="pre">mystudy/keys/slack-api.enc</span> <span class="pre">--key</span> <span class="pre">non-shared-safe-location/slack-api.key</span></code></p>
+<ol class="arabic simple" start="3">
+<li><p>The script will prompt you for a password. You will need this password later to use the encrypted API key.</p></li>
+</ol>
+</div>
+<div class="section" id="add-the-script-to-the-configuration-file">
+<h3>3.2. Add the script to the configuration file<a class="headerlink" href="#add-the-script-to-the-configuration-file" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>In order to add Slack integration to your experiment, you will need to add a <code class="docutils literal notranslate"><span class="pre">script</span></code> element to the post-processing portion of the configuration file. Here is an example:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">script</span> <span class="n">lang</span><span class="o">=</span><span class="s2">&quot;python3&quot;</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span><span class="n">slack</span><span class="o">-</span><span class="n">post</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;/</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;option&quot;</span><span class="o">&gt;</span><span class="n">message</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;channel&quot;</span><span class="o">&gt;</span><span class="n">librec_channel</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encrypted_key&quot;</span><span class="o">&gt;</span><span class="n">keys</span><span class="o">/</span><span class="n">dropbox</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">enc</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;message&quot;</span><span class="o">&gt;</span><span class="n">The</span> <span class="n">study</span> <span class="ow">is</span> <span class="n">complete</span><span class="o">.</span> <span class="n">Go</span> <span class="n">look</span> <span class="n">at</span> <span class="n">the</span> <span class="n">results</span><span class="o">.&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The parameters are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">option</span></code> Either <code class="docutils literal notranslate"><span class="pre">message</span></code> or <code class="docutils literal notranslate"><span class="pre">file</span></code>. The above example is a <code class="docutils literal notranslate"><span class="pre">message</span></code> example.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel</span></code> The Slack channel where the message should be posted. Do not include the hashtag.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">encrypted_key</span></code> The location of the encrypted API key. This is relative to the study directory where the configuration is located.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message</span></code> The message that will be posted in the channel when the script is executed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> Do not include the password here. (You’ll notice that the element has no content.) This is a flag indicating that the password will be entered on the command line when <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> is run. If you do not include it, you will be prompted for the password when the script is run, but that kind of defeats the purpose of having an automated experimental tool.</p></li>
+</ul>
+<p>To post a file to Slack, the <code class="docutils literal notranslate"><span class="pre">option</span></code> element will contain the term <code class="docutils literal notranslate"><span class="pre">file</span></code> instead of <code class="docutils literal notranslate"><span class="pre">message</span></code> and there is an additional element <code class="docutils literal notranslate"><span class="pre">file</span></code>, which gives the path to the file to be posted. Typically this will be experimental output stored in the <code class="docutils literal notranslate"><span class="pre">post</span></code> directory. The message will be used as a title for the file in the Slack channel. See example below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">script</span> <span class="n">lang</span><span class="o">=</span><span class="s2">&quot;python3&quot;</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span><span class="n">slack</span><span class="o">-</span><span class="n">post</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;/</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;option&quot;</span><span class="o">&gt;</span><span class="n">file</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;channel&quot;</span><span class="o">&gt;</span><span class="n">librec_channel</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encrypted_key&quot;</span><span class="o">&gt;</span><span class="n">keys</span><span class="o">/</span><span class="n">slack</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">enc</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="o">&gt;</span><span class="n">post</span><span class="o">/</span><span class="n">viz</span><span class="o">-</span><span class="n">bar</span><span class="o">-</span><span class="n">NormalizedDCG</span><span class="o">.</span><span class="n">jpg</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;message&quot;</span><span class="o">&gt;</span><span class="n">NDCG</span> <span class="k">for</span> <span class="n">the</span> <span class="n">experiment</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>3.3. Provide the password when running librec-auto</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">-k</span></code> or <code class="docutils literal notranslate"><span class="pre">--key_password</span></code> on the command line to provide the password to librec-auto. Example:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">librec_auto</span> <span class="pre">-k</span> <span class="pre">my_password_here</span> <span class="pre">run</span></code></p>
+<p>The password can be shared with collaborators via some secure channel. The same password will be used for all scripts containing the empty <code class="docutils literal notranslate"><span class="pre">&lt;password/&gt;</span></code> element.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../integrations.html">Integrations</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how-to-dropbox.html">Dropbox Integration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Slack Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../integrations.html">Integrations</a><ul>
+      <li>Previous: <a href="how-to-dropbox.html" title="previous chapter">Dropbox Integration</a></li>
+      <li>Next: <a href="../configuration_file.html" title="next chapter">Configuration File</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/integrations/how-to-slack.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

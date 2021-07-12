@@ -34,12 +34,13 @@ class ConfigCmd:
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
 
-        self._files.set_data_path(self._xml_input)
-        self._var_coll = VarColl()
-        self._libraries = LibraryColl()
-        self._bbo_steps = 0
+        if self.is_valid():
+            self._files.set_data_path(self._xml_input)
+            self._var_coll = VarColl()
+            self._libraries = LibraryColl()
+            self._bbo_steps = 0
 
-        self._key_password = None
+            self._key_password = None
 
     def get_target(self):
         return self._target
@@ -340,10 +341,25 @@ class ConfigCmd:
         else:
             return dirs
 
+class ConfigurationFailureException(Exception):
+    """Exception raised for errors in reading the configuration file.
+
+    Attributes:
+        file_path - given path to file
+    """
+
+    def __init__(self, file_path):
+        self.file_path = file_path
+        super().__init__(str(self.file_path.absolute()))
+
+    def __str__(self):
+        return f'Path -> {str(self.file_path.absolute())}'
 
 def read_config_file(config_file, target):
     config = ConfigCmd(config_file, target)
     if config.is_valid():
         config.load_libraries()
         config.process_config()
+    else:
+        raise ConfigurationFailureException(config.get_files().get_config_file_path())
     return config

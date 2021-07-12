@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use Fairness Metrics &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Integrations" href="integrations.html" />
+    <link rel="prev" title="Produce CSV Output" href="how-to-produce-csv.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="use-fairness-metrics">
+<span id="usefairnessmetrics"></span><h1>Use Fairness Metrics<a class="headerlink" href="#use-fairness-metrics" title="Permalink to this headline">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Nasim Sonboli, Robin Burke</p>
+</dd>
+<dt class="field-even">Version</dt>
+<dd class="field-even"><p>April 2nd, 2021</p>
+</dd>
+</dl>
+<div class="section" id="introduction">
+<h2>1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Fairness can be defined in a number of ways for studying the output of recommender systems. We distinguish between <em>consumer-side</em> fairness (where consumers are the individuals getting recommendations from the system) and <em>provider-side</em> fairness (where providers are the individuals associated with the items being recommended). Consumer-side fairness asks whether the system is fair to different groups of users: for example, job seekers getting recommendations of job listings. Provider-side fairness asks whether the system is fair to different groups of item providers: for example, musical artists whose tracks are being recommended.</p>
+</div>
+<div class="section" id="feature-files">
+<h2>2. Feature files<a class="headerlink" href="#feature-files" title="Permalink to this headline">¶</a></h2>
+<p>All of the fairness metrics in <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> assume a binary-valued feature, which is 1 when the value is protected and 0 when it is unprotected. In order for a metric to work, it will need to get this information from a feature file.</p>
+<p>All feature files have the same CSV format.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span><span class="p">,</span><span class="n">feature</span> <span class="nb">id</span><span class="p">,</span><span class="n">value</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">id</span></code> is a user id when user features are being stored and an item id when the file has the features of items.</p>
+<p>If there are multiple features associated with a given id, there will be multiple lines, one for each feature. If the value for a feature is 0, it can be omitted.</p>
+<p>Feature files are stored in the same directory as the data being used in your study.</p>
+</div>
+<div class="section" id="configuration">
+<h2>3. Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>In order to use a fairness metric, you will need to specify the feature file and the protected feature as well as the metric name.</p>
+<p>The feature information is added in the top-level <code class="docutils literal notranslate"><span class="pre">features</span></code> section of the configuration file as in this example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">features</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">appender</span><span class="o">-</span><span class="n">class</span><span class="o">&gt;</span><span class="n">net</span><span class="o">.</span><span class="n">librec</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">convertor</span><span class="o">.</span><span class="n">appender</span><span class="o">.</span><span class="n">ItemFeatureAppender</span><span class="o">&lt;/</span><span class="n">appender</span><span class="o">-</span><span class="n">class</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">item</span><span class="o">-</span><span class="n">feature</span><span class="o">-</span><span class="n">file</span><span class="o">&gt;</span><span class="n">item</span><span class="o">-</span><span class="n">features</span><span class="o">.</span><span class="n">csv</span><span class="o">&lt;/</span><span class="n">item</span><span class="o">-</span><span class="n">feature</span><span class="o">-</span><span class="n">file</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">features</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>For user features, the <code class="docutils literal notranslate"><span class="pre">UserFeatureAppender</span></code> class is used and the corresponding <code class="docutils literal notranslate"><span class="pre">user-feature-file</span></code> element.</p>
+<p>The information about which feature is considered protected is configured in the <code class="docutils literal notranslate"><span class="pre">metric</span></code> section of the configuration with the element  <code class="docutils literal notranslate"><span class="pre">protected-feature</span></code>.</p>
+<p>Note that only a single (binary) protected feature across algorithm, metric, and re-ranking is currently supported. We expect to generalize this capability in future releases.</p>
+</div>
+<div class="section" id="available-fairness-metrics">
+<h2>4. Available fairness metrics<a class="headerlink" href="#available-fairness-metrics" title="Permalink to this headline">¶</a></h2>
+<p>The available metrics for fairness are:</p>
+<div class="section" id="provider-side">
+<h3>Provider-side<a class="headerlink" href="#provider-side" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">(Provider)</span> <span class="pre">Statistical</span> <span class="pre">Parity</span> <span class="pre">(`psp`).</span></code> This metric computes the exposure (% of recommendation list) belonging to the protected and unprotected groups and reports the unprotected value minus the protected value. It ranges from +1 (the recommendation lists consist only of protected items) to -1 (the recommendation lists consist only of unprotected items).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Discounted</span> <span class="pre">Proportional</span> <span class="pre">(Provider)</span> <span class="pre">Fairness</span> <span class="pre">(`DPPF`).</span></code> This metric measures how much utility a group of (item) provider gets out of the system compared to everyone else. The utility of a provider group is calcualted by summation of DCGs of all the items belonging to the provider group. Utility is calculated based on Normalized Discounted Cumulative Gain (nDCG) &#64;topN. Larger (less negative) score is better (more fair). This metric is discussed by Kelly, F. P. et al. in <a class="reference external" href="https://doi.org/10.1057/palgrave.jors.2600523">“Rate control for communication networks: shadow prices, proportional fairness and stability.”</a>, Journal of the Operational Research society in 1998.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">Percent</span> <span class="pre">Rule</span> <span class="pre">(`PPR`).</span></code> This metric states that the ratio between the percentage of subjects having a certain sensitive attribute value assigned the positive decision outcome and the percentage of subjects not having that value also assigned the positive outcome should be no less than p%. The rule implies that each group has a positive probability of at least p% of the other group. The 100%-rule implies perfect removal of disparate impact on group-level fairness and a large value of p is preferred. The final result should be greater than or equal to “p%” to be considered fair. This is derived from the “80%-rule” supported by the U.S. Equal Employment Opportunity Commission. PPercentRuleEvaluator is based on the 80%-rule discussed by Dan Biddle in “Adverse Impact and Test Validation: A Practitioner’s Guide to Valid and Defensible Employment Testing” book, 2006. It is also based on the p% rule discussed by Zafar et al. in <a class="reference external" href="http://proceedings.mlr.press/v54/zafar17a.html">“Fairness Constraints: Mechanisms for Fair Classification”</a>, AISTATS 2017.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[\begin{split}\\ min(\frac{a}{b}, \frac{b}{a}) &gt;= p/100 \\
+where \ a = P[Y=1|s=1], \\ and \ b = P[Y=1|s=0]\end{split}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Diversity</span> <span class="pre">by</span> <span class="pre">feature</span> <span class="pre">(`FeatureDiversity`).</span></code> This metric is calculated as the average dissimilarity of all pairs of items in the recommended list at a specific cutoff position. Although, in this extended version, the similarity matrix is computed based on the similarities in item features instead of ratings over an item. For more details please refer to <a class="reference external" href="https://doi.org/10.1145/1454008.1454030">“Avoiding monotony: improving the diversity of recommendation lists”</a></p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[D = 1 - \frac{\sum_{i,j \in L}{s(i,j)}}{\frac{k(k-1)}{2}}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Gini</span> <span class="pre">Index</span> <span class="pre">(`GiniIndex`).</span></code> This metric is a horizontal equity measure and it calculates the degree of inequality in a distribution. Fairness in this context means individuals with equal ability/needs should get equal resources. This is the measure of fair distribution of items in recommendation lists of all the users. The probability of an item is assumed to be the probability to be in a recommendation result list (Estimated by count of this item in all recommendation list divided by the count of recommendation lists). The ideal (maximum fairness) case is when this distribution is uniform. The Gini-index of uniform distribution is equal to zero and so smaller values of Gini-index are desired. For more details refer to <a class="reference external" href="http://doi.acm.org/10.1145/1250910.1250939">“Recommender systems and their impact on sales diversity”</a> by Fleder, D.M., Hosanagar, K in the Proceedings of the 8th ACM conference on Electronic commerce 2007.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Item</span> <span class="pre">Coverage</span> <span class="pre">(`ICOV`).</span></code> This metric calculates the ratio of the unique items recommended to users to the total unique items in dataset (test &amp; train).</p></li>
+</ul>
+</div>
+<div class="section" id="consumer-side">
+<h3>Consumer-side<a class="headerlink" href="#consumer-side" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>`` (Consumer) Statistical Parity (<cite>csp</cite>).`` This metric measures the statistical parity between the total precision of the protected group (p) and that of the unprotected group (u). This metrics measures the difference between the average precision of the protected and unprotected group.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[f = (\sum_{n=1}^{|p|} {precision} / |p|) - (\sum_{m=1}^{|u|} {precision} / |u|)\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>If the size of both groups is zero, it will return 0.</p></li>
+<li><p>If the size of the unprotected group is zero, the average precision of protected is returned.</p></li>
+<li><p>If the size of the protected group is zero, the average precision of unprotected is returned.</p></li>
+<li><p>otherwise the above formula is computed.</p></li>
+</ul>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Miscalibration</span> <span class="pre">(`CalibrationEvaluator`</span> <span class="pre">or</span> <span class="pre">`miscalib`).</span></code> This method is based on calculating KullbackLeibler Divergence or KL-Divergence. Miscalibration measures the discrepancy between the distribution of the various (past) areas of interest of a user and that of her recommendation list. The higher this divergence is the more unbalanced user’s recommendation list is. This method was introduced by Harald Steck in <a class="reference external" href="https://doi.org/10.1145/3240323.3240372">“Calibrated recommendations.”</a> in Proceedings of the 12th ACM conference on recommender systems. ACM, 2018.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>It is zero in case of perfect calibration.</p></li>
+<li><p>It is very sensitive to small discrepancies between the two distributions.</p></li>
+<li><p>It favors more uniform and less extreme distributions.</p></li>
+</ul>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Discounted</span> <span class="pre">Proportional</span> <span class="pre">(Consumer)</span> <span class="pre">Fairness</span> <span class="pre">(`DPCF`).</span></code> This metric measures how much utility a group of users gets out of the system compared to everyone else. The below formula computes the sum of the log of this quantity over all groups (discount). Utility is calculated based on Normalized Discounted Cumulative Gain (nDCG) &#64;topN. Larger (less negative) score is better (more fair). This metric is discussed by Kelly, F. P. et al. in <a class="reference external" href="https://doi.org/10.1057/palgrave.jors.2600523">“Rate control for communication networks: shadow prices, proportional fairness and stability.”</a>, Journal of the Operational Research society in 1998.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[f = \sum_{g \in G}{log(\frac{u_g}{\sum_{g\prime \in G}{u_{g\prime}}})}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Value</span> <span class="pre">Unfairness</span> <span class="pre">(`VALUNFAIRNESS`).</span></code> This unfairness occurs when one class of users is consistently given higher or lower predictions than their true preferences. Larger values shows that estimations for one class is consistently over-estimated and the estimations for the other class is consistently under-estimated.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}U_val = \frac{1}{n} \sum_{j=1}^{n}{\Big|(E_{g}[y]_j - E_{g}[r]_j) - (E_{\neg g}[y]_j - E_{\neg g}[r]_j)\Big|},\\where E_{g}[y]_j is the average predicted score for the jth item from disadvantaged users, E_{\neg g}[y]_j is the average predicted score for advantaged users, E_{g}[r]_j and E_{\neg g}[r]_j are the average ratings for the disadvantaged and advantaged users, respectively.\end{aligned}\end{align} \]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Absolute Unfairness, Value Unfairness, Over-estimation Unfairness, Under-estimation Unfairness and non-parity Unfairness are proposed by Sirui Yao and Bert Huang in <a class="reference external" href="https://dl.acm.org/doi/abs/10.5555/3294996.3295052">“Beyond Parity: Fairness Objective for Collaborative Filtering”</a> , NeurIPS 2017.</p>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Absolute</span> <span class="pre">Unfairness</span> <span class="pre">(`ABSUNFAIRNESS`).</span></code> This metric measures the inconsistency in the absolute estimation error across the user types. Absolute unfairness is unsigned, so it captures a single statistic representing the quality of prediction for each user type. This measure doesn’t consider the direction of the error. If one user type has small reconstruction error and the other user type has large reconstruction error, one type of user has the unfair advantage of good recommendation, while the other user type has poor recommendation. One group might always get better recommendations than the other group.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[U_abs = \frac{1}{n} \sum_{j=1}^{n}{\Big|\Big|E_{g}[y]_j - E_{g}[r]_j| - |E_{\neg g}[y]_j - E_{\neg g}[r]_j \Big|\Big|}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Under-estimation</span> <span class="pre">Unfairness</span> <span class="pre">(`UNDERESTIMATE`).</span></code> This metric measures the inconsistency in how much the predictions underestimate the true ratings. Underestimation unfairness is important in settings where missing recommendations are more critical than extra recommendations.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[U_{under} = \frac{1}{n} \sum_{j=1}^{n}{\Big|max\left\{0,E_{g}[r]_j - E_{g}[y]_j\right\} - max\left\{0,E_{\neg g}[r]_j - E_{\neg g}[y]_j\right\}\Big|}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Over-estimation</span> <span class="pre">Unfairness</span> <span class="pre">(`OVERESTIMATE`).</span></code>. This metric measures the inconsistency in how much the predictions overestimate the true ratings. Overestimation unfairness may be important in settings where users may be overwhelmed by recommendations, so providing too many recommendations would be especially detrimental. For example, if users must invest llarge amounts of time to evaluate each recommended item, overestimating essentially costs the user time. Thus, uneven amounts of overestimation could cost one type of user more time than the other.</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[U_{over} = \frac{1}{n} \sum_{j=1}^{n}{\Big|max\left\{0,E_{g}[y]_j - E_{g}[r]_j\right\} - max\left\{0,E_{\neg g}[y]_j - E_{\neg g}[r]_j\right\}\Big|}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Non-parity</span> <span class="pre">Unfairness</span> <span class="pre">(`NONPAR`).</span></code>. This metric is based on the regularization term introduced by Kamishima et al. [17] can be computed as the absolute difference between the overall average ratings of disadvantaged users and those of advantaged users:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[U_par =  \left\Big| E_{g}[y] - E_{\neg g}[y] \right\Big|\]</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Use Fairness Metrics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feature-files">2. Feature files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">3. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#available-fairness-metrics">4. Available fairness metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="how-to-produce-csv.html" title="previous chapter">Produce CSV Output</a></li>
+      <li>Next: <a href="integrations.html" title="next chapter">Integrations</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/how-to-use-fairness-metrics.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python-side Evaluation &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Supported Algorithms" href="supported-algorithms.html" />
+    <link rel="prev" title="Configuration File" href="configuration_file.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="python-side-evaluation">
+<h1>Python-side Evaluation<a class="headerlink" href="#python-side-evaluation" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> supports custom evaluation metrics implemented in python.</p>
+<div class="section" id="required-boilerplate">
+<h2>Required boilerplate<a class="headerlink" href="#required-boilerplate" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="argument-parsing">
+<h3>Argument parsing<a class="headerlink" href="#argument-parsing" title="Permalink to this headline">¶</a></h3>
+<p>Regardless of the type of metric you’re implementing, you will need some boilerplate code.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">read_args</span></code> method to handle input to the custom metric.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">read_args</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command line arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;My custom metric&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--test&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to test.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--result&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to results.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-file&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The output pickle file.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Custom params defined in the config go here</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The weight for re-ranking.&#39;</span><span class="p">)</span>
+
+    <span class="n">input_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">input_args</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="main-function">
+<h3>Main function<a class="headerlink" href="#main-function" title="Permalink to this headline">¶</a></h3>
+<p>You will also need to start the main function with the following lines.
+Params specified in the <code class="docutils literal notranslate"><span class="pre">config.xml</span></code> are passed to the custom metric files
+and are accessible via the <code class="docutils literal notranslate"><span class="pre">args['param-name']</span></code> syntax.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">read_args</span><span class="p">()</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]}</span>
+
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+        <span class="n">args</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">result_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+        <span class="n">args</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">],</span>
+        <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-a-row-based-metric-i-e-rmse">
+<h2>Adding a row-based metric (i.e., RMSE)<a class="headerlink" href="#adding-a-row-based-metric-i-e-rmse" title="Permalink to this headline">¶</a></h2>
+<p>For metrics that are based solely upon an item’s expected and actual results
+(and not the entire lists’ results), <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> provides the <code class="docutils literal notranslate"><span class="pre">RowBasedMetric</span></code>
+superclass.</p>
+<div class="section" id="create-the-new-class-file">
+<h3>1. Create the new class file<a class="headerlink" href="#create-the-new-class-file" title="Permalink to this headline">¶</a></h3>
+<p>First, make a file in your study directory. Name the file something clear.
+Let’s assume a file named <code class="docutils literal notranslate"><span class="pre">custom_rmse_metric.py</span></code></p>
+</div>
+<div class="section" id="override-the-rowbasedmetric-methods">
+<h3>2. Override the <code class="docutils literal notranslate"><span class="pre">RowBasedMetric</span></code> methods<a class="headerlink" href="#override-the-rowbasedmetric-methods" title="Permalink to this headline">¶</a></h3>
+<p>In this <code class="docutils literal notranslate"><span class="pre">custom_rmse_metric.py</span></code> file, we’ll want to copy the boilerplate from
+above and then create a subclass of <code class="docutils literal notranslate"><span class="pre">RowBasedMetric</span></code>, like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">librec_auto.core.eval.metrics.row_based_metric</span> <span class="kn">import</span> <span class="n">RowBasedMetric</span>
+
+<span class="k">class</span> <span class="nc">CustomRmseMetric</span><span class="p">(</span><span class="n">RowBasedMetric</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>We’ll also want to override the following methods.</p>
+<div class="section" id="init">
+<h4><code class="docutils literal notranslate"><span class="pre">__init__</span></code><a class="headerlink" href="#init" title="Permalink to this headline">¶</a></h4>
+<p>Override <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and set <code class="docutils literal notranslate"><span class="pre">self._name</span></code> equal to the name of the metric.
+Do not forget to call <code class="docutils literal notranslate"><span class="pre">super().__init__</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">test_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+             <span class="n">result_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;RMSE&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="evaluate-row">
+<h4><code class="docutils literal notranslate"><span class="pre">evaluate_row</span></code><a class="headerlink" href="#evaluate-row" title="Permalink to this headline">¶</a></h4>
+<p>This method performs the actual evaluation of the results. The first parameter contains
+the test (expected) values for a given <code class="docutils literal notranslate"><span class="pre">item,user</span></code> combination. The second
+parameter contains the actual values for that <code class="docutils literal notranslate"><span class="pre">item,user</span></code> combination. Both are numpy
+arrays, and need to be indexed to access the row values. This method should
+return the value of the metric for the given <code class="docutils literal notranslate"><span class="pre">user,item</span></code> combination.</p>
+<p>Every time that <code class="docutils literal notranslate"><span class="pre">evaluate_row</span></code> is executed, the results are saved to a <code class="docutils literal notranslate"><span class="pre">_scores</span></code>
+list in the metric class, which we’ll access in <code class="docutils literal notranslate"><span class="pre">post_row_processing</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">evaluate_row</span></code> for RMSE follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">evaluate_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+    <span class="n">test_ranking</span> <span class="o">=</span> <span class="n">test</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">result_ranking</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">test_ranking</span> <span class="o">-</span> <span class="n">result_ranking</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pre-row-processing-and-post-row-processing">
+<h4><code class="docutils literal notranslate"><span class="pre">pre_row_processing</span></code> and <code class="docutils literal notranslate"><span class="pre">post_row_processing</span></code><a class="headerlink" href="#pre-row-processing-and-post-row-processing" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">pre_row_processing</span></code> method allows for setting initial values or for other
+processing that should be performed before _any_ of the rows are processed.
+Think of this like setting up the metric.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">post_row_processing</span></code> method should manipulate <code class="docutils literal notranslate"><span class="pre">self._scores</span></code> and return
+a single value that represents the final value of the metric.</p>
+<p><code class="docutils literal notranslate"><span class="pre">post_row_processing</span></code> for RMSE follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">post_row_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">T</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>Below is the complete file for an implementation of RMSE.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">librec_auto.core.eval.metrics.row_based_metric</span> <span class="kn">import</span> <span class="n">RowBasedMetric</span>
+
+
+<span class="k">def</span> <span class="nf">read_args</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command line arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;My custom metric&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--test&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to test.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--result&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to results.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-file&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The output pickle file.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Custom params defined in the config go here</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The weight for re-ranking.&#39;</span><span class="p">)</span>
+
+    <span class="n">input_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">input_args</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">CustomRmseMetric</span><span class="p">(</span><span class="n">RowBasedMetric</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">test_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                <span class="n">result_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;RMSE&#39;</span>
+
+    <span class="k">def</span> <span class="nf">evaluate_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">test_ranking</span> <span class="o">=</span> <span class="n">test</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">result_ranking</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">test_ranking</span> <span class="o">-</span> <span class="n">result_ranking</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+            <span class="k">def</span> <span class="nf">post_row_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="n">T</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scores</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">T</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">read_args</span><span class="p">()</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]}</span>
+
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">CustomRmseMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
+
+    <span class="n">result_data</span> <span class="o">=</span> <span class="n">CustomRmseMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">],</span>
+                                                    <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+    <span class="n">custom</span> <span class="o">=</span> <span class="n">CustomRmseMetric</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span>
+                            <span class="n">args</span><span class="p">[</span><span class="s1">&#39;output_file&#39;</span><span class="p">])</span>
+
+    <span class="n">custom</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-a-list-based-metric-i-e-ndcg">
+<h2>Adding a list-based metric (i.e., NDCG)<a class="headerlink" href="#adding-a-list-based-metric-i-e-ndcg" title="Permalink to this headline">¶</a></h2>
+<p>For metrics that require the entire result list for computation, <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code>
+provides the <code class="docutils literal notranslate"><span class="pre">ListBasedMetric</span></code> superclass, which can be inherited by custom class
+metrics.</p>
+<div class="section" id="id1">
+<h3>Required boilerplate<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>See above for the argument parsing and main function boilerplate.
+These are both required for both row- and list-based metrics, and are
+identical for either.</p>
+</div>
+<div class="section" id="id2">
+<h3>1. Create the new class file<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>Make a file in your study directory. Name is something clear. Let’s assume a
+file named <code class="docutils literal notranslate"><span class="pre">custom_ndcg_metric.py</span></code>.</p>
+</div>
+<div class="section" id="override-the-listbasedmetric-methods">
+<h3>2. Override the <code class="docutils literal notranslate"><span class="pre">ListBasedMetric</span></code> methods<a class="headerlink" href="#override-the-listbasedmetric-methods" title="Permalink to this headline">¶</a></h3>
+<p>In the <code class="docutils literal notranslate"><span class="pre">custom_ndcg_metric.py</span></code> file, we’ll want to copy the boilerplate from
+above and then then import and instantiate the <code class="docutils literal notranslate"><span class="pre">ListBasedMetric</span></code> superclass.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">librec_auto.core.eval.metrics.list_based_metric</span> <span class="kn">import</span> <span class="n">ListBasedMetric</span>
+
+<span class="k">class</span> <span class="nc">CustomRmseMetric</span><span class="p">(</span><span class="n">ListBasedMetric</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="id3">
+<h4><code class="docutils literal notranslate"><span class="pre">__init__</span></code><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<p>Override <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and set <code class="docutils literal notranslate"><span class="pre">self._name</span></code> equal to the name of the metric.
+Do not forget to call <code class="docutils literal notranslate"><span class="pre">super().__init__</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">test_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+             <span class="n">result_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;RMSE&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="evaluate-user">
+<h4><code class="docutils literal notranslate"><span class="pre">evaluate_user</span></code><a class="headerlink" href="#evaluate-user" title="Permalink to this headline">¶</a></h4>
+<p>This method produces a metric value for a given user, based on test and result
+arrays of user data. These arrays contain values for all rows where this user is
+the user.</p>
+<p><code class="docutils literal notranslate"><span class="pre">evaluate_user</span></code> for NDCG follows:</p>
+<p>(Note the <code class="docutils literal notranslate"><span class="pre">self._list_size</span></code> is set in <code class="docutils literal notranslate"><span class="pre">config.xml</span></code>, in <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, and in
+<code class="docutils literal notranslate"><span class="pre">__main__</span></code>.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">evaluate_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_user_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                  <span class="n">result_user_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">rec_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_list_size</span><span class="p">)</span>
+
+    <span class="n">idealOrder</span> <span class="o">=</span> <span class="n">test_user_data</span>
+    <span class="n">idealDCG</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">rec_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">idealOrder</span><span class="p">))):</span>
+        <span class="n">idealDCG</span> <span class="o">+=</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span>
+                               <span class="nb">len</span><span class="p">(</span><span class="n">idealOrder</span><span class="p">)</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+                     <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">+</span> <span class="n">j</span><span class="p">))</span>
+
+    <span class="n">recDCG</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">test_user_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_user_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rec_num</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_user_data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">test_user_items</span><span class="p">:</span>
+            <span class="n">rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_user_items</span><span class="p">)</span> <span class="o">-</span> <span class="n">test_user_items</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+                <span class="n">item</span><span class="p">)</span>  <span class="c1"># why ground truth?</span>
+            <span class="n">recDCG</span> <span class="o">+=</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">recDCG</span> <span class="o">/</span> <span class="n">idealDCG</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="preprocessing-and-postprocessing">
+<h4><code class="docutils literal notranslate"><span class="pre">preprocessing</span></code> and <code class="docutils literal notranslate"><span class="pre">postprocessing</span></code><a class="headerlink" href="#preprocessing-and-postprocessing" title="Permalink to this headline">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">preprocessing</span></code> should be used to set up initial values for the metric that
+are not passed from <code class="docutils literal notranslate"><span class="pre">config.xml</span></code>.</p>
+<p>Results from every execution of <code class="docutils literal notranslate"><span class="pre">evaluate_user</span></code> are saved to <code class="docutils literal notranslate"><span class="pre">self._values</span></code>,
+which should be accessed in <code class="docutils literal notranslate"><span class="pre">postprocessing</span></code> to produce a single final value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">postprocessing</span></code> for NDCG follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">postprocessing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="main">
+<h4><code class="docutils literal notranslate"><span class="pre">__main__</span></code><a class="headerlink" href="#main" title="Permalink to this headline">¶</a></h4>
+<p>Use the main function to parse any file arguments to class parameters, to
+initialize the custom metric class, and to call <code class="docutils literal notranslate"><span class="pre">.evaluate()</span></code>.</p>
+<p>The main function for NDCG follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">read_args</span><span class="p">()</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;list_size&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;list_size&#39;</span><span class="p">]}</span>
+
+        <span class="n">test_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">result_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">],</span>
+                <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+        <span class="p">)</span>
+
+        <span class="n">custom</span> <span class="o">=</span> <span class="n">CustomNdcgMetric</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span>
+                                                        <span class="n">args</span><span class="p">[</span><span class="s1">&#39;output_file&#39;</span><span class="p">])</span>
+
+        <span class="n">custom</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Below is the complete file for a custom implementation of NDCG.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">from</span> <span class="nn">librec_auto.core.eval.metrics.list_based_metric</span> <span class="kn">import</span> <span class="n">ListBasedMetric</span>
+
+<span class="k">def</span> <span class="nf">read_args</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command line arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;My custom metric&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--test&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to test.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--result&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to results.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-file&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The output pickle file.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Custom params defined in the config go here</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--list-size&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Size of the list for NDCG.&#39;</span><span class="p">)</span>
+
+    <span class="n">input_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">input_args</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">CustomNdcgMetric</span><span class="p">(</span><span class="n">ListBasedMetric</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">test_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                <span class="n">result_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;NDCG&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_list_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;list_size&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">evaluate_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_user_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                    <span class="n">result_user_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">rec_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_list_size</span><span class="p">)</span>
+
+        <span class="n">idealOrder</span> <span class="o">=</span> <span class="n">test_user_data</span>
+        <span class="n">idealDCG</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">rec_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">idealOrder</span><span class="p">))):</span>
+            <span class="n">idealDCG</span> <span class="o">+=</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span>
+                                <span class="nb">len</span><span class="p">(</span><span class="n">idealOrder</span><span class="p">)</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+                        <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">+</span> <span class="n">j</span><span class="p">))</span>
+
+        <span class="n">recDCG</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">test_user_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">test_user_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rec_num</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_user_data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">test_user_items</span><span class="p">:</span>
+                <span class="n">rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_user_items</span><span class="p">)</span> <span class="o">-</span> <span class="n">test_user_items</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+                    <span class="n">item</span><span class="p">)</span>  <span class="c1"># why ground truth?</span>
+                <span class="n">recDCG</span> <span class="o">+=</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">recDCG</span> <span class="o">/</span> <span class="n">idealDCG</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">postprocessing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">read_args</span><span class="p">()</span>
+
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;list_size&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;list_size&#39;</span><span class="p">]}</span>
+
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+        <span class="n">args</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">result_data</span> <span class="o">=</span> <span class="n">ListBasedMetric</span><span class="o">.</span><span class="n">read_data_from_file</span><span class="p">(</span>
+        <span class="n">args</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">],</span>
+        <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">custom</span> <span class="o">=</span> <span class="n">CustomNdcgMetric</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">result_data</span><span class="p">,</span>
+                            <span class="n">args</span><span class="p">[</span><span class="s1">&#39;output_file&#39;</span><span class="p">])</span>
+
+    <span class="n">custom</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python-side Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#required-boilerplate">Required boilerplate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-row-based-metric-i-e-rmse">Adding a row-based metric (i.e., RMSE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-list-based-metric-i-e-ndcg">Adding a list-based metric (i.e., NDCG)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="configuration_file.html" title="previous chapter">Configuration File</a></li>
+      <li>Next: <a href="supported-algorithms.html" title="next chapter">Supported Algorithms</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/python-side-evaluation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
