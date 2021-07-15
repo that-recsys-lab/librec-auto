@@ -144,11 +144,9 @@ permutations from the <code class="docutils literal notranslate"><span class="pr
 </div>
 <div class="section" id="ensuring-you-re-all-set-with-check">
 <h3>Ensuring you’re all set with Check<a class="headerlink" href="#ensuring-you-re-all-set-with-check" title="Permalink to this headline">¶</a></h3>
-<p>Once you’ve setup your study’s directory, you can ensure that all necessary elements of the configuration
-file are present, that all directories have write acces, and that all linked files could be found by running the <code class="docutils literal notranslate"><span class="pre">Check</span></code> command.
-The check command will read over your configuration file, as well as the log file created by LibRec, and append the found errors
-to your <code class="docutils literal notranslate"><span class="pre">output.xml</span></code> file. There are various “classes” of errors that can be seen, and each can be found as an attribute on
-the error message’s XML element.</p>
+<p>Once you’ve setup your study’s directory, you can ensure that your study is ready to compile by running the <code class="docutils literal notranslate"><span class="pre">Check</span></code> command.
+The check command will read over your configuration file, a log file that’s created by <code class="docutils literal notranslate"><span class="pre">LibRec</span></code>, and a log file that’s created by <code class="docutils literal notranslate"><span class="pre">LibRec-Auto</span></code> and append the found errors
+to your <code class="docutils literal notranslate"><span class="pre">output.xml</span></code> file. There are various “classes” of errors that can be seen, and each message has its class as an attribute in it’s xml element.</p>
 <p>The different error classes include:</p>
 <p><strong>Configuration file errors:</strong></p>
 <ul class="simple">
@@ -159,9 +157,21 @@ the error message’s XML element.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;script&quot;</span></code>: Script errors appear when the provided script file could not be found.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;optimize&quot;</span></code>: Optimize errors occur when <code class="docutils literal notranslate"><span class="pre">optimize</span></code> is present, but <code class="docutils literal notranslate"><span class="pre">&lt;upper&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;lower&gt;</span></code> tags aren’t in the <code class="docutils literal notranslate"><span class="pre">&lt;algorithm&gt;</span></code> section.</p></li>
 </ul>
-<p><strong>LibRec errors:</strong></p>
+<p><strong>LibRec errors (from Java):</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;LibRec&quot;</span></code>: LibRec error messages will appear when LibRec throws an error. These errors are specific to the compilation of LibRec. They also include a <code class="docutils literal notranslate"><span class="pre">logline</span></code> attribute that tells you where in the log file the error was found.</p></li>
+</ul>
+<p><strong>LibRec-Auto errors (from Python):</strong></p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;LibRec-Auto_Log&quot;</span></code>: LibRec-Auto_Log will include all messages from <code class="docutils literal notranslate"><span class="pre">logging</span></code> messages. These messages will follow this general pattern: <code class="docutils literal notranslate"><span class="pre">{log-level}:root:{message}</span></code>. The levels can be broken down as such:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ERROR</span></code>: Error level messages appear when there is a problem that will not allow LibRec-Auto to compile correctly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WARNING</span></code>: Warning level messages appear when there is a problem, but the problem will not interfere with LibRec-Auto’s compilation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code>: Info level messages appear when LibRec-Auto creates or writes to directories and files on the user’s computer..</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 </div>

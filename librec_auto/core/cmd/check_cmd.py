@@ -1,28 +1,16 @@
-from collections import defaultdict
-from librec_auto.core.cmd import Cmd
-from librec_auto.core.config_cmd import ConfigCmd
-from librec_auto.core.util import Status, Files, LogFile
-from librec_auto.core.util.xml_utils import single_xpath
 import os
 import re
 import subprocess
+import copy
+from collections import defaultdict
+from librec_auto.core.cmd import Cmd
+from librec_auto.core.config_cmd import ConfigCmd
+from librec_auto.core.util import LogFile
+from librec_auto.core.util.xml_utils import single_xpath
 from pathlib import Path
 from lxml import etree
 
-
-# what to check for
-# 1. paths are legal (include paths to scripts). Include both "system" and user-defined
-#       Path
-# 2. we have write permission to files and directories
-# 3. no necessary elements are missing: data, splitter, alg, metric
-# 4. if optimize then there must be upper/lower parameters in alg 
-#    Must NOT be value elements
-# 5. if there's a library reference, the reference must exist. 
-# 6. (eventually) XML validation against schema
-# 7. (eventually) validate script parameters. 
-# 8. (eventually) fix Java side so that sheck command doesn't load all files
-
-# What to check for:
+# What Check is designed to check for:
 # 1. paths are legal (include paths to scripts). Include both "system" and user-defined
 # 2. we have write permission to files and directories
 # 3. no necessary element are missing: data, splitter, alg, metric
@@ -69,21 +57,17 @@ class CheckCmd(Cmd):
         errors = defaultdict(list)
 
         # build check to make sure Java version is correct/installed (any version) >1.8 is ideal
-        # os.system may be the solution
-
+        # so many kinds of Java, may want separate function to do this
         java_version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT) # returns bytestring
         java_version = java_version.decode("utf-8") # convert to regular string
         version_pattern = r'\"(\d+\.\d+).*\"' # regex pattern matching
         version = re.search(version_pattern, java_version).groups()[0] 
-        print(f'Java version number: {version}')
-        print(java_version)
+        # print(f'Java version number: {version}')
+        # print(java_version)
 
         # create new metric that breaks, see where error goes
-        
-        # try/catch in load_config to 
 
         # potentially make new class of exceptions to catch our errors
-
         # create errors.py in util
     
         # check all paths have write access.
@@ -117,24 +101,23 @@ class CheckCmd(Cmd):
         if library.attrib['src'] == "system":
             lib_path = Path(files.get_lib_path() / library.text)
         else:
-            lib_path = Path(library.attrib['src'] / library.text)
+            lib_path = Path(pwd) / library.attrib['src'] / library.text
         if not lib_path.exists():
             errors['library'].append(f'***** Library not found. Given path: {lib_path} *****')
-        # if not os.access(lib_path, os.W_OK):
-        #     print("***** Write access not granted in library directory. *****")
         
         # checking data
         data_dir = single_xpath(config_xml, '/librec-auto/data/data-dir')
+        test = config_xml.xpath('/librec-auto/data/data-dir')
+        if len(test) > 0:
+            errors['data'].append(f'***** More than one data file found. Using: {data_dir.text} *****')
         data_dir_path = Path(pwd / data_dir.text)
         data_file = single_xpath(config_xml, '/librec-auto/data/data-file')
         data_file_path = Path(data_dir_path / data_file.text)
         if not data_file_path.exists():
             errors['data'].append(f'***** Data file not found. Given path: {data_file_path} *****')
-        # if not os.access(data_file_path, os.W_OK):
-            # print("***** Write access not granted in data directory. *****")
+        
 
-        # checking script paths/files exist
-        # throw error if there's a script tag in alg, or any other section not approved
+        # checking script paths/files exist and that scripts are in approved locations
         for elem in config_elements:
             script_element = elem.findall('script')
             if script_element:
@@ -154,8 +137,6 @@ class CheckCmd(Cmd):
                         errors['script'].append(f'***** Script {script_name.text} not found in given path. *****')
             # else: if there aren't script elements do nothing, for now
 
-        # optimization = single_xpath(config_xml, 'librec-auto/optimize')
-        # check ref 
         if 'optimize' in curr_elem:
             alg = single_xpath(config_xml, '/librec-auto/alg')
             if alg is not None:
@@ -205,35 +186,59 @@ class CheckCmd(Cmd):
             if not study_ran: # if the output file doesn't exist
                 check_tree = etree.SubElement(output_tree, "check")
                 message_element = etree.SubElement(check_tree, "message")
-                message_element.text = "No errors found in configuration."
+                message_element.text = "No errors found in configuration file syntax."
             else: # if it does
                 check_tree = etree.Element("check")
                 message_element = etree.SubElement(check_tree, "message")
-                message_element.text = "No errors found in configuration."
-
+                message_element.text = "No errors found in configuration file syntax."
                 output_tree.insert(2, check_tree)
 
-        # reading the logs
+        # reading the Java logs
         # check command shouldn't care about librec.properties file not found (unless run was ran)
         for i in range(0, config.get_sub_exp_count()):
-            # LogFile(get_exp_paths(i)) <- can create instance of log file with
             log_object = LogFile(config.get_files().get_exp_paths(i), study_ran)
-            # at this point the output.xml file has been written to
             check_tree = output_tree.find('check')
             if check_tree is not None:
-                # add function filter_property_file_errors
-                if len(log_object._err_msgs.keys()) == 0:
-                    message_element = etree.SubElement(check_tree, "message")
-                    message_element.text = "No errors found in experiment {i}."
+                if len(log_object._err_msgs.keys()) != 0:
+                    # dict-list comprehension to filter out ignorable errors
+                    temp_dict = {k:[m for _, m in log_object._err_msgs[k] if not self.is_ignorable_error(m)]
+                                                                    for k in log_object._err_msgs.keys()}
+                    # filter out empty lists
+                    temp_dict = {k:v for k,v in temp_dict.items() if v}
+                    # iterate over filtered dictionary                    
+                    if len(temp_dict.keys()) != 0:
+                        for error in temp_dict.keys():
+                            for line_number, message in temp_dict[error]:
+                                message_element = etree.SubElement(check_tree, "message", {'src': error, 
+                                                                                           'logline': str(line_number),
+                                                                                           'exp_num': str(i)})
+                                message_element.text = message.strip('\n')
+                    else:
+                        message_element = etree.SubElement(check_tree, "message")
+                        message_element.text = f"No errors found in experiment {i} logs"
                 else:
-                    for error in log_object._err_msgs.keys():
-                        for line_number, message in log_object._err_msgs[error]:
-                            message_element = etree.SubElement(check_tree, "message", {'src': error, 'logline': str(line_number)})
-                            message_element.text = message
-            else:
-                print("This should be impossible, how'd you get here?")
+                    message_element = etree.SubElement(check_tree, "message")
+                    message_element.text = f"No errors found in experiment {i} logs"
+                
 
-        # create handler for logging.warning in config_cmd
+        # open and parse log that was created in main
+        librec_auto_log = str(Path(pwd) / "LibRec-Auto_log.log")
+        with open(librec_auto_log, 'r') as log_file:
+            check_tree = output_tree.find('check')
+            if check_tree is not None:
+                if not os.stat(librec_auto_log).st_size == 0:
+                    for line in log_file:
+                        new_line = line.strip('\n')
+                        message_element = etree.SubElement(check_tree, "message", {'src': "LibRec-Auto_Log"})
+                        message_element.text = new_line
+                else:
+                    message_element = etree.SubElement(check_tree, "message")
+                    message_element.text = "No warnings found in log"
+            log_file.close()
+
+
+
+
 
         output_tree.getroottree().write(output_xml_path, pretty_print=True)
 
@@ -257,5 +262,14 @@ class CheckCmd(Cmd):
             print("do not have write permissions to directory")
             return False
 
-
+    def is_ignorable_error(self, message):
+        '''
+        This function can be updated with any other errors deemed 'ignorable' by 
+        creating a regex string and elif block.
+        '''
+        property_file_error_pattern = r'.*java\.io\.FileNotFoundException: exp\d*/conf/librec\.properties.*'
+        if re.match(property_file_error_pattern, message):
+            return True
+        return False
+    
 

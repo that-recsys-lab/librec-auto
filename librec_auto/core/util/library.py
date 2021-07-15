@@ -28,12 +28,16 @@ class Library:
 
     # Read in the library: if src="system", then look in the rules folder
     # Otherwise look in the config folder
+
+    # WK - 2021-7-15: Currently, library files can only be kept in conf 
+    # directory due to path being set from files.get_lib_path(), update 
+    # to set path based on configuration file's library element.
     def __init__(self, filename, source, files):
         if source and source == 'system':
             path = files.get_lib_path()
         elif source:  # But not 'system'
-            logging.warning(
-                f'Only system src attribute supported. Got {source}')
+            # logging.warning(
+            #     f'Only system src attribute supported. Got {source}')
             path = files.get_config_dir_path()
         else:
             path = files.get_config_dir_path()

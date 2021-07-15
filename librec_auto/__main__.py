@@ -295,12 +295,8 @@ def setup_commands(args: dict, config: ConfigCmd):
     #         cmd.add_command(PostCmd())
     #     return cmd
 
+    # check setup of experiment
     if action == 'check':
-        # TODO: command sequence should be
-        # setup_cmd (startval flag should enable just one exp configuration to be created)
-        # check_cmd
-        # 'check' librec command
-        # cmd1 = SetupCmd()
         cmd1 = build_librec_commands('check', args, config)
         cmd2 = CheckCmd()
         cmd = SequenceCmd([cmd1, cmd2])
@@ -310,9 +306,12 @@ def setup_commands(args: dict, config: ConfigCmd):
 # -------------------------------------
 
 if __name__ == '__main__':
-    # create handler for log
-
+    
     args = read_args()
+    
+    # create log
+    librec_auto_log = str(Path(args['target']) / "LibRec-Auto_log.log")
+    logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.DEBUG)
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file():
@@ -329,7 +328,7 @@ if __name__ == '__main__':
             
         else:
             config = load_config(args)
-
+            
             if config.is_valid():
                 command = setup_commands(args, config)
 
@@ -422,3 +421,4 @@ if __name__ == '__main__':
                     logging.error("Command instantiation failed.")
             else:
                 logging.error("Configuration loading failed.")
+    os.remove(librec_auto_log)

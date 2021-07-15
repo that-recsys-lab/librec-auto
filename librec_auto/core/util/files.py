@@ -251,7 +251,7 @@ class ExpPaths:
             self.set_path(subdir, subdir_path)
 
         if create:
-            logging.info("Creating experiment: {}", exp_name)
+            logging.info(f"Creating experiment: {exp_name}")
             exp_path.mkdir(exist_ok=True)
             for subdir in self._sub_dirs:
                 self.get_path(subdir).mkdir(exist_ok=True)

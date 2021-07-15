@@ -117,11 +117,9 @@ Let's consider a single experiment directory:
 Ensuring you're all set with Check
 --------------------
 
-Once you've setup your study's directory, you can ensure that all necessary elements of the configuration 
-file are present, that all directories have write acces, and that all linked files could be found by running the ``Check`` command.
-The check command will read over your configuration file, as well as the log file created by LibRec, and append the found errors
-to your ``output.xml`` file. There are various "classes" of errors that can be seen, and each can be found as an attribute on 
-the error message's XML element. 
+Once you've setup your study's directory, you can ensure that your study is ready to compile by running the ``Check`` command.
+The check command will read over your configuration file, a log file that's created by ``LibRec``, and a log file that's created by ``LibRec-Auto`` and append the found errors
+to your ``output.xml`` file. There are various "classes" of errors that can be seen, and each message has its class as an attribute in it's xml element.
 
 The different error classes include:
 
@@ -134,7 +132,13 @@ The different error classes include:
 * ``"script"``: Script errors appear when the provided script file could not be found.
 * ``"optimize"``: Optimize errors occur when ``optimize`` is present, but ``<upper>`` and ``<lower>`` tags aren't in the ``<algorithm>`` section.
 
-**LibRec errors:**
+**LibRec errors (from Java):**
 
 * ``"LibRec"``: LibRec error messages will appear when LibRec throws an error. These errors are specific to the compilation of LibRec. They also include a ``logline`` attribute that tells you where in the log file the error was found. 
  
+**LibRec-Auto errors (from Python):**
+
+* ``"LibRec-Auto_Log"``: LibRec-Auto_Log will include all messages from ``logging`` messages. These messages will follow this general pattern: ``{log-level}:root:{message}``. The levels can be broken down as such:
+    * ``ERROR``: Error level messages appear when there is a problem that will not allow LibRec-Auto to compile correctly. 
+    * ``WARNING``: Warning level messages appear when there is a problem, but the problem will not interfere with LibRec-Auto's compilation.
+    * ``INFO``: Info level messages appear when LibRec-Auto creates or writes to directories and files on the user's computer..
