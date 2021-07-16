@@ -108,7 +108,7 @@ class CheckCmd(Cmd):
         # checking data
         data_dir = single_xpath(config_xml, '/librec-auto/data/data-dir')
         test = config_xml.xpath('/librec-auto/data/data-dir')
-        if len(test) > 0:
+        if len(test) > 1:
             errors['data'].append(f'***** More than one data file found. Using: {data_dir.text} *****')
         data_dir_path = Path(pwd / data_dir.text)
         data_file = single_xpath(config_xml, '/librec-auto/data/data-file')
