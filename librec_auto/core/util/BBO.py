@@ -1,4 +1,5 @@
 from librec_auto.core.util import Status
+from librec_auto.core.util.errors import *
 import hyperopt as hp
 from hyperopt import fmin, tpe, STATUS_OK
 
@@ -51,7 +52,8 @@ class BBO:
             self.direction = "negative"
         else:
             if metric not in self.metric_map:
-                raise Exception("You must specify whether your metric should be optimized in the positive or negative direction")
+                raise InvalidConfiguration("Optimization", 
+                "You must specify whether your metric should be optimized in the positive or negative direction")
 
             self.direction = self.metric_map[metric]
     

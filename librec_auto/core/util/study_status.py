@@ -1,10 +1,10 @@
+import os
 from datetime import datetime
-
+from subprocess import check_output
 from librec_auto.core.util.xml_utils import xml_load_from_path, single_xpath
 from librec_auto.core.util import Files
-
+from pathlib import Path
 from collections import defaultdict
-
 from lxml import etree
 from .status import move_field_from_element
 
@@ -41,8 +41,6 @@ class ExperimentData:
                 for met in cv.getchildren():
                     # Add each 
                     self._metric_info[met.attrib['name']].append(float(met.text))
-
-        # pp(self._metric_info)
         
         # Averages
         averages = experiment.xpath('results/averages')
@@ -50,7 +48,6 @@ class ExperimentData:
             for met in ave.getchildren():
                 self._metric_avg[met.attrib['name']] = float(met.text)
 
-        # pp(self._metric_avg)
 
 
 class StudyStatus:
@@ -67,12 +64,12 @@ class StudyStatus:
         if status_path.exists():
             study_xml = xml_load_from_path(status_path)
         
-        # First check if the study xml exists.
-        if study_xml is None:
-            # If it doesn't, create one
+        # if the output xml has one element it's check, 0 nothing has ran
+        # if there's more than that then the experiment ran and user is evaluating
+        if len(study_xml.getchildren()) <= 1: 
             create_study_output(config)
             study_xml = xml_load_from_path(status_path)
-                 
+            
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
             exp_name = Files.get_exp_name(exp.attrib['count'])
@@ -87,7 +84,6 @@ class StudyStatus:
         time = single_xpath(study_xml, 'completed_at').text
         time_obj = datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f')
         self._timestamp = time_obj.strftime("%Y%m%d_%H%M%S")
-        # pp(self._experiments)
 
     def get_metric_names(self):
         curr = self._experiments[Files.get_exp_name(0)]
@@ -118,6 +114,13 @@ class StudyStatus:
         return self._experiments[experiment]._metric_info[metric]
 
 
+def check_output_xml(filepath):
+    if os.path.exists(filepath):
+        doc = xml_load_from_path(Path(filepath))
+        num_elements = len(doc.getchildren())
+        return num_elements
+    return 0
+    
 
 def create_study_output(config) -> None:
     """Creates a study-wide output.xml file
@@ -125,22 +128,48 @@ def create_study_output(config) -> None:
     Args:
         config (ConfigCmd): The config file for this study
     """
+    
+    # 2021-7-19 - WK: rewriting so that if an output xml already exists
+    # (which it should if check was ran) these get added to file rather
+    # than overwriting
     study_path = config.get_files().get_study_path()
     output_file_path = str(study_path / "output.xml")
+    file_found = False
 
+    output_xml_curr_elems = check_output_xml(output_file_path)
 
-    # Create the root level tree.
-    output_tree = etree.Element("study")
-
+    # Create the root level tree. 
+    # if check is there (the only way for one element to be in output.xml)
+    # preserve it so it's not overwritten. 
+    if output_xml_curr_elems == 1:
+        # only check is present in the output file
+        output_tree = etree.parse(output_file_path).getroot()
+        check_tree = output_tree.find('check')
+        file_found = True
+    else:
+        output_tree = etree.Element("study")
+        check_tree = None
+    
     # Add an experiment count element at the root level.
-    experiment_count_element = etree.SubElement(output_tree,
-                                                "experiment_count")
-    experiment_count_element.text = str(config.get_sub_exp_count())
+    if file_found:
+        experiment_count_element = etree.Element("experiment_count")
+        experiment_count_element.text = str(config.get_sub_exp_count())
+        output_tree.insert(0, experiment_count_element)
+    else:
+        experiment_count_element = etree.SubElement(output_tree,
+                                                    "experiment_count")
+        experiment_count_element.text = str(config.get_sub_exp_count())
 
     # Add a completion timestamp.
-    completion_timestamp_element = etree.SubElement(output_tree,
+    if file_found:
+        completion_timestamp_element = etree.Element("completed_at")
+        completion_timestamp_element.text = str(datetime.now())
+        output_tree.insert(0, completion_timestamp_element)
+    else:
+        completion_timestamp_element = etree.SubElement(output_tree,
                                                     "completed_at")
-    completion_timestamp_element.text = str(datetime.now())
+        completion_timestamp_element.text = str(datetime.now())
+    
 
     # Add an element to contain the experiments results.
     experiments_element = etree.SubElement(output_tree, "experiments")
@@ -165,13 +194,45 @@ def create_study_output(config) -> None:
         # Get the experiment's output path.
         output_path = str(
             config.get_files().get_exp_paths(i).get_path('output'))
+        
+        # created if statement to prevent OSError: File Not Found when making
+        # output.xml from a thrown error. (output won't exist yet)
+        if config.get_files().get_exp_paths(i).get_path('output').exists():
+            experiment_xml_root = etree.parse(output_path).getroot()
 
-        experiment_xml_root = etree.parse(output_path).getroot()
+            # Remove statuses from the experiment tree.
+            move_field_from_element(experiment_xml_root, "statuses")
 
-        # Remove statuses from the experiment tree.
-        move_field_from_element(experiment_xml_root, "statuses")
+            move_field_from_element(experiment_xml_root, None, experiments_element)
 
-        move_field_from_element(experiment_xml_root, None, experiments_element)
+    librec_auto_log = str(study_path / config.get_librec_auto_log_name())
+    with open(librec_auto_log, 'r') as log_file:
+        if check_tree is not None:
+            if not os.stat(librec_auto_log).st_size == 0:
+                for line in log_file:
+                    new_line = line.strip('\n')
+                    message_element = etree.Element("message", 
+                                            {'src': librec_auto_log})
+                    message_element.text = new_line
+                    check_tree.append(message_element)
+            else:
+                message_element = etree.Element("message")
+                message_element.text = "No warnings found in log"
+                check_tree.append(message_element)
+        else: 
+            check_element = etree.Element("check")
+            if not os.stat(librec_auto_log).st_size == 0:
+                for line in log_file:
+                    new_line = line.strip('\n')
+                    message_element = etree.SubElement(check_element, 
+                                            "message", 
+                                            {'src': librec_auto_log})
+                    message_element.text = new_line
+            else:
+                message_element = etree.SubElement(check_element, "message")
+                message_element.text = "No warnings found in log"
+            output_tree.insert(2, check_element)
+        log_file.close()
 
     # Save/write the output tree.
     output_tree.getroottree().write(output_file_path, pretty_print=True)

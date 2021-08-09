@@ -6,7 +6,8 @@ from collections import defaultdict
 from librec_auto.core.cmd import Cmd
 from librec_auto.core.config_cmd import ConfigCmd
 from librec_auto.core.util import LogFile
-from librec_auto.core.util.xml_utils import single_xpath
+from librec_auto.core.util.xml_utils import single_xpath, xml_load_from_path
+from librec_auto.core.util.errors import *
 from pathlib import Path
 from lxml import etree
 
@@ -19,6 +20,13 @@ from lxml import etree
 # 6. (eventually) XML validation against schema
 # 7. (eventually) validate script parameters. scripts must conform.
 # 8. (eventually) fix Java side so that check command doesn't load and only runs once.
+
+def check_output_xml(filepath):
+    if os.path.exists(filepath):
+        doc = xml_load_from_path(Path(filepath))
+        num_elements = len(doc.getchildren())
+        return num_elements
+    return 0
 
 class CheckCmd(Cmd):
     """
@@ -34,7 +42,7 @@ class CheckCmd(Cmd):
         pass
 
     def dry_run(self, config):
-        print(f'librec-auto (DR): Running status command {self}')
+        print(f'librec-auto (DR): Running check command {self}')
     
     def execute(self, config: ConfigCmd):
         self._status = Cmd.STATUS_INPROC
@@ -45,45 +53,26 @@ class CheckCmd(Cmd):
 
         output_path = config.get_files().get_study_path()
         output_xml_path = str(output_path / "output.xml")
-        study_ran = Path(config.get_files().get_status_path()).exists()
-
+        study_ran = Path(output_xml_path).exists()
+        check_output_xml(output_xml_path)
         if study_ran:
-            # Experimenter wants to run `check` after `run`, so output_xml should exist
-            output_tree = etree.parse(output_xml_path).getroot()
-        else:
-            # Study has not been run, will need to create output.xml
-            output_tree = etree.Element("study")
+            os.remove(output_xml_path)
 
-        errors = defaultdict(list)
-
-        # build check to make sure Java version is correct/installed (any version) >1.8 is ideal
-        # so many kinds of Java, may want separate function to do this
-        java_version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT) # returns bytestring
-        java_version = java_version.decode("utf-8") # convert to regular string
-        version_pattern = r'\"(\d+\.\d+).*\"' # regex pattern matching
-        version = re.search(version_pattern, java_version).groups()[0] 
-        # print(f'Java version number: {version}')
-        # print(java_version)
-
-        # create new metric that breaks, see where error goes
-
-        # potentially make new class of exceptions to catch our errors
-        # create errors.py in util
+        # check should  be the first thing writing to an output.xml file
+        output_tree = etree.Element("study")
+        # clear the check elements from before, if present
+        check_element = output_tree.find('check')
+        if check_element is not None:
+            output_tree.remove(check_element)
     
         # check all paths have write access.
         for func in dir(files):
             if re.match(r'get_.*path$', func):
                 getpath = getattr(files, func)
-                if func == 'get_status_path':
-                    if study_ran:
-                        if not os.access(getpath(), os.W_OK):
-                            errors['access'].append(f'***** Write access not granted'
-                                                    f' for {getpath()}. *****')
-                    else:
-                        continue
+                if func == 'get_status_path' or func == 'get_post_path':
+                    continue
                 if not os.access(getpath(), os.W_OK):
-                    errors['access'].append(f'***** Write access not granted '
-                                            f'for {getpath()}. *****')
+                    raise InvalidConfiguration(getpath(), f"Write access not granted {func}")
             
         # check all necessary elements are in config
         curr_elem = [e.tag for e in config_elements]
@@ -93,110 +82,95 @@ class CheckCmd(Cmd):
                      'metric': 'Metric section'}
         for elem in necc_elem.keys():
             if elem not in curr_elem:
-                errors['element'].append(f'***** {necc_elem[elem]} missing in '
-                                          f'config file. *****')
+                raise InvalidConfiguration(necc_elem[elem], f"{necc_elem[elem]} missing in configuration file.")
+
         
         # checking library
         library = single_xpath(config_xml, '/librec-auto/library')
         if library.attrib['src'] == "system":
-            lib_path = Path(files.get_lib_path() / library.text)
+            lib_path = files.get_lib_path() / library.text
         else:
-            lib_path = Path(pwd) / library.attrib['src'] / library.text
+            lib_path = pwd / library.attrib['src'] / library.text
         if not lib_path.exists():
-            errors['library'].append(f'***** Library not found. Given path: {lib_path} *****')
+            raise InvalidConfiguration(lib_path, "Library not found at give path.")
         
-        # checking data
+        # Checking data.
         data_dir = single_xpath(config_xml, '/librec-auto/data/data-dir')
-        test = config_xml.xpath('/librec-auto/data/data-dir')
-        if len(test) > 1:
-            errors['data'].append(f'***** More than one data file found. Using: {data_dir.text} *****')
+        # Test to see how many data directories were given.
+        num_data_dir_test = config_xml.xpath('/librec-auto/data/data-dir')
+        if len(num_data_dir_test) > 1:
+            raise InvalidConfiguration("Data Directory", "More than one data file found.")
+        # Checking path to data directory
         data_dir_path = Path(pwd / data_dir.text)
         data_file = single_xpath(config_xml, '/librec-auto/data/data-file')
         data_file_path = Path(data_dir_path / data_file.text)
         if not data_file_path.exists():
-            errors['data'].append(f'***** Data file not found. Given path: {data_file_path} *****')
+            raise InvalidConfiguration(str(data_file_path), "Data file not found at given path.")
         
 
         # checking script paths/files exist and that scripts are in approved locations
         for elem in config_elements:
             script_element = elem.findall('script')
+            # findall returns list, check for items.
             if script_element:
+                # Iterate over scripts.
                 for se in script_element:
                     if se.attrib['src'] == "system":
                         if elem.tag == 'metric':
-                            script_path = Path(files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'eval')
+                            script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'eval'
                         elif elem.tag == 'post':
-                            script_path = Path(files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'post')
+                            script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'post'
+                        elif elem.tag == 'rerank':
+                            script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'rerank'
                         else:
-                            errors['script'].append(f'***** Scripts not allowed in {elem.tag} section. *****')
+                            raise InvalidConfiguration(elem.tag, f"Scripts not allowed in {elem.tag} section.")
                     else:
                         script_path = Path(se.attrib['src'])
                     script_name = se.find('script-name')
-                    script_path = Path(script_path / script_name.text)
+                    script_path = script_path / script_name.text
                     if not script_path.exists():
-                        errors['script'].append(f'***** Script {script_name.text} not found in given path. *****')
+                        raise InvalidConfiguration(str(script_path), f'{script_name.text} not found in given path.')
             # else: if there aren't script elements do nothing, for now
 
         if 'optimize' in curr_elem:
             alg = single_xpath(config_xml, '/librec-auto/alg')
             if alg is not None:
                 for elem in alg:
-                    if not elem.getchildren():
+                    # parameters being optimized should have children, upper and lower
+                    if elem.getchildren():
+                        children = [e.tag for e in elem.iterchildren()]
+                        if 'value' in children: # impossible case: librec-auto setup catches this first. 
+                            raise InvalidConfiguration('Optimization', 'Value tags not allowed in optimize element')
+                        else:
+                            if 'lower' and 'upper' not in children:
+                                raise InvalidConfiguration('Optimization', f'Lower and upper tags missing in {elem.tag}')
+                    else:
                         # for now continue, should add check to make sure value
                         # from reference xml and config xml are same type.
                         continue
-                    else:
-                        children = [e.tag for e in elem.iterchildren()]
-                        if 'value' in children: # impossible case: librec-auto setup catches this first. 
-                            errors['optimize'].append(f'***** value tags not allowed in optimize element *****')
-                        else:
-                            if 'lower' and 'upper' in children:
-                                # all good
-                                continue
-                            else:
-                                errors['optimize'].append(f'***** lower and upper elements missing'
-                                                          f' from {elem.tag}. Found: {children} *****')
-
-            else:
-                errors['elements'].append(f'***** <alg> missing in config file, but optimize is there? *****')
-            
-        # clear the check elements from before, if present
-        check_element = output_tree.find('check')
-        if check_element is not None:
-            output_tree.remove(check_element)
                 
-        # If there's anything in the dictionary, there's errors. 
-        # Still have checks for if the study was ran for further tests. 
-        if list(errors.keys()):
-            if not study_ran: # if the output file doesn't exist
-                check_tree = etree.SubElement(output_tree, "check")
-                for error in errors.keys():
-                    for val in errors[error]:
-                        message_element = etree.SubElement(check_tree, "message", {'error': error})
-                        message_element.text = val
-            else: # if it does
-                check_tree = etree.Element("check")
-                for error in errors.keys():
-                    for val in errors[error]:
-                        message_element = etree.SubElement(check_tree, "message", {'error': error})
-                        message_element.text = val
-                # inserting at index 2 because 0 is exp count, and 1 is datetime
-                output_tree.insert(2, check_tree) 
-        else:
-            if not study_ran: # if the output file doesn't exist
-                check_tree = etree.SubElement(output_tree, "check")
-                message_element = etree.SubElement(check_tree, "message")
-                message_element.text = "No errors found in configuration file syntax."
-            else: # if it does
-                check_tree = etree.Element("check")
-                message_element = etree.SubElement(check_tree, "message")
-                message_element.text = "No errors found in configuration file syntax."
-                output_tree.insert(2, check_tree)
+            
+        
+               
+               
+        # create filepath attribute for errors as src
+        # if the compiler makes it to here without raising an error, then there are no errors
+        if not study_ran: # if the output file doesn't exist
+            check_tree = etree.SubElement(output_tree, "check")
+            message_element = etree.SubElement(check_tree, "message")
+            message_element.text = "No errors found in configuration file syntax."
+        else: # if it does
+            check_tree = etree.Element("check")
+            message_element = etree.SubElement(check_tree, "message")
+            message_element.text = "No errors found in configuration file syntax."
+            output_tree.insert(2, check_tree)
 
         # reading the Java logs
         # check command shouldn't care about librec.properties file not found (unless run was ran)
         for i in range(0, config.get_sub_exp_count()):
-            log_object = LogFile(config.get_files().get_exp_paths(i), study_ran)
+            exp_path = config.get_files().get_exp_paths(i)
+            log_object = LogFile(exp_path, study_ran)
+            # src: filepath
             check_tree = output_tree.find('check')
             if check_tree is not None:
                 if len(log_object._err_msgs.keys()) != 0:
@@ -209,36 +183,16 @@ class CheckCmd(Cmd):
                     if len(temp_dict.keys()) != 0:
                         for error in temp_dict.keys():
                             for line_number, message in temp_dict[error]:
-                                message_element = etree.SubElement(check_tree, "message", {'src': error, 
+                                message_element = etree.SubElement(check_tree, "message", {'src': str(exp_path), 
                                                                                            'logline': str(line_number),
                                                                                            'exp_num': str(i)})
                                 message_element.text = message.strip('\n')
                     else:
-                        message_element = etree.SubElement(check_tree, "message")
-                        message_element.text = f"No errors found in experiment {i} logs"
+                        message_element = etree.SubElement(check_tree, "message", {'src': str(log_object._log_path)})
+                        message_element.text = f"No errors found in experiment {i} log."
                 else:
-                    message_element = etree.SubElement(check_tree, "message")
-                    message_element.text = f"No errors found in experiment {i} logs"
-                
-
-        # open and parse log that was created in main
-        librec_auto_log = str(Path(pwd) / "LibRec-Auto_log.log")
-        with open(librec_auto_log, 'r') as log_file:
-            check_tree = output_tree.find('check')
-            if check_tree is not None:
-                if not os.stat(librec_auto_log).st_size == 0:
-                    for line in log_file:
-                        new_line = line.strip('\n')
-                        message_element = etree.SubElement(check_tree, "message", {'src': "LibRec-Auto_Log"})
-                        message_element.text = new_line
-                else:
-                    message_element = etree.SubElement(check_tree, "message")
-                    message_element.text = "No warnings found in log"
-            log_file.close()
-
-
-
-
+                    message_element = etree.SubElement(check_tree, "message", {'src': str(log_object._log_path)})
+                    message_element.text = f"No errors found in experiment {i} log."
 
         output_tree.getroottree().write(output_xml_path, pretty_print=True)
 
@@ -248,19 +202,6 @@ class CheckCmd(Cmd):
 
         self._status = Cmd.STATUS_COMPLETE
 
-    def is_path_legal(self, pathname):
-        if os.path.exists(pathname):
-            # the file exists and is there
-            print("file found")
-            return True
-        elif os.access(os.path.dirname(pathname), os.W_OK):
-            # the file does not exist but there is write access
-            print("writable access to dir, file not found")
-            return True
-        else:
-            # the file and/or path do not exist
-            print("do not have write permissions to directory")
-            return False
 
     def is_ignorable_error(self, message):
         '''
@@ -272,4 +213,5 @@ class CheckCmd(Cmd):
             return True
         return False
     
+        
 

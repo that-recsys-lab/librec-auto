@@ -1,6 +1,7 @@
 from collections import OrderedDict, defaultdict
+from librec_auto.core.util.errors import InvalidConfiguration
 from librec_auto.core.util import Files, utils, build_parent_path, LibrecProperties, \
-    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl
+    xml_load_from_path, Library, LibraryColl, merge_elements, VarColl, JavaVersionException
 from librec_auto.core.config_lib import ConfigLibCollection, ConfigLib
 from librec_auto.core.util.xml_utils import single_xpath
 
@@ -23,10 +24,11 @@ class ConfigCmd:
     _PARAM_NAME_PATH_RE = ".+\[@name='(.+)'\]"
     _CV_DIR_RE = "cv_\d+"
 
-    def __init__(self, config_file, target):
+    def __init__(self, config_file, target, log_filename):
 
         self._files = Files()
         self._target = target
+        self._log_filename = log_filename
         self._count = None
 
         self._files.set_study_path(target)
@@ -50,6 +52,9 @@ class ConfigCmd:
 
     def get_xml(self):
         return self._xml_input
+
+    def get_librec_auto_log_name(self):
+        return self._log_filename
 
     # def get_var_data(self):
     #     return self._var_data
@@ -167,11 +172,11 @@ class ConfigCmd:
         has_optimize = len(self._xml_input.xpath('/librec-auto/optimize')) > 0
 
         if len(check_multiple_values) != len(value_elems) and len(value_optimize_elems) > 0:
-            raise Exception("You may only use upper/lower for optimizing ranges")
+            raise InvalidConfiguration("optimization", "You may only use upper/lower for optimizing ranges")
         elif len(value_optimize_elems) > 0 and not has_optimize:
-            raise Exception("You may only use upper/lower with an optimize tag")
+            raise InvalidConfiguration("optimization", "You may only use upper/lower for optimizing ranges")
         elif len(value_elems) > 0 and has_optimize:
-            raise Exception("Use of upper/lower value bounds requires optimize tag")
+            raise InvalidConfiguration("optimization", "Use of upper/lower value bounds requires optimize tag")
         elif len(value_optimize_elems) > 0:
             value_elems = value_optimize_elems + self._xml_input.xpath(
             '/librec-auto/alg/*//upper')
@@ -341,25 +346,11 @@ class ConfigCmd:
         else:
             return dirs
 
-class ConfigurationFailureException(Exception):
-    """Exception raised for errors in reading the configuration file.
-
-    Attributes:
-        file_path - given path to file
-    """
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-        super().__init__(str(self.file_path.absolute()))
-
-    def __str__(self):
-        return f'Path -> {str(self.file_path.absolute())}'
-
-def read_config_file(config_file, target):
-    config = ConfigCmd(config_file, target)
+def read_config_file(config_file, target, log_filename=None):
+    config = ConfigCmd(config_file, target, log_filename)
     if config.is_valid():
         config.load_libraries()
         config.process_config()
     else:
-        raise ConfigurationFailureException(config.get_files().get_config_file_path())
+        raise InvalidConfiguration("Configuration file load error", "There was an error loading the configuration file.")
     return config
