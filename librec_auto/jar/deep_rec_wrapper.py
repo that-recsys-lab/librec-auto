@@ -24,6 +24,9 @@ warnings.filterwarnings('ignore')
 
 def read_args():
     parser = argparse.ArgumentParser(description='nnRec')
+    #parser.add_argument('conf', help='Name of configuration file')
+    #parser.add_argument('split_directory', help='Path to original results directory')
+    #parser.add_argument('result', help='Path to destination results directory')
     parser.add_argument('--model', choices=['MF', 'NNMF', 'NRR', 'I-AutoRec', 'U-AutoRec',
                                             'FM', 'NFM', 'AFM', 'DEEP-FM'],
                         default='DEEP-FM')
@@ -32,7 +35,7 @@ def read_args():
     parser.add_argument('--learning_rate', type=float, default=1e-3)  # 1e-4 for unlimpair
     parser.add_argument('--reg_rate', type=float, default=0.1)  # 0.01 for unlimpair
     parser.add_argument('--num_factors', type=int, default=10)
-    parser.add_argument('--display_step', type=int, default=1000)
+    parser.add_argument('--display_step', type=int)
     parser.add_argument('--show_time', type=bool, default=False)
     parser.add_argument('--T', type=int, default=2)
     parser.add_argument('--deep_layers', type=str, default="200, 200, 200")
@@ -107,6 +110,9 @@ def load_data(path='/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/da
 
 def main():
     args = read_args()
+    #config_var = args['config']
+    #split_directory_var = args['split_directory']
+    #result_var = args['result']
     model_var = args['model']
     epoch_var = args['epochs']
     batch_size_var = args['batch_size']
@@ -114,13 +120,15 @@ def main():
     reg_rate_var = args['reg_rate']
     num_factors_var = args['num_factors']
     display_step_var = args['display_step']
-    print (display_step_var)
     show_time_var = args['show_time']
     t_var = args['T']
     deep_layers_var = args['deep_layers']
     field_size_var = args['field_size']
 
     kws = {
+        #'config': config_var,
+        #'split_directory': split_directory_var,
+        #'result': result_var,
         'epochs': epoch_var,
         'batch_size': batch_size_var,
         'learning_rate': learning_rate_var,
@@ -134,6 +142,8 @@ def main():
     }
 
     data = load_data()
+
+    '''
     for i in range(0, len(data)):
         train_data, test_data, n_user, n_item = data[i]
 
@@ -156,6 +166,8 @@ def main():
                 else:
                     model.build_network()
                     model.execute(train_data, test_data)
+    '''
 
 if __name__ == '__main__':
     main()
+

@@ -2,11 +2,13 @@ from librec_auto.core.cmd import Cmd
 from librec_auto.core.util import Files, ExpPaths, Status
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util.xml_utils import single_xpath
+from librec_auto.core.util.utils import create_param_spec, get_script_path
 import os
 import subprocess
 import shlex
 import time
 from pathlib import Path, WindowsPath
+
 
 class DeeprecCmd(Cmd):
 
@@ -25,13 +27,16 @@ class DeeprecCmd(Cmd):
 
     def create_proc_spec(self):
         classpath = self._config.get_files().get_deeprec_classpath()
+        config_xml = self._config.get_files().get_config_file_path()
+        # script_xml = single_xpath(config_xml, '/librec-auto/algo/script')
+
+        # pass config file
 
         python_command = self.select_deeprec_action()
         if python_command is None:
             return []
         else:
             return [
-                # 'python', classpath, confpath_str, python_command
                 'python', classpath
             ]
 
@@ -39,7 +44,9 @@ class DeeprecCmd(Cmd):
         if self._command == 'deep_algo':
             return 'deep_algo'
 
-    def execute_deeprec(self):
+    def execute_deeprec(self, sub_path):
+        conf_xml = sub_path.get_study_conf()
+        script_elems = conf_xml.xpath('/librec-auto/alg/script')
         cmd = self.create_proc_spec()
 
         if len(cmd) == 0:
@@ -49,6 +56,13 @@ class DeeprecCmd(Cmd):
             self.status = Cmd.STATUS_ERROR
             return
         print(f"DeepRec: Running DeepRec. {cmd}")
+        if len(script_elems) > 0:
+            script_elem = script_elems[0]
+            param_spec = create_param_spec(script_elem)
+            print(param_spec)
+            script_path = get_script_path(script_elem, 'alg')
+            study_path = self._files.get_study_path()
+            result_path = sub_path.get_path('result')
         log_path = self._exp_path.get_log_path()
         #        print(f"librec-auto: Logging to {log_path}.")
 
@@ -104,6 +118,7 @@ class DeeprecCmd(Cmd):
             self.dry_run_deeprec()
 
         # log file appends by default
+
     def ensure_clean_log(self):
         librec_log = log_path = self._exp_path.get_log_path()
         if librec_log.is_file():
@@ -129,6 +144,11 @@ class DeeprecCmd(Cmd):
     def execute(self, config: ConfigCmd):
         self._config = config
         self._exp_path = config.get_files().get_exp_paths(self._sub_no)
+        self._files = config.get_files()
+        if self._files.get_exp_count() > 0:
+            for i in range(0, self._files.get_exp_count()):
+                sub_path = self._files.get_exp_paths(i)
+                self.execute_deeprec(sub_path)
         link = self._exp_path.get_ref_exp_name()
         if link and self._command == 'run':
             self.status = Cmd.STATUS_COMPLETE
@@ -139,8 +159,6 @@ class DeeprecCmd(Cmd):
             #                    self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
-            self.execute_deeprec()
+            self.execute_deeprec(sub_path)
+
         # Status.save_status("Completed", self._sub_no, config, self._exp_path)
-
-
-
