@@ -2,8 +2,13 @@ from lxml import etree
 from inspect import getsourcefile
 from os.path import abspath
 from pathlib import Path
-import logging
+import re
+from datetime import datetime
 from . import xml_utils
+import subprocess
+from subprocess import CalledProcessError, DEVNULL
+import glob
+import os
 
 
 def force_list(item):
@@ -108,3 +113,47 @@ def create_param_spec(script_xml):
             val = param.text
             param_list.append(f'--{key}={val}')
     return param_list
+
+def safe_run_subprocess(process_specs: list, current_working_directory: str):
+    """ Safely run a subprocess and check its output for errors
+    returns:
+        errors: str - if there are errors from running the script, the string
+            is returned to be added to output.xml
+        0: int - the cript ran and executed normally
+        e.returncode: int - if the script has error code exits built in and the
+            script returns one, this will catch and return it
+
+    """
+    try:
+        script_output = subprocess.Popen(process_specs, 
+                                         cwd=current_working_directory,
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE)
+        # check Popen constructor for encoding
+        # try with Popen as proc:
+        # 
+        output, errors = script_output.communicate()
+        if errors:
+            str_err = str(errors, encoding='utf-8')
+            str_err = str_err.strip('<')
+            str_err = str_err.strip('>')
+            ret_lst = re.split(r'Process Process-\d*:', str_err)
+            ret_lst = [x for x in ret_lst if x != '']
+            if len(ret_lst) > 1:
+                return ret_lst
+            return str_err
+        else:
+            return 0
+    except CalledProcessError as e:
+        return e.returncode
+
+def create_log_name(filename: str):
+    _time = str(datetime.now())
+    _time_obj = datetime.strptime(_time, '%Y-%m-%d %H:%M:%S.%f')
+    _timestamp = _time_obj.strftime("%Y%m%d_%H%M%S")
+    return filename.format(_timestamp)
+
+def purge_old_logs(path: str):
+    for file in glob.glob(path):
+        if re.match(r'.*/LibRec-Auto_log.*', file):
+            os.remove(file)

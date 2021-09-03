@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How-Tos &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Run a Study" href="run-a-study.html" />
+    <link rel="prev" title="Development" href="development.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="how-tos">
+<h1>How-Tos<a class="headerlink" href="#how-tos" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="using-a-library">
+<h2>Using a library<a class="headerlink" href="#using-a-library" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes you are running a large number of experiments with many aspects in common, for example, a standard metric configuration or a standard cross-validation methodology. It may be convenient to encode fixed aspects of the work in a library that can be shared across multiple studies implemented in <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code>.</p>
+<p>To create an external library, create an XML file that looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">librec</span><span class="o">-</span><span class="n">auto</span><span class="o">-</span><span class="n">library</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">alg</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;itemknn50&quot;</span><span class="o">&gt;</span>
+                <span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span><span class="n">itemknn</span><span class="o">&lt;/</span><span class="n">class</span><span class="o">&gt;</span>
+                <span class="o">&lt;</span><span class="n">similarity</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;item&quot;</span><span class="o">&gt;</span><span class="n">pcc</span><span class="o">&lt;/</span><span class="n">similarity</span><span class="o">&gt;</span>
+                <span class="o">&lt;</span><span class="n">neighborhood</span><span class="o">-</span><span class="n">size</span><span class="o">&gt;</span><span class="mi">50</span><span class="o">&lt;/</span><span class="n">neighborhood</span><span class="o">-</span><span class="n">size</span><span class="o">&gt;</span>
+                <span class="o">&lt;</span><span class="n">shrinkage</span><span class="o">&gt;</span><span class="mi">50</span><span class="o">&lt;/</span><span class="n">shrinkage</span><span class="o">&gt;</span>
+        <span class="o">&lt;/</span><span class="n">alg</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">librec</span><span class="o">-</span><span class="n">auto</span><span class="o">-</span><span class="n">library</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Note that each internal element (here <code class="docutils literal notranslate"><span class="pre">alg</span></code>) has an associated <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute. This is what is used to look up
+elements in the library. You can have any number of elements in a library file.</p>
+<p>To use an external library in your <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> configuration file, you first have to import it. Put the following information
+at the beginning of your configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">library</span><span class="o">&gt;</span><span class="n">local</span><span class="o">-</span><span class="n">library</span><span class="o">.</span><span class="n">xml</span><span class="o">&lt;/</span><span class="n">library</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Replacing “local library” with a path to the library file. You can have multiple library files by adding additional <code class="docutils literal notranslate"><span class="pre">library</span></code> directives.
+They will be consulted in the order that they appear in the file.</p>
+<p>To use a predefined element from a library file, you only need to reference it by name. For example, the following element is sufficient to use the item kNN algorithm defined above.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">alg</span> <span class="n">ref</span><span class="o">=</span><span class="s2">&quot;itemknn50&quot;</span><span class="o">/&gt;</span>
+</pre></div>
+</div>
+<p>You can always override any aspect of the imported element by supplying your own element. For example, to set the shrinkage value to 20, we would
+say the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">alg</span> <span class="n">ref</span><span class="o">=</span><span class="s2">&quot;itemknn50&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">shrinkage</span><span class="o">&gt;</span><span class="mi">20</span><span class="o">&lt;/</span><span class="n">shrinkage</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">alg</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>All of the other parts of the algorithm specification would be unchanged.</p>
+</div>
+<div class="section" id="producing-graphical-output">
+<h2>Producing graphical output<a class="headerlink" href="#producing-graphical-output" title="Permalink to this headline">¶</a></h2>
+<p>There is a post-processing script for producing basic summary plots of your study. This script was primarily designed for studies that make use of cross-validation. Two types of visualization are produced:</p>
+<ul class="simple">
+<li><p>Bar plots with the average metric value for each experiment in the study, for each metric.</p></li>
+<li><p>Box plots that show the distribution of metric values across the different folds of each experiment in a study (if using cross-validation), for each metric.</p></li>
+</ul>
+<p>The script can optionally pop up a browser window that contains the graphics.</p>
+<p>In order to use this script, you will need to add it to the post-processing portion of the configuration file. Here is an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">script</span> <span class="n">lang</span><span class="o">=</span><span class="s2">&quot;python3&quot;</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span><span class="n">result_graphics</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;/</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;browser&quot;</span><span class="o">&gt;</span><span class="n">true</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The plots are stored in the <code class="docutils literal notranslate"><span class="pre">post</span></code> directory under the names <code class="docutils literal notranslate"><span class="pre">viz-bar-</span></code> <em>metric</em>.jpg and <code class="docutils literal notranslate"><span class="pre">viz-box-</span></code> <em>metric</em>.jpg where <em>metric</em>
+is the name of the LibRec metric that was calculated.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How-Tos</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-a-library">Using a library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#producing-graphical-output">Producing graphical output</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="development.html" title="previous chapter">Development</a></li>
+      <li>Next: <a href="run-a-study.html" title="next chapter">Run a Study</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/howtos.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

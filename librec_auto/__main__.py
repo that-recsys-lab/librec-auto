@@ -1,12 +1,17 @@
 import argparse
 from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.config_cmd import ConfigCmd
+from datetime import datetime
 from pathlib import Path
 from librec_auto.core import read_config_file
-from librec_auto.core.util import Files, create_study_output, BBO
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
+from librec_auto.core.util import Files, create_study_output, BBO, create_log_name, \
+    purge_old_logs, InvalidConfiguration, InvalidCommand, UnsupportedFeatureException, \
+    LibRecAutoException
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, \
+                                 RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd
 import logging
 import librec_auto
+import os
 
 
 def read_args():
@@ -62,12 +67,6 @@ def read_args():
         default='all')
 
     parser.add_argument(
-        "-nc",
-        "--no_cache",
-        help="Do not cache any intermediate results (Not implemented)",
-        action="store_true")
-
-    parser.add_argument(
         "-dev",
         "--dev",
         help="Help with documentation, code formatting, and Docker",
@@ -94,6 +93,13 @@ def read_args():
         "--key_password",
         help="Password for the API keys used by post-processing scripts")
 
+    parser.add_argument(
+        "-nc",
+        "--no_check",
+        help="Don't run the check command",
+        action="store_true")
+
+
     input_args = parser.parse_args()
     return vars(input_args)
 
@@ -108,8 +114,12 @@ def load_config(args: dict) -> ConfigCmd:
     target = ""
     if (args['target'] != None):
         target = args['target']
+    
+    log_file = args['log_name']
 
-    return read_config_file(config_file, target)
+    # create a path: 
+    
+    return read_config_file(config_file, target, log_file)
 
 
 DESCRIBE_TEXT = 'Librec-auto automates recommender systems experimentation using the LibRec Java library.\n' +\
@@ -189,6 +199,10 @@ def setup_commands(args: dict, config: ConfigCmd):
     rerank_flag = config.has_rerank()
     post_flag = config.has_post()
 
+    # Flag to use/avoid check
+    # if true, user specified don't run check, else, run check.
+    no_check_flag = args['no_check']
+
     # Set the password in the configuration if we have it
     if args['key_password']:
         config.set_key_password(args['key_password'])
@@ -206,34 +220,27 @@ def setup_commands(args: dict, config: ConfigCmd):
         return PostCmd()
     # No post scripts available
     if action == 'post' and not post_flag:
-        logging.warning(
-            "No post-processing scripts available for post command.")
-        return None
-
+        raise InvalidCommand(action, "No post-processing scripts available for \"post\" command")
+        
     # Perform re-ranking on results, followed by evaluation and post-processing
     if action == 'rerank' and rerank_flag:  # Runs a reranking script on the python side
-        cmd1 = PurgeCmd('rerank', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = RerankCmd()
-        cmd4 = build_librec_commands('eval', args, config)
-        cmd5 = EvalCmd(args, config)  # python-side eval
-        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4, cmd5])
-        if post_flag:
-            cmd.add_command(PostCmd())
-        return cmd
+        cmd1 = RerankCmd()
+        cmd2 = build_librec_commands('eval', args, config)
+        cmd3 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2, cmd3])
+        
+        bracketed_cmd = bracket_sequence('rerank', args, config, cmd)
+        return bracketed_cmd
     # No re-ranker available
     if action == 'rerank' and not rerank_flag:
-        logging.warning("No re-ranker available for rerank command.")
-        return None
+        raise InvalidCommand(action, "No re-ranker scripts available for \"rerank\" command.")
 
     # LibRec actions
     # re-run splits only
     if action == 'split':
-        cmd1 = PurgeCmd('split', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = build_librec_commands('split', args, config)
-        cmd = SequenceCmd([cmd1, cmd2, cmd3])
-        return cmd
+        cmd = SequenceCmd([build_librec_commands('split', args, config)])
+        bracketed_cmd = bracket_sequence('split', args, config, cmd)
+        return bracketed_cmd
 
     # re-run experiment
     if action == 'bbo':
@@ -252,37 +259,36 @@ def setup_commands(args: dict, config: ConfigCmd):
         if rerank_flag:
             # cmd.append(RerankCmd())
             # cmd.append(build_librec_commands('eval', args, config))
-            raise Exception("Optimization is not currently supported with Reranking")
+            raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
         if post_flag:
             cmd.append(PostCmd())
+
+        if not no_check_flag:
+            cmd[2:2] = [build_librec_commands('check', args, config), CheckCmd()]
 
         return cmd
 
 
     # re-run experiment and continue
     if action == 'run':
-        cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = build_librec_commands('full', args, config)
-        cmd4 = EvalCmd(args, config)  # python-side eval
-        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
+        cmd1 = build_librec_commands('full', args, config)
+        cmd2 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
-        if post_flag:
-            cmd.add_command(PostCmd())
-        return cmd
+        bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        return bracketed_cmd
 
     # eval-only
     if action == 'eval':
-        cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = build_librec_commands('eval', args, config)
-        cmd4 = EvalCmd(args, config)  # python-side eval
-        cmd = SequenceCmd([cmd1, cmd2, cmd3, cmd4])
-        if post_flag:
-            cmd.add_command(PostCmd())
-        return cmd
+        # cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
+        # cmd2 = SetupCmd()
+        cmd1 = build_librec_commands('eval', args, config)
+        cmd2 = EvalCmd(args, config)  # python-side eval
+        cmd = SequenceCmd([cmd1, cmd2])
+        bracketed_cmd = bracket_sequence('post', args, config, cmd)
+        return bracketed_cmd
 
     # # Running python side evaluation
     # if action == 'py-eval':
@@ -291,15 +297,51 @@ def setup_commands(args: dict, config: ConfigCmd):
     #         cmd.add_command(PostCmd())
     #     return cmd
 
+    # check setup of experiment
     if action == 'check':
-        cmd = build_librec_commands('check', args, config)
+        cmd1 = build_librec_commands('check', args, config)
+        cmd2 = CheckCmd()
+        cmd = SequenceCmd([cmd1, cmd2])
         return cmd
 
+def bracket_sequence(purge_action, args, config, seq_cmd):
+    # purge based on what action is being called
+    purge_no_ask = args['quiet']
+    no_check = args['no_check']
+    post_flag = config.has_post()
+    bracketed_commands = []
+
+    # Add purge and setup.
+    bracketed_commands.append(PurgeCmd(purge_action, purge_no_ask))
+    bracketed_commands.append(SetupCmd())
+    if not no_check:
+        bracketed_commands.append(build_librec_commands('check', args, config))
+        bracketed_commands.append(CheckCmd())
+    # Add passed sequence of commands.
+    bracketed_commands.append(seq_cmd)
+    # Create an output xml file.
+    if post_flag:
+        bracketed_commands.append(PostCmd())
+    else:
+        bracketed_commands.append(CleanupCmd())
+    # Convert entire list to SequenceCmd object.
+    new_cmd = SequenceCmd(bracketed_commands)
+    return new_cmd
 
 # -------------------------------------
 
 if __name__ == '__main__':
+    
     args = read_args()
+        
+    purge_old_logs(args['target'] + "/*")
+    log_name = create_log_name('LibRec-Auto_log{}.log')
+    args['log_name'] = log_name
+    librec_auto_log = str(Path(args['target']) / args['log_name'])
+    if args['dev']:
+        logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.WARNING)
 
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file():
@@ -308,11 +350,38 @@ if __name__ == '__main__':
     else:
         if args['action'] == 'describe':
             print_description(args)
+        elif args['action'] == 'check':
+            config = load_config(args)
+            if config.is_valid():
+                try:
+                    command = setup_commands(args, config)
+                except LibRecAutoException:
+                    print("Exception caught, check output.xml file.")
+                    logging.shutdown()
+                    clean = CleanupCmd()
+                    clean.execute(config)
+                    exit(-1)
+
+                try: 
+                    command.execute(config)
+                except LibRecAutoException:
+                    print("Exception caught, check output.xml file.")
+                    logging.shutdown()
+                    clean = CleanupCmd()
+                    clean.execute(config)
+                    exit(-1)
         else:
             config = load_config(args)
-
+            
             if config.is_valid():
-                command = setup_commands(args, config)
+                try:
+                    command = setup_commands(args, config)
+                except LibRecAutoException:
+                    print("Exception caught, check output.xml file.")
+                    logging.shutdown()
+                    clean = CleanupCmd()
+                    clean.execute(config)
+                    exit(-1)
 
                 if len(config._xml_input.xpath('/librec-auto/alg//*/lower')) >0 and \
                         (args['action'] == 'run' or args['action'] == 'dry_run'):
@@ -326,8 +395,16 @@ if __name__ == '__main__':
                     if args['dry_run']:
                         command.dry_run(config)
                     else:
-                        command.execute(config)
-                        create_study_output(config)
+                        try: 
+                            command.execute(config)
+                        except LibRecAutoException:
+                            print("Exception caught, check output.xml file.")
+                            logging.shutdown()
+                            clean = CleanupCmd()
+                            clean.execute(config)
+                            exit(-1)
+                            
+
 
                 elif isinstance(command, list):
                     vconf = config._var_coll.var_confs
@@ -343,7 +420,7 @@ if __name__ == '__main__':
                     check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//lower')])
 
                     if check_rerank > 0:
-                        raise Exception("Optimization is not currently supported with Reranking")
+                        raise InvalidConfiguration("Optimization", "Optimization is not currently supported with reranking")
 
                     exponent_expected = num_of_vars
 
@@ -403,3 +480,5 @@ if __name__ == '__main__':
                     logging.error("Command instantiation failed.")
             else:
                 logging.error("Configuration loading failed.")
+        os.remove(librec_auto_log)
+    

@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run a Study &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Produce CSV Output" href="how-to-produce-csv.html" />
+    <link rel="prev" title="How-Tos" href="howtos.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="run-a-study">
+<h1>Run a Study<a class="headerlink" href="#run-a-study" title="Permalink to this headline">¶</a></h1>
+<p>Imagine you want to run an study with <code class="docutils literal notranslate"><span class="pre">librec_auto</span></code>.
+First, you will need to set up a configuration file.</p>
+<p>(todo link to the configuration file documentation)
+Once your configuration file is complete, you can run your study.</p>
+<div class="section" id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="what-is-an-experiment">
+<h3>What is an experiment?<a class="headerlink" href="#what-is-an-experiment" title="Permalink to this headline">¶</a></h3>
+<p>An experiment is a single job from the <code class="docutils literal notranslate"><span class="pre">librec</span></code> library.
+This is what happens when you call the <code class="docutils literal notranslate"><span class="pre">librec</span></code> jar from the command line.</p>
+</div>
+<div class="section" id="what-is-a-study">
+<h3>What is a study?<a class="headerlink" href="#what-is-a-study" title="Permalink to this headline">¶</a></h3>
+<p>A study is a collection of experiments using the same algorithm and the same data set. <code class="docutils literal notranslate"><span class="pre">librec_auto</span></code> automates running
+multiple experiments at once by varying algorithm hyperparameters, and the entity that encompasses a set of related
+experiments is called a study. If you want to examine multiple algorithms, you will need to define multiple studies.</p>
+</div>
+</div>
+<div class="section" id="file-structure">
+<h2>File Structure<a class="headerlink" href="#file-structure" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="study-structure">
+<h3>Study Structure<a class="headerlink" href="#study-structure" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">librec_auto</span></code> has a specific project structure. If you want to run an study
+named <code class="docutils literal notranslate"><span class="pre">movies</span></code>, you will need to put your <code class="docutils literal notranslate"><span class="pre">config.xml</span></code> file in a <code class="docutils literal notranslate"><span class="pre">conf</span></code>
+directory inside a <code class="docutils literal notranslate"><span class="pre">movies</span></code> directory, like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>movies
+└── conf
+    └── config.xml
+</pre></div>
+</div>
+<p>You can then run your movies study with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m librec_auto run movies
+</pre></div>
+</div>
+<p>This will update the <code class="docutils literal notranslate"><span class="pre">movies</span></code> directory to look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>movies
+├── conf
+│   └── config.xml
+├── exp00000
+│   ├── conf
+│   │   ├── config.xml
+│   │   └── librec.properties
+│   ├── log
+│   │   └── librec-&lt;timestamp&gt;.log
+│   ├── original
+│   └── result
+│       ├── out-1.txt
+│       └── ...
+├── exp00001
+│   ├── conf
+│   │   ├── config.xml
+│   │   └── librec.properties
+│   ├── log
+│   │   └── librec-&lt;timestamp&gt;.log
+│   ├── original
+│   └── result
+│       ├── out-1.txt
+│       └── ...
+├── exp00002
+│   └── ...
+├── exp00003
+│   └── ...
+└── ...
+</pre></div>
+</div>
+<p>Each directory like <code class="docutils literal notranslate"><span class="pre">exp00001</span></code> represents one of the experiments from your
+movies study. The number of <code class="docutils literal notranslate"><span class="pre">exp#####</span></code> directories is equal to the number of
+permutations from the <code class="docutils literal notranslate"><span class="pre">value</span></code> items in your study-wide <code class="docutils literal notranslate"><span class="pre">config.xml</span></code>.</p>
+</div>
+<div class="section" id="experiment-structure">
+<h3>Experiment Structure<a class="headerlink" href="#experiment-structure" title="Permalink to this headline">¶</a></h3>
+<p>Let’s consider a single experiment directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>exp00002
+├── conf
+│   ├── config.xml
+│   └── librec.properties
+├── log
+│   └── librec-&lt;timestamp&gt;.log
+├── original
+└── result
+    ├── out-1.txt
+    ├── out-2.txt
+    ├── out-3.txt
+    ├── out-4.txt
+    └── out-5.txt
+</pre></div>
+</div>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">conf</span></code> holds the auto-generated configuration file for this <em>experiment</em> (not for the study), as well as the <code class="docutils literal notranslate"><span class="pre">librec.properties</span></code> equivalent of the <code class="docutils literal notranslate"><span class="pre">config.xml</span></code>.</dt><dd><ul>
+<li><p>Don’t tamper with these files: to edit the experiment configurations, modify the study-wide <code class="docutils literal notranslate"><span class="pre">movies/conf/config.xml</span></code> file.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code> holds the log output from running the experiment. Many LibRec algorithms output log information containing training phase information and this can be found here.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result</span></code> holds the computed recommendation lists or predictions from the <code class="docutils literal notranslate"><span class="pre">librec</span></code> experiment.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">original</span></code> is a directory used for experiments involving result re-ranking. The re-ranker will copy the original recommendation output from the algorithm to this directory. Re-ranked results are then place in the <code class="docutils literal notranslate"><span class="pre">result</span></code> directory so they can be located by subsequent processes. You can experiment with multiple hyperparameters for a re-ranking algorithm without recomputing the base recommendations. For example:</dt><dd><ul>
+<li><p>Re-rank the results with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">librec_auto</span> <span class="pre">rerank</span> <span class="pre">movies</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Run a Study</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#definitions">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-structure">File Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="howtos.html" title="previous chapter">How-Tos</a></li>
+      <li>Next: <a href="how-to-produce-csv.html" title="next chapter">Produce CSV Output</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/run-a-study.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

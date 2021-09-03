@@ -1,28 +1,12 @@
 from collections import OrderedDict, defaultdict
 from librec_auto.core.util import Files, utils, build_parent_path, xml_load_from_path, ExpPaths
+from librec_auto.core.util.errors import UnknownConfigurationElementException
 from lxml import etree
 import copy
 import logging
 import itertools
 
 # 2020-06-25 RB All new implementation
-
-class UnknownConfigurationElementException(Exception):
-    """Exception raised for errors in the XML configuration.
-
-    Attributes:
-        element_name -- element which caused the error
-        message -- explanation of the error
-    """
-
-    def __init__(self, elem_name, message="Unknown element in configuration file"):
-        self.element_name = elem_name
-        self.message = message
-        super().__init__(self.message)
-
-    def __str__(self):
-        return f'{self.element_name} -> {self.message}'
-
 
 class LibrecTranslation:
 

@@ -109,4 +109,3 @@ Let's consider a single experiment directory:
 * ``result`` holds the computed recommendation lists or predictions from the ``librec`` experiment.
 * ``original`` is a directory used for experiments involving result re-ranking. The re-ranker will copy the original recommendation output from the algorithm to this directory. Re-ranked results are then place in the ``result`` directory so they can be located by subsequent processes. You can experiment with multiple hyperparameters for a re-ranking algorithm without recomputing the base recommendations. For example:
     * Re-rank the results with ``python -m librec_auto rerank movies``
-

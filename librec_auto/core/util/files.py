@@ -8,6 +8,7 @@ from collections import OrderedDict
 import glob
 import shutil
 import logging
+import os
 from datetime import datetime
 
 
@@ -251,8 +252,11 @@ class ExpPaths:
             self.set_path(subdir, subdir_path)
 
         if create:
-            logging.info("Creating experiment: {}", exp_name)
-            exp_path.mkdir(exist_ok=True)
+            # if exp_path directory does not exist
+            # create directory
+            if not os.path.exists(exp_path):
+                logging.info(f"Creating experiment: {exp_name}")
+                exp_path.mkdir(exist_ok=True)
             for subdir in self._sub_dirs:
                 self.get_path(subdir).mkdir(exist_ok=True)
 
@@ -326,7 +330,8 @@ class ExpPaths:
         files = glob.glob((original_path / '*').as_posix())
         for file in files:
             shutil.copy2(file, result_path)
-        shutil.rmtree(original_path)
+        for file in files:
+            os.remove(file)
 
     def get_log_path(self):
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")

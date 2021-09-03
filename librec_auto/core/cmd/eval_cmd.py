@@ -27,8 +27,8 @@ class EvalCmd(Cmd):
     def setup(self, args):
         pass
 
-    def dry_run(self):
-        pass
+    def dry_run(self, config):
+        print(f'librec-auto (DR): Running python eval command {self}')
 
     def get_metrics(self) -> list:
         """

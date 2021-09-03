@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration file checking &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration-file-checking">
+<h1>Configuration file checking<a class="headerlink" href="#configuration-file-checking" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ensuring-you-re-all-set-with-check">
+<h2>Ensuring you’re all set with Check<a class="headerlink" href="#ensuring-you-re-all-set-with-check" title="Permalink to this headline">¶</a></h2>
+<p>Once you’ve setup your study’s directory, you can ensure that your study is ready to compile by running the <code class="docutils literal notranslate"><span class="pre">Check</span></code> command.
+The check command will read over your configuration file, a log file that’s created by <code class="docutils literal notranslate"><span class="pre">LibRec</span></code>, and a log file that’s created by <code class="docutils literal notranslate"><span class="pre">LibRec-Auto</span></code> and append the found errors and messages
+to your <code class="docutils literal notranslate"><span class="pre">output.xml</span></code> file.</p>
+<p>There are various things the <code class="docutils literal notranslate"><span class="pre">&quot;check&quot;</span></code> command will check:</p>
+<p><strong>Configuration file checks:</strong></p>
+<ul class="simple">
+<li><p>Access: ensure all directories that <code class="docutils literal notranslate"><span class="pre">LibRec</span></code> or <code class="docutils literal notranslate"><span class="pre">LibRec-Auto</span></code> could write to have write access.</p></li>
+<li><p>Elements: ensure all necessary elements for <code class="docutils literal notranslate"><span class="pre">LibRec</span></code> are found in the configuration file.</p></li>
+<li><p>Library: ensure supplied library can be found and loaded.</p></li>
+<li><p>Data: ensure supplied data directory can be found and loaded.</p></li>
+<li><p>Scripts: ensure all paths to scripts are valid.</p></li>
+<li><p>Optimization: ensure configuration file is setup to run optimization experiments.</p></li>
+</ul>
+<p><strong>LibRec checks (from Java):</strong></p>
+<ul class="simple">
+<li><p>If an error is thrown during the compilation of LibRec, the exception will be caught and added to output.xml</p></li>
+</ul>
+<p><strong>LibRec-Auto Log check (from Python):</strong></p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">&quot;-dev&quot;</span></code> argument in the command line will change the level of debugging messages you see in  output.xml. Use the argument to set the logging level to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>, which will catch all <code class="docutils literal notranslate"><span class="pre">INFO</span></code> logging messages.
+Without the <code class="docutils literal notranslate"><span class="pre">&quot;-dev&quot;</span></code> argument, the output xml file will only show <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages and above.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;LibRec-Auto_Log&quot;</span></code>: LibRec-Auto_Log will include all messages from <code class="docutils literal notranslate"><span class="pre">logging</span></code> messages. These messages will follow this general pattern: <code class="docutils literal notranslate"><span class="pre">{log-level}:root:{message}</span></code>. The levels can be broken down as such:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ERROR</span></code>: Error level messages appear when there is a problem that will not allow LibRec-Auto to compile correctly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WARNING</span></code>: Warning level messages appear when there is a problem, but the problem will not interfere with LibRec-Auto’s compilation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code>: Info level messages appear when LibRec-Auto creates or writes to directories and files on the user’s computer.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/configuration_checking.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

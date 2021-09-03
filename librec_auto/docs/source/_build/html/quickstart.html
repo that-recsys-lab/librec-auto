@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quickstart guide &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Librec-auto" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="quickstart-guide">
+<h1>Quickstart guide<a class="headerlink" href="#quickstart-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>You can install <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> using pip as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install librec-auto
+</pre></div>
+</div>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>You will need to install the Java <a class="reference external" href="https://java.com/en/download/">Java Runtime Environment 8</a>, since <code class="docutils literal notranslate"><span class="pre">Librec</span></code> is executed as a Java <code class="docutils literal notranslate"><span class="pre">.jar</span></code>.</p>
+<p>The installation is complete. You can now run your experiments with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m librec_auto
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="building-from-source">
+<h2>Building from Source<a class="headerlink" href="#building-from-source" title="Permalink to this headline">¶</a></h2>
+<p>Instead of installing <code class="docutils literal notranslate"><span class="pre">librec_auto</span></code> from pip, you can also build it from the source.</p>
+<p>First, you’ll need to clone this repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/that-recsys-lab/librec-auto.git &amp;&amp; cd librec-auto
+</pre></div>
+</div>
+<p>Then, run the setup script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python setup.py install
+</pre></div>
+</div>
+<p>If you already have <code class="docutils literal notranslate"><span class="pre">librec_auto</span></code> installed, you will need to uninstall
+the <code class="docutils literal notranslate"><span class="pre">librec_auto</span></code> module before you install it from source. Run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip uninstall librec_auto
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-an-example">
+<h2>Running an Example<a class="headerlink" href="#running-an-example" title="Permalink to this headline">¶</a></h2>
+<p>Clone the following <code class="docutils literal notranslate"><span class="pre">librec-auto-demo2020</span></code> repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/that-recsys-lab/librec-auto-demo2020.git
+</pre></div>
+</div>
+<p>You can run a basic matrix factorization recommender over a movie ratings data set using the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m librec_auto -t librec-auto-demo2020/demo01 run
+</pre></div>
+</div>
+<p>The configuration file for the above study is located at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ librec-auto-demo2020/demo01/config/config.xml
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-c</span></code> command line parameter allows other configuration files to be selected.</p>
+</div>
+<div class="section" id="results">
+<h2>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h2>
+<p>Let’s say you want to run a study in the target directory <code class="docutils literal notranslate"><span class="pre">target</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>target
+└── conf
+    └── config.xml
+</pre></div>
+</div>
+<p>Now, let’s say you run the study, like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">librec_auto</span> <span class="o">-</span><span class="n">t</span> <span class="n">target</span> <span class="n">run</span>
+</pre></div>
+</div>
+<p>Your directory structure should now look similar to this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>target
+├── conf
+│   └── config.xml
+├── exp00000
+│   ├── conf
+│   │   ├── config.xml
+│   │   └── librec.properties
+│   ├── log
+│   │   └── librec-&lt;timstamp&gt;.log
+│   ├── original
+│   └── result
+│       ├── out-1.txt
+│       ├── out-2.txt
+│       └── ...
+├── exp00001
+│   └── ...
+├── exp00002
+│   └── ...
+├── ...
+└── post
+    ├── study-results-full_&lt;timestamp&gt;.csv
+    ├── study-results-summary_&lt;timestamp&gt;.csv
+    └── ...
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> will run several experiments for your <code class="docutils literal notranslate"><span class="pre">target</span></code> study.
+These experiments each have their own subdirectory, under <code class="docutils literal notranslate"><span class="pre">target</span></code>. In the
+diagram above, these subdirectories are like <code class="docutils literal notranslate"><span class="pre">exp0000n</span></code>.</p>
+<p>If your configuration file is set up to produce them, various compilations of the study results
+will be stored in the <code class="docutils literal notranslate"><span class="pre">target/post</span></code> directory. You can also write your own post-processing scripts.
+In this example, CSV output containing metric values have been stored. See the producing CSV output
+documentation for the configuration of this script and an explanation of its output.</p>
+<p>One is the <code class="docutils literal notranslate"><span class="pre">study-results-full</span></code> file, which shows evaluation metrics for
+every split from each experiment in the study.</p>
+<p>The other is the <code class="docutils literal notranslate"><span class="pre">study-results-summary</span></code> file, which shows the average
+evaluation metrics (across splits) for each experiment in the study.</p>
+</div>
+<div class="section" id="quickstart-with-your-own-data">
+<h2>Quickstart with your own data<a class="headerlink" href="#quickstart-with-your-own-data" title="Permalink to this headline">¶</a></h2>
+<p>To quickly set up a librec-auto study using your own data, you can use the setup wizard provided. This is a python script located in the <code class="docutils literal notranslate"><span class="pre">librec-auto/bin</span></code> folder. Run the wizard with the following arguments</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python path_to_librec-auto/bin/wizard.py --data your_data_file --study path_of_study_directory
+</pre></div>
+</div>
+<p>The wizard will create a study file structure as described above and import your data file into it. It will also create a configuration with a basic experimental setup. You can run the study with the following commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd path_of_study_directory
+$ python -m librec_auto run
+</pre></div>
+</div>
+<p>Your results will be stored in a CSV file in the <code class="docutils literal notranslate"><span class="pre">post</span></code> subfolder. Use the following command to see these files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls post
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-from-source">Building from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-an-example">Running an Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#results">Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quickstart-with-your-own-data">Quickstart with your own data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Librec-auto</a></li>
+      <li>Next: <a href="development.html" title="next chapter">Development</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/quickstart.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

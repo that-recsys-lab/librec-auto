@@ -1,14 +1,17 @@
+from librec_auto.core.util.study_status import check_output_xml
 import sys
 import os
 import subprocess
+from subprocess import CalledProcessError, DEVNULL
 from lxml import etree
 import logging
 
 from librec_auto.core import ConfigCmd
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files
+from librec_auto.core.util import Files, safe_run_subprocess
 from librec_auto.core.util.utils import create_param_spec, get_script_path
 from librec_auto.core.util.xml_utils import single_xpath
+from librec_auto.core.util.errors import *
 
 
 class RerankCmd(Cmd):
@@ -86,12 +89,16 @@ class RerankCmd(Cmd):
             print(
                 f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
             )
+    
             ret_val = self.run_script(script_path, sub_path, original_path,
                                       param_spec)
+            
+            script_name = script_elem.find('script-name').text
 
             if ret_val != 0:
-                logging.warning('Reranking script failed.')
                 self.status = Cmd.STATUS_ERROR
+                raise ScriptFailureException(script_name, f"Reranking script at {str(script_path)} failed.", ret_val)
+                
 
             if len(script_elems) > 1:
                 logging.warning(
@@ -112,4 +119,5 @@ class RerankCmd(Cmd):
         ] + param_spec
         print("    Parameters: " + str(proc_spec))
         print("    Working directory: " + str(exec_path.absolute()))
-        return subprocess.call(proc_spec, cwd=str(exec_path.absolute()))
+        
+        return safe_run_subprocess(proc_spec, str(exec_path.absolute()))

@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librec-auto &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quickstart guide" href="quickstart.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="librec-auto">
+<h1>Librec-auto<a class="headerlink" href="#librec-auto" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="https://coveralls.io/github/that-recsys-lab/librec-auto?branch=master"><img alt="https://coveralls.io/repos/github/that-recsys-lab/librec-auto/badge.svg?branch=master" src="https://coveralls.io/repos/github/that-recsys-lab/librec-auto/badge.svg?branch=master" /></a>
+<div class="section" id="about">
+<h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> is a Python tool for running recommender systems experiments.
+It is built on top of the open-source <a class="reference external" href="https://github.com/guoguibing/librec">LibRec</a> package, and
+can take advantage of the many algorithm and metric implementations there.</p>
+<p>The basic element of <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> execution is the “study”, which is a series
+of experiments carried with a single algorithm, a single data set, and a set
+of evaluation metrics. The experiments differ from each other by the hyperparameters
+given to the algorithm. <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> allows such studies to be conducted with
+minimal experimenter intervention, and supports such capabilities as:</p>
+<ul class="simple">
+<li><p>recommendation result re-ranking</p></li>
+<li><p>re-running evaluations without re-computing results</p></li>
+<li><p>summarizing results in output graphs</p></li>
+<li><p>integration with Slack and Dropbox</p></li>
+</ul>
+</div>
+<div class="section" id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
+<p>The workflow of an study involves identifying appropriate data, creating
+training / test splits, implementing or choosing algorithms, running experiments
+(possibly with a range of different parameters), and reporting on the results.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>Librec-auto uses an XML-based configuration system similar to Maven or Ant.</p>
+</div>
+<div class="section" id="project-structure">
+<h2>Project structure<a class="headerlink" href="#project-structure" title="Permalink to this headline">¶</a></h2>
+<p>This directory contains the Python libraries for the librec_auto module. There are two other affiliated
+respositories:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/that-recsys-lab/librec-auto-java">librec-auto-java</a>: Contains the java source for the wrapper between LibRec and librec-auto, which is implemented in the <code class="docutils literal notranslate"><span class="pre">auto.jar</span></code> file.</p></li>
+<li><p><a class="reference external" href="https://github.com/that-recsys-lab/librec-auto-sample">librec-auto-sample</a>: Contains sample data and configuration files that can be used to explore the functionality of librec-auto</p></li>
+</ul>
+</div>
+<div class="section" id="repo-structure">
+<h2>Repo structure<a class="headerlink" href="#repo-structure" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">/jar</span></code>: Contains the jar files for LibRec and the wrapper.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/rules</span></code>: Contains the rules for translating configuration data to LibRec properties format.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/librec_auto</span></code>: Contains the Python code for the project.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/doc</span></code>: Contains documentation for the project</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/test</span></code>: Contains the unit tests (not many right now)</p></li>
+</ul>
+</div>
+<div class="section" id="find-a-section">
+<h2>Find a section<a class="headerlink" href="#find-a-section" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#building-from-source">Building from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-an-example">Running an Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#results">Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#quickstart-with-your-own-data">Quickstart with your own data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#building-from-source">Building from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#code-formatting">Code Formatting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#docker">Docker</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="howtos.html#using-a-library">Using a library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howtos.html#producing-graphical-output">Producing graphical output</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="run-a-study.html#definitions">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run-a-study.html#file-structure">File Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how-to-produce-csv.html#introduction">1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to-produce-csv.html#configuration">2. Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how-to-use-fairness-metrics.html#introduction">1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to-use-fairness-metrics.html#feature-files">2. Feature files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to-use-fairness-metrics.html#configuration">3. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to-use-fairness-metrics.html#available-fairness-metrics">4. Available fairness metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integrations/how-to-dropbox.html">Dropbox Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrations/how-to-slack.html">Slack Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#global-elements-all-optional">Global elements (all optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#data-section">Data Section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#feature-section-optional">Feature Section (optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#splitter-section">Splitter Section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#algorithm-section">Algorithm Section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#optimize-section-optional">Optimize Section (optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#metrics-section">Metrics Section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#rerank-section-optional">Rerank Section (optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_file.html#post-processing-section">Post-Processing Section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python-side-evaluation.html#required-boilerplate">Required boilerplate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-side-evaluation.html#adding-a-row-based-metric-i-e-rmse">Adding a row-based metric (i.e., RMSE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-side-evaluation.html#adding-a-list-based-metric-i-e-ndcg">Adding a list-based metric (i.e., NDCG)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="supported-algorithms.html#custom-algorithms">Custom algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported-algorithms.html#custom-metrics">Custom metrics</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="quickstart.html" title="next chapter">Quickstart guide</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

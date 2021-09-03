@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supported Algorithms &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Python-side Evaluation" href="python-side-evaluation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="supported-algorithms">
+<h1>Supported Algorithms<a class="headerlink" href="#supported-algorithms" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> supports all of the algorithms in <code class="docutils literal notranslate"><span class="pre">Librec</span></code>.
+As of September 15, 2020, the following algorithms are supported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">aobpr</span>
+<span class="n">aspectmodelranking</span>
+<span class="n">aspectmodelrating</span>
+<span class="n">associationrule</span>
+<span class="n">asvdpp</span>
+<span class="n">autorec</span>
+<span class="n">bhfree</span>
+<span class="n">biasedmf</span>
+<span class="n">biasedmf</span>
+<span class="n">bipolarslopeone</span>
+<span class="n">bnppf</span>
+<span class="n">bpmf</span>
+<span class="n">bpoissmf</span>
+<span class="n">bpr</span>
+<span class="n">bucm</span>
+<span class="n">cdae</span>
+<span class="n">climf</span>
+<span class="n">cofiset</span>
+<span class="n">constantguess</span>
+<span class="n">convmf</span>
+<span class="n">cptf</span>
+<span class="n">dlambdafm</span>
+<span class="n">eals</span>
+<span class="n">efm</span>
+<span class="n">ensemble</span><span class="o">-</span><span class="n">linear</span>
+<span class="n">ensemble</span><span class="o">-</span><span class="n">stacking</span>
+<span class="n">external</span>
+<span class="n">ffm</span>
+<span class="n">fismauc</span>
+<span class="n">fismrmse</span>
+<span class="n">fmals</span>
+<span class="n">fmftrl</span>
+<span class="n">fmsgd</span>
+<span class="n">gbpr</span>
+<span class="n">globalaverage</span>
+<span class="n">gplsa</span>
+<span class="n">hft</span>
+<span class="n">hybrid</span>
+<span class="n">irrg</span>
+<span class="n">itemaverage</span>
+<span class="n">itembigram</span>
+<span class="n">itemcluster</span>
+<span class="n">itemknn</span>
+<span class="n">itemknn</span>
+<span class="n">lda</span>
+<span class="n">ldcc</span>
+<span class="n">librec</span><span class="o">-</span><span class="n">default</span>
+<span class="n">librec</span>
+<span class="n">listrankmf</span>
+<span class="n">llorma</span>
+<span class="n">mfals</span>
+<span class="n">mostpopular</span>
+<span class="n">nmf</span>
+<span class="n">nmfitemitem</span>
+<span class="n">personalitydiagnosis</span>
+<span class="n">pitf</span>
+<span class="n">plsa</span>
+<span class="n">pmf</span>
+<span class="n">pnmf</span>
+<span class="n">prankd</span>
+<span class="n">randomguess</span>
+<span class="n">rankals</span>
+<span class="n">rankgeofm</span>
+<span class="n">rankpmf</span>
+<span class="n">ranksgd</span>
+<span class="n">rbm</span>
+<span class="n">remf</span>
+<span class="n">rfrec</span>
+<span class="n">rste</span>
+<span class="n">sbpr</span>
+<span class="n">slim</span>
+<span class="n">slopeone</span>
+<span class="n">socialmf</span>
+<span class="n">sorec</span>
+<span class="n">soreg</span>
+<span class="n">svdpp</span>
+<span class="n">tfidf</span>
+<span class="n">timesvd</span>
+<span class="n">topicmfat</span>
+<span class="n">topicmfmt</span>
+<span class="n">trustmf</span>
+<span class="n">trustsvd</span>
+<span class="n">urp</span>
+<span class="n">useraverage</span>
+<span class="n">usercluster</span>
+<span class="n">userknn</span>
+<span class="n">usg</span><span class="o">-</span><span class="n">test</span>
+<span class="n">wbpr</span>
+<span class="n">wrmf</span>
+</pre></div>
+</div>
+<div class="section" id="custom-algorithms">
+<h2>Custom algorithms<a class="headerlink" href="#custom-algorithms" title="Permalink to this headline">¶</a></h2>
+<p>In future releases, you will be able to add your own algorithms to <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code>.</p>
+<div class="section" id="supported-metrics">
+<h3>Supported metrics<a class="headerlink" href="#supported-metrics" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> supports all of the metrics in <code class="docutils literal notranslate"><span class="pre">Librec</span></code>.
+As of September 15, 2020, the following metrics are supported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">auc</span>
+<span class="n">ap</span> <span class="p">(</span><span class="n">Average</span> <span class="n">Precision</span><span class="p">)</span>
+<span class="n">arhr</span> <span class="p">(</span><span class="n">Average</span> <span class="n">Reciprocal</span> <span class="n">Hit</span> <span class="n">Rate</span><span class="p">)</span>
+<span class="n">diversity</span>
+<span class="n">hitrate</span>
+<span class="n">ndcg</span>
+<span class="n">precision</span>
+<span class="n">recall</span>
+<span class="n">rr</span> <span class="p">(</span><span class="n">Reciprocal</span> <span class="n">Rank</span><span class="p">)</span>
+<span class="n">featurediversity</span>
+<span class="n">novelty</span>
+<span class="n">entropy</span>
+<span class="n">giniindex</span>
+<span class="n">icov</span> <span class="p">(</span><span class="n">Item</span> <span class="n">Coverage</span><span class="p">)</span>
+<span class="n">mae</span>
+<span class="n">mpe</span>
+<span class="n">mse</span>
+<span class="n">rmse</span>
+<span class="n">csp</span> <span class="p">(</span><span class="n">Consumer</span><span class="o">-</span><span class="n">side</span> <span class="n">Statistical</span> <span class="n">Parity</span> <span class="n">of</span> <span class="n">nDCG</span><span class="p">)</span>
+<span class="n">psp</span> <span class="p">(</span><span class="n">Provider</span><span class="o">-</span><span class="n">side</span> <span class="n">Statistical</span> <span class="n">Parity</span> <span class="n">of</span> <span class="n">exposure</span><span class="p">)</span>
+<span class="n">miscalib</span> <span class="p">(</span><span class="n">Miscalibration</span><span class="p">)</span>
+<span class="n">dppf</span> <span class="p">(</span><span class="n">Discounted</span> <span class="n">Proportional</span> <span class="n">Provider</span><span class="o">-</span><span class="n">side</span> <span class="n">Fairness</span><span class="p">)</span>
+<span class="n">dpcf</span> <span class="p">(</span><span class="n">Discounted</span> <span class="n">Proportional</span> <span class="n">Consumer</span><span class="o">-</span><span class="n">side</span> <span class="n">Fairness</span><span class="p">)</span>
+<span class="n">nonpar</span> <span class="p">(</span><span class="n">NonParityUnfairness</span><span class="p">)</span>
+<span class="n">valunfairness</span> <span class="p">(</span><span class="n">Value</span> <span class="n">Unfairness</span><span class="p">)</span>
+<span class="n">absunfairness</span> <span class="p">(</span><span class="n">Absolute</span> <span class="n">Unfairness</span><span class="p">)</span>
+<span class="n">overestimate</span> <span class="p">(</span><span class="n">Overestimation</span> <span class="n">Unfairness</span><span class="p">)</span>
+<span class="n">underestimate</span> <span class="p">(</span><span class="n">Underestimation</span> <span class="n">Unfairness</span><span class="p">)</span>
+<span class="n">ppr</span> <span class="p">(</span><span class="n">PPercent</span> <span class="n">Rule</span> <span class="k">as</span> <span class="n">applied</span> <span class="n">to</span> <span class="n">provider</span> <span class="n">exposure</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="custom-metrics">
+<h2>Custom metrics<a class="headerlink" href="#custom-metrics" title="Permalink to this headline">¶</a></h2>
+<p>To add a new metric, see discussion in <span class="xref std std-ref">python-side</span></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrations.html">Integrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Supported Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#custom-algorithms">Custom algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-metrics">Custom metrics</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="python-side-evaluation.html" title="previous chapter">Python-side Evaluation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/supported-algorithms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

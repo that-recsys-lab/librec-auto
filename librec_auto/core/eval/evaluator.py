@@ -1,6 +1,6 @@
 from librec_auto.core import ConfigCmd
 from .metrics.list_based_metric import ListBasedMetric
-
+from librec_auto.core.util import ScriptFailureException, safe_run_subprocess
 import re
 import numpy as np
 from pathlib import Path
@@ -83,8 +83,14 @@ class Evaluator:
                     params.append('--' + key)
                     params.append(metric_dict['params'][key])
 
-                subprocess.check_call(proc_spec + params,
-                                cwd=str(exec_path.absolute()))
+                script_run = safe_run_subprocess(proc_spec + params, 
+                                                 str(exec_path.absolute()))
+                
+                script_path = metric_dict['script']
+                script_name = metric_dict['script'].name
+                if script_run != 0:
+                    raise ScriptFailureException(script_name, f"Script at {script_path} failed with errors", script_run)
+
 
                 custom_result = ListBasedMetric.read_custom_results(
                     self._temp_output_file.absolute())

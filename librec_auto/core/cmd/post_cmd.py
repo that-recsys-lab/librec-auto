@@ -1,12 +1,13 @@
 from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, utils, StudyStatus
+from librec_auto.core.util import Files, utils, StudyStatus, ScriptFailureException, safe_run_subprocess
 from librec_auto.core.util.xml_utils import single_xpath
 from librec_auto.core import ConfigCmd
 from pathlib import Path
 import os
 import sys
 import subprocess
+import re
 
 
 class PostCmd(Cmd):
@@ -68,7 +69,15 @@ class PostCmd(Cmd):
                 self._config.get_files().get_config_file_path().name
             ] + param_spec
             print(f'librec-auto: Running post-processing script {proc_spec}')
-            subprocess.call(proc_spec, cwd=str(exec_path.absolute()))
+            # replace with safe_run_subprocess()
+            # subprocess.call(proc_spec, cwd=str(exec_path.absolute()))
+            run_script = safe_run_subprocess(proc_spec, str(exec_path.absolute()))
+            script_name = re.split(r'/', str(script_path))[-1]
+            if run_script != 0:
+                self.status = Cmd.STATUS_ERROR
+                raise ScriptFailureException(script_name, f"Post processing script at {str(script_path)} failed.", run_script)
+        
+        self.status = Cmd.STATUS_COMPLETE
 
     def handle_password(self, post_elem, config, param_spec):
         if single_xpath(post_elem, "param[@name='password']") is not None:

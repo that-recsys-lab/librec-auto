@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropbox Integration &#8212; librec-auto 0.14 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Slack Integration" href="how-to-slack.html" />
+    <link rel="prev" title="Integrations" href="../integrations.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="dropbox-integration">
+<span id="dropboxintegration"></span><h1>Dropbox Integration<a class="headerlink" href="#dropbox-integration" title="Permalink to this headline">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Robin Burke, Zijun Liu</p>
+</dd>
+<dt class="field-even">Version</dt>
+<dd class="field-even"><p>June 5th, 2020</p>
+</dd>
+</dl>
+<div class="section" id="introduction">
+<h2>1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Dropbox Integration is based on the Dropbox API, and enables users to post files and folders to Dropbox locations. The Dropbox API key is password-encrypted and the encrypted key can be included in a public repository (i.e. GitHub).</p>
+</div>
+<div class="section" id="installation">
+<h2>2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quickstart-guide">
+<h3>2.0. QuickStart Guide<a class="headerlink" href="#quickstart-guide" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>pip install dropbox</p>
+</div></blockquote>
+</div>
+<div class="section" id="go-to-dropbox-official-website">
+<h3>2.1. Go to Dropbox Official Website<a class="headerlink" href="#go-to-dropbox-official-website" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Go to website. <a class="reference external" href="https://www.dropbox.com/developers">https://www.dropbox.com/developers</a></p></li>
+<li><p>Click <strong>Create apps</strong> on the page. See Figure1 below.</p></li>
+</ol>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="../_images/11.png"><img alt="Management Tools" src="../_images/11.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure1</em></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="create-new-app-on-dropbox">
+<h3>2.2. Create new app on Dropbox<a class="headerlink" href="#create-new-app-on-dropbox" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Choose an API</strong>. There are two types of Dropbox API. <em>Dropbox API</em> and <em>Dropbox Business API</em>. For personal, you can choose <strong>Dropbox API</strong>.</p></li>
+<li><p><strong>Choose the type of access you need</strong>. There are two types of access too. <em>App folder</em> means you can upload your files on selected folder. This is recommended as it provides additional security for your Dropbox folder.</p></li>
+<li><p><strong>Name your app</strong>. Give a name for your Dropbox API app name. i.e. <em>test2</em>. See Figure2 below.</p></li>
+</ol>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../_images/2.png"><img alt="Management Tools" src="../_images/2.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure2</em></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="save-your-dropbox-api-key">
+<h3>2.3. Save your Dropbox API key<a class="headerlink" href="#save-your-dropbox-api-key" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>After you finish section 2.2. Click the <em>Continue</em> button below. You have successfully created your Dropbox API app.</p></li>
+<li><p>See Figure3 below. Figure3 is the <strong>OAuth 2</strong> section. The <strong>Generated access token</strong> is space for your Dropbox API. Copy the API key to a text file. Do not store this file in your study directory with data files, etc. that you might want to share with others on GitHub, for example.</p></li>
+</ol>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/3.png"><img alt="Management Tools" src="../_images/3.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-text"><em>Figure3</em></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="integrating-with-librec-auto">
+<h2>3. Integrating with librec-auto<a class="headerlink" href="#integrating-with-librec-auto" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="encrypt-your-dropbox-api-key">
+<h3>3.1. Encrypt your Dropbox API key<a class="headerlink" href="#encrypt-your-dropbox-api-key" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>As above, your secret key should be stored in a secure location.</p></li>
+<li><p>To encrypt the key to create a file that can be shared securely, run the script <code class="docutils literal notranslate"><span class="pre">bin/encrypt.py</span></code>. Include the following arguments:</p></li>
+</ol>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--encrypted</span></code> This is the file that contains the API key in encrypted form. This will typically be placed in your study directory in a directory called <code class="docutils literal notranslate"><span class="pre">keys</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--key</span></code> This is the cleartext API key that you got from Slack.</p></li>
+</ul>
+<p>The call will look like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">bin/encrypt.py</span> <span class="pre">--encrypted</span> <span class="pre">mystudy/keys/dropbox-api.enc</span> <span class="pre">--key</span> <span class="pre">non-shared-safe-location/dropbox-api.key</span></code></p>
+<ol class="arabic simple" start="3">
+<li><p>The script will prompt you for a password. You will need this password later to use the encrypted API key.</p></li>
+</ol>
+</div>
+<div class="section" id="add-the-script-to-the-configuration-file">
+<h3>3.2. Add the script to the configuration file<a class="headerlink" href="#add-the-script-to-the-configuration-file" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>In order to add Dropbox integration to your study, you will need to add a <code class="docutils literal notranslate"><span class="pre">script</span></code> element to the post-processing portion of the configuration file. Here is an example:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">script</span> <span class="n">lang</span><span class="o">=</span><span class="s2">&quot;python3&quot;</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span><span class="n">dropbox</span><span class="o">-</span><span class="n">post</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;/</span><span class="n">script</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;option&quot;</span><span class="o">&gt;</span><span class="n">file</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encrypted_key&quot;</span><span class="o">&gt;</span><span class="n">keys</span><span class="o">/</span><span class="n">dropbox</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">enc</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="o">&gt;</span><span class="n">post</span><span class="o">/</span><span class="n">cool</span><span class="o">-</span><span class="n">graphic</span><span class="o">.</span><span class="n">jpg</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dest&quot;</span><span class="o">&gt;/</span><span class="n">app</span><span class="o">-</span><span class="n">folder</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">dropbox</span><span class="o">&lt;/</span><span class="n">param</span><span class="o">&gt;</span>
+     <span class="o">&lt;</span><span class="n">param</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The parameters are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">option</span></code> Either <code class="docutils literal notranslate"><span class="pre">file</span></code> or <code class="docutils literal notranslate"><span class="pre">folder</span></code>. The above example is a <code class="docutils literal notranslate"><span class="pre">file</span></code> example.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel</span></code> The Slack channel where the message should be posted. Do not include the hashtag.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">encrypted_key</span></code> The location of the encrypted API key. This is relative to the study directory where the configuration is located.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">path</span></code> The file/folder that will be posted in the designated folder when the script is executed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dest</span></code> The destination folder on Dropbox where files will be sent.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> Do not include the password here. (You’ll notice that the element has no content.) This is a flag indicating that the password will be entered on the command line when <code class="docutils literal notranslate"><span class="pre">librec-auto</span></code> is run. If you do not include it, you will be prompted for the password when the script is run, but that kind of defeats the purpose of having an automated experimental tool.</p></li>
+</ul>
+<p>To post the contents of a folder to Dropbox, the <code class="docutils literal notranslate"><span class="pre">option</span></code> element will contain the term <code class="docutils literal notranslate"><span class="pre">folder</span></code> instead of <code class="docutils literal notranslate"><span class="pre">file</span></code>. The <code class="docutils literal notranslate"><span class="pre">path</span></code> argument will then be interpreted as the path to a folder.</p>
+<p>3.3. Provide the password when running librec-auto</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">-k</span></code> or <code class="docutils literal notranslate"><span class="pre">--key_password</span></code> on the command line to provide the password to librec-auto. Example:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">librec_auto</span> <span class="pre">-k</span> <span class="pre">my_password_here</span> <span class="pre">run</span></code></p>
+<p>The password can be shared with collaborators via some secure channel. The same password will be used for all scripts containing the empty <code class="docutils literal notranslate"><span class="pre">&lt;password/&gt;</span></code> element.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">librec-auto</a></h1>
+
+
+
+<p class="blurb">The librec-auto project aims to automate recommender system studies using Librec.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=that-recsys-lab&repo=librec-auto&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howtos.html">How-Tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../run-a-study.html">Run a Study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to-produce-csv.html">Produce CSV Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to-use-fairness-metrics.html">Use Fairness Metrics</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../integrations.html">Integrations</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dropbox Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to-slack.html">Slack Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python-side-evaluation.html">Python-side Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported-algorithms.html">Supported Algorithms</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../integrations.html">Integrations</a><ul>
+      <li>Previous: <a href="../integrations.html" title="previous chapter">Integrations</a></li>
+      <li>Next: <a href="how-to-slack.html" title="next chapter">Slack Integration</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Robin Burke, Masoud Mansoury, Nasim Sonboli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/integrations/how-to-dropbox.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
