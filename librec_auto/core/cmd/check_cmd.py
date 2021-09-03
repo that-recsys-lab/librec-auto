@@ -19,7 +19,7 @@ from lxml import etree
 # 5. if library reference, the ref exists.
 # 6. (eventually) XML validation against schema
 # 7. (eventually) validate script parameters. scripts must conform.
-# 8. (eventually) fix Java side so that check command doesn't load and only runs once.
+# 8. (eventually) fix Java side so that check command doesn't load data files and only runs once.
 
 def check_output_xml(filepath):
     if os.path.exists(filepath):
@@ -149,10 +149,7 @@ class CheckCmd(Cmd):
                         # from reference xml and config xml are same type.
                         continue
                 
-            
-        
-               
-               
+
         # create filepath attribute for errors as src
         # if the compiler makes it to here without raising an error, then there are no errors
         if not study_ran: # if the output file doesn't exist

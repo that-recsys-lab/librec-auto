@@ -11,8 +11,10 @@ Find a section
    run-a-study
    how-to-produce-csv
    how-to-use-fairness-metrics
+   how-to-rerank
    integrations
    configuration_file
+   configuration_checking
    python-side-evaluation
    supported-algorithms
 

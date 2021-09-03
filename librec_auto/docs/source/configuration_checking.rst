@@ -22,7 +22,8 @@ There are various things the ``"check"`` command will check:
 
 **LibRec checks (from Java):**
 
-* If an error is thrown during the compilation of LibRec, the exception will be caught and added to output.xml
+* On the Java side, the class names of algorithms and metrics are checked.
+* If an error is thrown during the execution of LibRec, the exception will be caught and added to output.xml
  
 **LibRec-Auto Log check (from Python):**
 
