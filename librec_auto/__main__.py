@@ -100,8 +100,8 @@ def read_args():
         action="store_true")
 
     parser.add_argument(
-        "-djc",
-        "--disable_java_check",
+        "-nj",
+        "--no_java_check",
         help="Don't run the java check",
         action="store_true")
 
@@ -314,7 +314,7 @@ def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
     purge_no_ask = args['quiet']
     no_check = args['no_check']
-    no_java_check = args['disable_java_check']
+    no_java_check = args['no_java_check']
     post_flag = config.has_post()
     bracketed_commands = []
 
