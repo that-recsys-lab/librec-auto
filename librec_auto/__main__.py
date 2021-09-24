@@ -99,6 +99,12 @@ def read_args():
         help="Don't run the check command",
         action="store_true")
 
+    parser.add_argument(
+        "-djc",
+        "--disable_java_check",
+        help="Don't run the java check",
+        action="store_true")
+
 
     input_args = parser.parse_args()
     return vars(input_args)
@@ -308,12 +314,13 @@ def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
     purge_no_ask = args['quiet']
     no_check = args['no_check']
+    no_java_check = args['disable_java_check']
     post_flag = config.has_post()
     bracketed_commands = []
 
     # Add purge and setup.
     bracketed_commands.append(PurgeCmd(purge_action, purge_no_ask))
-    bracketed_commands.append(SetupCmd())
+    bracketed_commands.append(SetupCmd(no_java_flag=no_java_check))
     if not no_check:
         bracketed_commands.append(build_librec_commands('check', args, config))
         bracketed_commands.append(CheckCmd())
