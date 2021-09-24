@@ -29,7 +29,7 @@ class SetupCmd(Cmd):
         if not self._no_java_flag:
             ensure_java_version()
         else:
-            print("java check successfully disabled")
+            logging.info("Java version checked not performed")
         config.ensure_experiments(exp_no)
         config.setup_exp_configs(startflag)
 
@@ -42,9 +42,9 @@ def ensure_java_version():
         java_version = java_version.decode("utf-8") # convert to regular string
         version_number_pattern = r'(.*) version \"(\d+\.\d+).\d+\"' # regex pattern matching
         version_name, version_number = re.search(version_number_pattern, java_version).groups() 
-        print('Ensure Java: ', version_name, version_number)
+        logging.info(f'Java version detected: {version_name} {version_number}')
         try:
             if float(version_number) < java_dict[version_name]:
                 raise JavaVersionException(version_name)
         except KeyError:
-            logging.warn(f'{version_name} untested, please ensure compatibility with Java 8 or later.')
+            logging.warning(f'{version_name} untested, please ensure compatibility with Java 8 or later.')
