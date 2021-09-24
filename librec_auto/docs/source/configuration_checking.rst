@@ -6,10 +6,16 @@ Ensuring you're all set with Check
 --------------------
 
 Once you've setup your study's directory, you can ensure that your study is ready to compile by running the ``Check`` command.
-The check command will read over your configuration file, a log file that's created by ``LibRec``, and a log file that's created by ``LibRec-Auto`` and append the found errors and messages
-to your ``output.xml`` file. 
+The check command will read over your configuration file, a log file that's created by ``LibRec``, and a log file that's created by ``libRec-auto`` and append the found errors and messages
+to your ``output.xml`` file.
+
+These checks are performed in the course of running a study regardless, but you have the ability to check your setup and debug it in advance.
 
 There are various things the ``"check"`` command will check:
+
+**Environment:**
+
+* Java version: Checks that you have Java version at least 1.8. (Note that it is difficult to do this in a general way and some JDKs are not recognized. You can skip this check with the ``-nj`` flag and the system will not complain about JDK compatibility.)
 
 **Configuration file checks:**
 
