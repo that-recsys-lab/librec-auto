@@ -124,7 +124,7 @@ class Files:
         try:
             os.mkdir(path)
         except FileExistsError:
-            logging.warning("temporary directory already created, removing and recreating")
+            logging.info("temporary directory already created, removing and recreating")
             shutil.rmtree(path)
             os.mkdir(path)
 

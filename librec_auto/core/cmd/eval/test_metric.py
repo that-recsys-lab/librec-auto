@@ -5,12 +5,14 @@ import math
 from librec_auto.core.eval import ListBasedMetric
 from librec_auto.core import read_config_file, ConfigCmd
 
-from librec_auto.core.util import ProtectedFeature
+from librec_auto.core.util.protected_feature import ProtectedFeature
 
 class TestMetric(ListBasedMetric):
     def __init__(self, params: dict, conf: ConfigCmd, test_data: np.array, result_data: np.array, output_file) -> None:
         super().__init__(params, conf, test_data, result_data, output_file)
         self._name = "Test"
+
+    # def 
 
 
 def read_args():
@@ -35,5 +37,6 @@ def read_args():
 if __name__ == '__main__':
     args = read_args()
     config = read_config_file(args['conf'], '.')
-    protected_feats = ProtectedFeature(ProtectedFeature.parse_protected(config._xml_input))
+    temp_directory = config.get_files().get_temp_dir_path()
+    protected_feats = ProtectedFeature(ProtectedFeature.parse_protected(config), temp_dir=temp_directory)
     

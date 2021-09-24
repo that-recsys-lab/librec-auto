@@ -31,6 +31,7 @@ class ConfigCmd:
 
         self._files.set_study_path(target)
         self._files.set_config_file(config_file)
+        self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
 
