@@ -13,6 +13,10 @@ class SetupCmd(Cmd):
     def __str__(self):
         return 'SetupCmd()'
 
+    def __init__(self, no_java_flag):
+        super().__init__()
+        self._no_java_flag = no_java_flag
+
     def setup(self, args):
         pass
 
@@ -22,7 +26,10 @@ class SetupCmd(Cmd):
         config.setup_exp_configs()
 
     def execute(self, config: ConfigCmd, startflag = None, exp_no = None):
-        ensure_java_version()
+        if not self._no_java_flag:
+            ensure_java_version()
+        else:
+            logging.info("Java version checked not performed")
         config.ensure_experiments(exp_no)
         config.setup_exp_configs(startflag)
 
@@ -35,8 +42,9 @@ def ensure_java_version():
         java_version = java_version.decode("utf-8") # convert to regular string
         version_number_pattern = r'(.*) version \"(\d+\.\d+).\d+\"' # regex pattern matching
         version_name, version_number = re.search(version_number_pattern, java_version).groups() 
+        logging.info(f'Java version detected: {version_name} {version_number}')
         try:
             if float(version_number) < java_dict[version_name]:
                 raise JavaVersionException(version_name)
         except KeyError:
-            logging.warn(f'{version_name} untested, please ensure compatibility with Java 8 or later.')
+            logging.warning(f'{version_name} untested, please ensure compatibility with Java 8 or later.')
