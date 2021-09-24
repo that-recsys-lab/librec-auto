@@ -108,3 +108,6 @@ def create_param_spec(script_xml):
             val = param.text
             param_list.append(f'--{key}={val}')
     return param_list
+
+# def protected_params(config):
+#     return 0
