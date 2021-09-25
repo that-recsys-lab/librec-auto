@@ -14,6 +14,10 @@ class ProtectedFeature:
         self._temporary_file_directory = temp_dir
         self.create_protected_features_file()
 
+    def cleanup(self):
+        # cleanup temp directory
+        pass
+
     def print_protected_features(self):
         for feature in self._protected_features:
             for var in self._protected_features[feature]:
