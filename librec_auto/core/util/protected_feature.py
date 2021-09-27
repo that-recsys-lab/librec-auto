@@ -3,7 +3,7 @@ from librec_auto.core.config_cmd import ConfigCmd
 from collections import defaultdict
 import logging
 import copy
-
+from pathlib import Path
 import os
 
 
@@ -75,6 +75,43 @@ class ProtectedFeature:
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(protected_features_file, parser)
         tree.write(protected_features_file, encoding='utf-8', pretty_print=True)
+    
+    def replace_referenced_protected_features(self, config: ConfigCmd):
+        conf_file = config._files.get_config_dir_path()
+        new_conf = str(conf_file / 'updated-config.xml')
+        # find the protected freatures that are referenced in the config file
+        tree = etree.parse(str(config._files.get_config_file_path()))
+        root = tree.getroot()
+        ref_elements = root.findall('.//*[@ref]')
+        
+        for element in ref_elements:
+            if element.tag == 'protected-feature' or element.tag == 'param':
+                pf_name = element.attrib['ref']
+
+                try:
+                    protected_feat = copy.copy(self._protected_features[pf_name])
+                    # element = protected_feat['xml']
+                    element.attrib['name'] = 'protected-feature'
+                    del element.attrib['ref']
+
+                    # for attr in protected_feat.keys():
+                    #     if attr == 'column':
+                    #         continue                       
+                    #     element.attrib[attr] = protected_feat[attr]
+                    
+                    element.text = pf_name
+                    
+                        
+                except KeyError:
+                    # should probably be changed to a LibrecException
+                    logging.error(f"Referenced protected feature ({pf_name}) not in features section, or mismatched names.")
+
+        # return tree
+        tree.write(new_conf, pretty_print=True)
+
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.parse(new_conf, parser)
+        tree.write(new_conf, encoding='utf-8', pretty_print=True)
 
     @staticmethod
     def parse_protected(config: ConfigCmd):
@@ -106,8 +143,9 @@ if __name__ == '__main__':
     # print(test.protected_feature_cli('ed_rank'))
     # print(test.protected_feature_cli())
     tester = ProtectedFeature(ProtectedFeature.parse_protected(test_config), temp_dir=temp_dir)
+    print(os.getcwd())
     print(tester.get_protected_feature_names())
-    print(tester.protected_feature_cli())
+    tester.replace_referenced_protected_features(test_config)
     
 
 

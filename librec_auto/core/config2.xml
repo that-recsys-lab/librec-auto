@@ -18,8 +18,8 @@
 	<features>
 		<appender-class>net.librec.data.convertor.appender.ItemFeatureAppender</appender-class>
 		<item-feature-file>item-features.csv</item-feature-file>
-		<protected-feature name="ed_rank" type="item" values="1 2 3 4 5">EducationRank</protected-feature>
-		<protected-feature name="income" type="user">AvgIncome</protected-feature>
+		<protected-feature name="fea:ed_rank" type="item" values="1 2 3 4 5">EducationRank</protected-feature>
+		<protected-feature name="fea:income" type="user">AvgIncome</protected-feature>
 	</features>
 	
 	<!-- SPLITTER SECTION -->
@@ -49,7 +49,7 @@
 				<value>0.0</value>
 			</param>
 			<param name="binary">False</param>
-			<param ref="income"/>
+			<param ref="fea:income"/>
 		</script>
 	</rerank>
 
@@ -58,7 +58,7 @@
 		<ranking>true</ranking>
 		<list-size>50</list-size>
 		<class>ndcg,precision,psp</class>
-		<protected-feature ref="ed_rank"/>
+		<protected-feature ref="fea:ed_rank"/>
 	</metric>
 	
 	<!-- POST-PROCESSING SECTION -->

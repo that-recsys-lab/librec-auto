@@ -349,11 +349,3 @@ def read_config_file(config_file, target):
         config.process_config()
     return config
 
-# if __name__ == '__main__':
-#     target = '/Users/will/Desktop/work/librec-auto-demo2020/demo02'
-#     conf_file = os.getcwd() + '/librec_auto/core/config2.xml'
-#     test = ConfigCmd(conf_file, target)
-#     # print(test._protected_features)
-#     # print(test.protected_feature_cli('ed_rank'))
-#     # print(test.protected_feature_cli())
-#     test._files.create_temp_dir()
