@@ -308,7 +308,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = build_librec_commands('check', args, config)
         cmd2 = CheckCmd()
         cmd = SequenceCmd([cmd1, cmd2])
-        return cmd
+        bracketed_cmd = bracket_sequence('none', args, config, cmd)
+        return bracketed_cmd
 
 def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
@@ -368,15 +369,18 @@ if __name__ == '__main__':
                     clean = CleanupCmd()
                     clean.execute(config)
                     exit(-1)
-
-                try: 
-                    command.execute(config)
-                except LibRecAutoException:
-                    print("Exception caught, check output.xml file.")
-                    logging.shutdown()
-                    clean = CleanupCmd()
-                    clean.execute(config)
-                    exit(-1)
+                
+                if args['dry_run']:
+                    command.dry_run(config)
+                else:
+                    try: 
+                        command.execute(config)
+                    except LibRecAutoException:
+                        print("Exception caught, check output.xml file.")
+                        logging.shutdown()
+                        clean = CleanupCmd()
+                        clean.execute(config)
+                        exit(-1)
         else:
             config = load_config(args)
             
