@@ -125,13 +125,13 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
 
     """
     try:
-        script_output = subprocess.Popen(process_specs, 
+        script_output = subprocess.Popen(process_specs,
                                          cwd=current_working_directory,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE)
         # check Popen constructor for encoding
         # try with Popen as proc:
-        # 
+        #
         output, errors = script_output.communicate()
         if errors:
             str_err = str(errors, encoding='utf-8')

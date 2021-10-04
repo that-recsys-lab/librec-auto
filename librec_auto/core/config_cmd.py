@@ -33,6 +33,7 @@ class ConfigCmd:
 
         self._files.set_study_path(target)
         self._files.set_config_file(config_file)
+        self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
 
@@ -354,3 +355,4 @@ def read_config_file(config_file, target, log_filename=None):
     else:
         raise InvalidConfiguration("Configuration file load error", "There was an error loading the configuration file.")
     return config
+

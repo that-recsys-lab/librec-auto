@@ -1,0 +1,4 @@
+<protected-feature-file>
+    <protected-feature name="ed_rank" type="item" values="1 2 3 4 5">EducationRank</protected-feature>
+	<protected-feature name="income" type="user">AvgIncome</protected-feature>
+</protected-feature-file>

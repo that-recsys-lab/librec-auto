@@ -26,6 +26,10 @@ minimal experimenter intervention, and supports such capabilities as:
 * summarizing results in output graphs
 * integration with Slack and Dropbox
 
+More complete documentation is available at readthedocs_:
+
+.. _readthedocs: https://librec-auto.readthedocs.io/en/latest/index.html
+
 Workflow
 ========
 

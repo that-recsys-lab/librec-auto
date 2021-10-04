@@ -2,11 +2,8 @@
 Run a Study
 ============
 
-Imagine you want to run an study with ``librec_auto``.
-First, you will need to set up a configuration file.
-
-(todo link to the configuration file documentation)
-Once your configuration file is complete, you can run your study.
+Imagine you want to run a study with ``librec_auto``.
+First, you will need to set up a configuration file. See the :ref:`Configuration file` documentation for information. Once your configuration file is complete, you can run your study.
 
 Definitions
 ===========
