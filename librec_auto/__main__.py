@@ -341,7 +341,7 @@ if __name__ == '__main__':
     
     args = read_args()
         
-    purge_old_logs(args['target'] + "/*")
+    # purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
     librec_auto_log = str(Path(args['target']) / args['log_name'])
