@@ -107,8 +107,13 @@ def read_args():
 
 
     input_args = parser.parse_args()
+    error_check(vars(input_args))
     return vars(input_args)
 
+def error_check(input_arguments: dict):
+    if input_arguments['target'] == None:
+        raise InvalidCommand("Missing instruction", "Target (-t) argument missing from command line instruction\n"\
+            "To use current directory, use \"-t .\", or for a specific directory use \"-t <directory-name>\"")
 
 def load_config(args: dict) -> ConfigCmd:
 
