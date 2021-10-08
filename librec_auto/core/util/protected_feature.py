@@ -1,10 +1,12 @@
 from lxml import etree
-from librec_auto.core.config_cmd import ConfigCmd
+from librec_auto.core import *
 from collections import defaultdict
 import logging
 import copy
 from pathlib import Path
 import os
+
+from librec_auto.core.util.errors import InvalidConfiguration
 
 
 
@@ -15,18 +17,22 @@ class ProtectedFeature:
         self.create_protected_features_file()
 
     def cleanup(self):
-        # cleanup temp directory
         pass
 
-    def print_protected_features(self):
+    def print_protected_features(self) -> None:
         for feature in self._protected_features:
             for var in self._protected_features[feature]:
                 print(var, self._protected_features[feature][var])
 
-    def get_protected_feature_names(self):
+    def get_protected_feature_names(self) -> list:
         return list(self._protected_features.keys())
 
-    def protected_feature_cli(self, pro_feat=None):
+    # function that returns command line instruction to be passed to subprocess
+    def protected_feature_cli(self, pro_feat=None) -> str:
+        '''
+        :param: pro_feat = name of feature to return CLI referncing specific protected feature.
+        if none is provided, create CLI for all protected features.
+        '''
         if pro_feat:
             # pro_feat will be a string/key to map to self._protected_features
             # which is a dict made of {attribute: value} pairs for a protected feature
@@ -53,6 +59,7 @@ class ProtectedFeature:
                 master_string = cli_string + append_str + "\""
             return master_string
     
+    # function for creating file of only protected features
     def create_protected_features_file(self):
         temp_dir_path = self._temporary_file_directory
         protected_features_file = str(temp_dir_path / "protected-feature-file.xml")
@@ -77,8 +84,8 @@ class ProtectedFeature:
         tree.write(protected_features_file, encoding='utf-8', pretty_print=True)
     
     def replace_referenced_protected_features(self, config: ConfigCmd):
-        conf_file = config._files.get_config_dir_path()
-        new_conf = str(conf_file / 'updated-config.xml')
+        conf_file_dir = config._files.get_config_dir_path()
+        new_conf = str(conf_file_dir / 'processed-config.xml')
         # find the protected freatures that are referenced in the config file
         tree = etree.parse(str(config._files.get_config_file_path()))
         root = tree.getroot()
@@ -87,24 +94,17 @@ class ProtectedFeature:
         for element in ref_elements:
             if element.tag == 'protected-feature' or element.tag == 'param':
                 pf_name = element.attrib['ref']
-
                 try:
                     protected_feat = copy.copy(self._protected_features[pf_name])
-                    # element = protected_feat['xml']
                     element.attrib['name'] = 'protected-feature'
                     del element.attrib['ref']
-
-                    # for attr in protected_feat.keys():
-                    #     if attr == 'column':
-                    #         continue                       
-                    #     element.attrib[attr] = protected_feat[attr]
-                    
-                    element.text = pf_name
+                    element.text = protected_feat['column']
                     
                         
                 except KeyError:
-                    # should probably be changed to a LibrecException
-                    logging.error(f"Referenced protected feature ({pf_name}) not in features section, or mismatched names.")
+                    raise InvalidConfiguration("Configuration File", 
+                                              f"Referenced protected feature ({pf_name}) not in" \
+                                               " features section, or mismatched names.")
 
         # return tree
         tree.write(new_conf, pretty_print=True)
@@ -117,6 +117,7 @@ class ProtectedFeature:
     def parse_protected(config: ConfigCmd):
         pf_dict = defaultdict(dict)
         protected_features = config._xml_input.findall('features/protected-feature')
+        # create dictionary by reading config file
         for item in protected_features:
             if 'name' and 'type' not in item.keys():
                 # raise InvalidConfiguration
@@ -127,11 +128,6 @@ class ProtectedFeature:
                     continue
                 pf_dict[pf_name][attr] = val
             pf_dict[pf_name]['column'] = item.text
-            # pf_dict[pf_name]['xml'] = item
-            
-            
-        # for key in pf_dict.keys():
-        #     print(key, pf_dict[key].items(), list(pf_dict[key]))
         return pf_dict
 
 if __name__ == '__main__':
@@ -143,6 +139,7 @@ if __name__ == '__main__':
     # print(test.protected_feature_cli('ed_rank'))
     # print(test.protected_feature_cli())
     tester = ProtectedFeature(ProtectedFeature.parse_protected(test_config), temp_dir=temp_dir)
+    print(tester._protected_features)
     print(os.getcwd())
     print(tester.get_protected_feature_names())
     tester.replace_referenced_protected_features(test_config)

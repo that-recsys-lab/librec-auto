@@ -4,6 +4,8 @@ from os.path import abspath
 from pathlib import Path
 import re
 from datetime import datetime
+import logging
+# from librec_auto.core.config_cmd import ConfigCmd
 from . import xml_utils
 import subprocess
 from subprocess import CalledProcessError, DEVNULL
@@ -125,13 +127,13 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
 
     """
     try:
-        script_output = subprocess.Popen(process_specs,
+        script_output = subprocess.Popen(process_specs, 
                                          cwd=current_working_directory,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE)
         # check Popen constructor for encoding
         # try with Popen as proc:
-        #
+        # 
         output, errors = script_output.communicate()
         if errors:
             str_err = str(errors, encoding='utf-8')
@@ -152,6 +154,17 @@ def create_log_name(filename: str):
     _time_obj = datetime.strptime(_time, '%Y-%m-%d %H:%M:%S.%f')
     _timestamp = _time_obj.strftime("%Y%m%d_%H%M%S")
     return filename.format(_timestamp)
+
+def move_log_file(config):
+    current_log_name = config._log_filename
+    temp_dir_path = config._files.get_temp_dir_path()
+    moved_file = str(temp_dir_path / current_log_name)
+    os.rename(current_log_name, moved_file)
+    new_log_file = logging.FileHandler(moved_file, mode='a')
+    logger = logging.getLogger()
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    logger.addHandler(new_log_file)
 
 def purge_old_logs(path: str):
     for file in glob.glob(path):

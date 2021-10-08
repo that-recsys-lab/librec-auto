@@ -10,6 +10,7 @@ from librec_auto.core.util import Files, create_study_output, BBO, create_log_na
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, \
                                  RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd
 import logging
+from librec_auto.core.util.utils import move_log_file
 import librec_auto
 import os
 
@@ -360,6 +361,7 @@ if __name__ == '__main__':
             print_description(args)
         elif args['action'] == 'check':
             config = load_config(args)
+            move_log_file(config)
             if config.is_valid():
                 try:
                     command = setup_commands(args, config)
