@@ -9,7 +9,6 @@ import shlex
 import time
 from pathlib import Path, WindowsPath
 
-
 class DeeprecCmd(Cmd):
 
     def __str__(self):
@@ -28,9 +27,9 @@ class DeeprecCmd(Cmd):
     def create_proc_spec(self):
         classpath = self._config.get_files().get_deeprec_classpath()
         config_xml = self._config.get_files().get_config_file_path()
-        # script_xml = single_xpath(config_xml, '/librec-auto/algo/script')
-
-        # pass config file
+        #script_xml = single_xpath(config_xml, '/librec-auto/algo/script')
+        
+        #pass config file
 
         python_command = self.select_deeprec_action()
         if python_command is None:
@@ -59,7 +58,7 @@ class DeeprecCmd(Cmd):
         if len(script_elems) > 0:
             script_elem = script_elems[0]
             param_spec = create_param_spec(script_elem)
-            print(param_spec)
+            print (param_spec)
             script_path = get_script_path(script_elem, 'alg')
             study_path = self._files.get_study_path()
             result_path = sub_path.get_path('result')
@@ -118,7 +117,6 @@ class DeeprecCmd(Cmd):
             self.dry_run_deeprec()
 
         # log file appends by default
-
     def ensure_clean_log(self):
         librec_log = log_path = self._exp_path.get_log_path()
         if librec_log.is_file():
