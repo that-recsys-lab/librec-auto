@@ -93,7 +93,7 @@ class DeeprecCmd(Cmd):
             self.status = Cmd.STATUS_COMPLETE
 
     def dry_run_deeprec(self):
-        cmd = self.create_proc_spec(config)
+        cmd = self.create_proc_spec()
 
         proc_spec = ' '.join(cmd)
         print(

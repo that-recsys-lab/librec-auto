@@ -4,9 +4,10 @@ from librec_auto.core.config_cmd import ConfigCmd
 from pathlib import Path
 from librec_auto.core import read_config_file
 from librec_auto.core.util import Files, create_study_output
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
+#from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd
 from librec_auto.core.util import Files
-from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd, DeeprecCmd
+#from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, InstallCmd, DeeprecCmd
+from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, RerankCmd, StatusCmd, ParallelCmd, DeeprecCmd
 import logging
 import librec_auto
 
@@ -260,7 +261,7 @@ def setup_commands(args: dict, config: ConfigCmd):
 
         # DeepRec
     if action == 'deeprun':
-        cmd1 = PurgeCmd('results', noask=purge_no_ask)
+        cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd()
         cmd3 = build_librec_commands('split', args, config)
         cmd4 = build_deeprec_commands('deep_algo', args, config)

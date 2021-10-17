@@ -45,7 +45,7 @@ class Files:
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
-    _DEFAULT_DEEPREC_WRAPPER = "deep_rec_wrapper.py"
+    _DEFAULT_DEEPREC_WRAPPER = "recommenders_wrapper.py"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
     DEFAULT_CONFIG_FILENAME = "config.xml"

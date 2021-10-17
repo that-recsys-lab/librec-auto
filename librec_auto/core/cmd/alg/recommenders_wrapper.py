@@ -11,14 +11,15 @@ import sys
 import os
 import torch
 import cornac
-import papermill as pm
+#import papermill as pm
 # import scrapbook as sb
 import pandas as pd
 
-from librec_auto.jar.recommenders.reco_utils.evaluation.python_evaluation import map_at_k, ndcg_at_k, precision_at_k, recall_at_k
-from librec_auto.jar.recommenders.reco_utils.recommender.cornac.cornac_utils import predict_ranking
-from librec_auto.jar.recommenders.reco_utils.common.timer import Timer
-from librec_auto.jar.recommenders.reco_utils.common.constants import SEED
+#from recommenders.reco_utils.evaluation.python_evaluation import map_at_k, ndcg_at_k, precision_at_k, recall_at_k
+#from recommenders.models.cornac.cornac_utils import predict_ranking
+#from recommenders.reco_utils.common.timer import Timer
+from recommenders.utils.constants import SEED
+from recommenders.models.vae.standard_vae import StandardVAE
 
 def read_args():
     parser = argparse.ArgumentParser(description='nnRec')
@@ -81,7 +82,7 @@ def main():
         print('Number of items: {}'.format(train_set.num_items))
 
         #train model
-        bivae = cornac.models.BiVAECF(
+        bivae = StandardVAE(
             k=latent_dim,
             encoder_structure=encoder_dims,
             act_fn=act_func,
@@ -93,6 +94,22 @@ def main():
             use_gpu=torch.cuda.is_available(),
             verbose=True
         )
+
+        StandardVAE(n_users=train_set.num_users,  # Number of unique users in the training set
+                    original_dim=train_data.shape[1],  # Number of unique items in the training set
+                    intermediate_dim=INTERMEDIATE_DIM,
+                    latent_dim=latent_dim,
+                    n_epochs=num_epochs,
+                    batch_size=batch_size,
+                    k=TOP_K,
+                    verbose=0,
+                    seed=SEED,
+                    save_path=WEIGHTS_PATH,
+                    drop_encoder=0.5,
+                    drop_decoder=0.5,
+                    annealing=False,
+                    beta=1.0
+                    )
         with Timer() as t:
             bivae.fit(train_set)
         print("Took {} seconds for training.".format(t))

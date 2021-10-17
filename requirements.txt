@@ -8,3 +8,6 @@ cryptography
 slackclient>=2.0
 slack
 slacker
+torch
+papermill
+recommenders
