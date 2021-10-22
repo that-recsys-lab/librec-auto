@@ -180,21 +180,27 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
     librec_commands = []
     threads = config.thread_count()
 
-    if BBO is False:
-        librec_commands = [
-            LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
-        ]
-    else:
-        librec_commands = [
-            LibrecCmd(librec_action, i) for i in range(BBO)
-        ]
+    try:
+        if BBO is False:
+            librec_commands = [
+                LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
+            ]
+        else:
+            librec_commands = [
+                LibrecCmd(librec_action, i) for i in range(BBO)
+            ]
 
-    if BBO:
-        return librec_commands
-    elif threads > 1 and not args['no_parallel']:
-        return ParallelCmd(librec_commands, threads)
-    else:
-        return SequenceCmd(librec_commands)
+        if BBO:
+            return librec_commands
+        elif threads > 1 and not args['no_parallel']:
+            return ParallelCmd(librec_commands, threads)
+        else:
+            return SequenceCmd(librec_commands)
+    except:
+        raise LibRecAutoException("Building Librec Commands", 
+                                  f"While building librec command {librec_action}, a script failed")
+
+    
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
