@@ -10,6 +10,7 @@ import shutil
 import logging
 import os
 from datetime import datetime
+import os
 
 
 class Files:
@@ -59,6 +60,7 @@ class Files:
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
         self._exp_path_dict = OrderedDict()
+        
 
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
         self._global_path = module_init_path.parent
@@ -117,6 +119,20 @@ class Files:
 
     def set_config_file(self, filename):
         self._config_file_name = Path(filename)
+
+    def create_temp_dir(self):
+        path = str(self._study_path / 'temp')
+        try:
+            os.mkdir(path)
+        except FileExistsError:
+            logging.info("temporary directory already created, removing and recreating")
+            shutil.rmtree(path)
+            os.mkdir(path)
+
+    
+    def get_temp_dir_path(self):
+        return self._study_path / 'temp'
+
 
     # Access to experiments within the current study
     @staticmethod
