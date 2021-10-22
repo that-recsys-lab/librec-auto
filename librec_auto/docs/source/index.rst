@@ -7,6 +7,7 @@ Find a section
 
    quickstart
    development
+   configuration
    howtos
    run-a-study
    how-to-produce-csv
@@ -17,6 +18,7 @@ Find a section
    configuration_checking
    python-side-evaluation
    supported-algorithms
+   command-line
 
 Indices and tables
 ==================

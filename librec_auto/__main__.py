@@ -108,8 +108,13 @@ def read_args():
 
 
     input_args = parser.parse_args()
+    error_check(vars(input_args))
     return vars(input_args)
 
+def error_check(input_arguments: dict):
+    if input_arguments['target'] == None:
+        raise InvalidCommand("Missing instruction", "Target (-t) argument missing from command line instruction\n"\
+            "To use current directory, use \"-t .\", or for a specific directory use \"-t <directory-name>\"")
 
 def load_config(args: dict) -> ConfigCmd:
 
@@ -349,7 +354,7 @@ if __name__ == '__main__':
     
     args = read_args()
         
-    purge_old_logs(args['target'] + "/*")
+    # purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
     librec_auto_log = str(Path(args['target']) / args['log_name'])
