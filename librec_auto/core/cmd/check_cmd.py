@@ -69,7 +69,7 @@ class CheckCmd(Cmd):
         for func in dir(files):
             if re.match(r'get_.*path$', func):
                 getpath = getattr(files, func)
-                if func == 'get_status_path' or func == 'get_post_path':
+                if func == 'get_status_path' or func == 'get_post_path' or func == 'get_split_path':
                     continue
                 if not os.access(getpath(), os.W_OK):
                     raise InvalidConfiguration(getpath(), f"Write access not granted {func}")

@@ -16,3 +16,4 @@ include librec_auto/docs/source/integrations/images/slack-integration/*
 include librec_auto/library/*.xml
 include librec_auto/rules/*.xml
 include librec_auto/test/conf/*.xml
+include librec_auto/core/cmd/rerank/MCFSolve

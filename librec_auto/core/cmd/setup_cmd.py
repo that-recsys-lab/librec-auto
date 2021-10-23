@@ -41,7 +41,7 @@ def ensure_java_version():
         java_version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT) # returns bytestring
         java_version = java_version.decode("utf-8") # convert to regular string
         version_number_pattern = r'(.*) version \"(\d+\.\d+).\d+\"' # regex pattern matching
-        version_name, version_number = re.search(version_number_pattern, java_version).groups() 
+        version_name, version_number = re.search(version_number_pattern, java_version).groups()
         logging.info(f'Java version detected: {version_name} {version_number}')
         try:
             if float(version_number) < java_dict[version_name]:
