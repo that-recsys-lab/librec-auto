@@ -26,6 +26,9 @@ class PurgeCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
         self._files = config.get_files()
 
+        if self._type == 'none':
+            pass
+
         if self._no_ask or self.purge_confirm():
             if self._type == "all" or self._type == 'split':
                 self.purge_subexperiments()

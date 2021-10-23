@@ -58,8 +58,10 @@ def read_args():
 
 if __name__ == '__main__':
     args = read_args()
+    # parse_protected
+    # protected_feature_file can be parsed here
     config = read_config_file(args['conf'], '.')
-
+    
     params = {'list_size': args['list_size']}
 
     test_data = ListBasedMetric.read_data_from_file(

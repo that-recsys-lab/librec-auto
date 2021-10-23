@@ -39,8 +39,8 @@ class Rerank_Helper():
         # protected data
         # try: rerank_helper.protected = str(args['protected'])
         try:
-            self.protected = single_xpath(config.get_xml(),
-                                          '/librec-auto/metric/protected-feature').text
+            self.protected = args['protected-feature']
+                
         
         except:
             pass
