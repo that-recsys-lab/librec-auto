@@ -70,15 +70,12 @@ For Python-based metrics, the protected feature is a script parameter and specif
 
     <param ref="fea:gdp"/>
 
-when parsed this will turn into from 2 to 3 parameters passed to the script.
+when parsed this will turn into the following parameter passed to the script. The metric will have to read the feature data from the configuration file to get the rest of the information about the feature.
 
 ::
 
     <param name="protected-feature">gdp-2021</param>
-    <param name="protected-feature-type">item</param>
-    <param name="protected-feature-values">1 2 3 4</param>
 
-If the feature is binary, the ``protected-feature-values`` parameter is omitted. These parameters will be passed to the script on the command line.
 
 
 4. Available fairness metrics
