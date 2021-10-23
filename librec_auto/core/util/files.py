@@ -53,6 +53,8 @@ class Files:
     DEFAULT_CONFIG_FILENAME = "config.xml"
     DEFAULT_REF_EXP_FILENAME = "ref_exp.txt"
 
+    _DEFAULT_SPLIT_DIR_NAME = "split"
+
     def __init__(self):
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
         self._data_dir_path = Path(self._DEFAULT_DATA_DIR_NAME)
@@ -64,6 +66,8 @@ class Files:
 
         module_init_path = Path(Files._DEFAULT_GLOBAL_DIR_STR).parent
         self._global_path = module_init_path.parent
+
+        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
 
     # Paths related to the librec installation
     def get_global_path(self):
@@ -113,6 +117,9 @@ class Files:
 
     def get_post_path(self):
         return self._study_path / self._post_dir_path
+
+    def get_split_path(self):
+        return self._data_dir_path / self._split_dir_path
 
     def set_study_path(self, path):
         self._study_path = Path(path)

@@ -40,7 +40,7 @@ def ensure_java_version():
         }
         java_version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT) # returns bytestring
         java_version = java_version.decode("utf-8") # convert to regular string
-        
+
         try:
             version_number_pattern = r'(.*) version \"(\d+\.\d+)\..*' # regex pattern matching
             version_name, version_number = re.search(version_number_pattern, java_version).groups() 

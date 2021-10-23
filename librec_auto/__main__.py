@@ -295,7 +295,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
-        bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        bracketed_cmd = bracket_sequence('all', args, config, cmd)
         return bracketed_cmd
 
     # eval-only
@@ -353,7 +354,7 @@ def bracket_sequence(purge_action, args, config, seq_cmd):
 if __name__ == '__main__':
     
     args = read_args()
-        
+
     # purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
