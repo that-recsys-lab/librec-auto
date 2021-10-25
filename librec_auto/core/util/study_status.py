@@ -66,7 +66,7 @@ class StudyStatus:
         
         # if the output xml has one element it's check, 0 nothing has ran
         # if there's more than that then the experiment ran and user is evaluating
-        if len(study_xml.getchildren()) <= 1: 
+        if study_xml is None or len(study_xml.getchildren()) <= 1:
             create_study_output(config)
             study_xml = xml_load_from_path(status_path)
             

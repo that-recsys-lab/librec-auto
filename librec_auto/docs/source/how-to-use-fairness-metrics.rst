@@ -45,7 +45,7 @@ The feature information is added in the top-level ``features`` section of the co
 		<appender-class>net.librec.data.convertor.appender.ItemFeatureAppender</appender-class>
 		<item-feature-file>item-features.csv</item-feature-file>
 		<protected-feature name="fea:gdp" type="item" values="1 2 3 4">gdp-2021</protected-feature>
-				<protected-feature name="fea:gender" type="item">borrower-gender</protected-feature>
+		<protected-feature name="fea:gender" type="item">borrower-gender</protected-feature>
 	</features>
 
 For user features, the ``UserFeatureAppender`` class is used and the corresponding ``user-feature-file`` element. 
@@ -143,7 +143,7 @@ Consumer-side
 .. math::
     U_val = \frac{1}{n} \sum_{j=1}^{n}{\Big|(E_{g}[y]_j - E_{g}[r]_j) - (E_{\neg g}[y]_j - E_{\neg g}[r]_j)\Big|},
 
-    where E_{g}[y]_j is the average predicted score for the jth item from disadvantaged users, E_{\neg g}[y]_j is the average predicted score for advantaged users, E_{g}[r]_j and E_{\neg g}[r]_j are the average ratings for the disadvantaged and advantaged users, respectively.
+    where :math:`E_{g}[y]_j` is the average predicted score for the jth item from disadvantaged users, :math:`E_{\neg g}[y]_j` is the average predicted score for advantaged users, :math:`E_{g}[r]_j` and :math:`E_{\neg g}[r]_j` are the average ratings for the disadvantaged and advantaged users, respectively.
 
 .. note::
     Absolute Unfairness, Value Unfairness, Over-estimation Unfairness, Under-estimation Unfairness and non-parity Unfairness are proposed by Sirui Yao and Bert Huang in `"Beyond Parity: Fairness Objective for Collaborative Filtering" <https://dl.acm.org/doi/abs/10.5555/3294996.3295052>`_ , NeurIPS 2017.
