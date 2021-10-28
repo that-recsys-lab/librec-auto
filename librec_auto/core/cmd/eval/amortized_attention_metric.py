@@ -1,13 +1,8 @@
-#Put this in its own file: amortized_attention_metric.py
-
 from librec_auto.core.eval.metrics.list_based_metric import ListBasedMetric
 from librec_auto.core import read_config_file, ConfigCmd
-import sklearn
 from sklearn.preprocessing import minmax_scale
 import numpy as np
-import math
 import argparse
-import numpy.random as random
 
 def read_args():
     """
@@ -20,21 +15,22 @@ def read_args():
     parser.add_argument('--output-file', help='The output pickle file.')
 
     # Custom params defined in the config go here
-    parser.add_argument('--amortized_attention', help='PUT A DESCRIPTION HERE')
-    parser.add_argument('--list_size', help='Size of the list for NDCG.')
+    parser.add_argument('--amortized_attention', help='Returns number indicating unfairness for this metric')
+    parser.add_argument('--list_size', help='Size of the list for Amortized Fairness.')
 
     input_args = parser.parse_args()
     return vars(input_args)
 
-
+    """
+    This class was implemented for individual fairness of amortized attention
+    as explained in the paper: https://arxiv.org/pdf/1805.01788.pdf
+    """
 class CustomAmortizedAttentionMetric(ListBasedMetric):
     def __init__(self, params: dict, conf:ConfigCmd, test_data: np.array,
              result_data: np.array, output_file) -> None:
         super().__init__(params, conf, test_data, result_data, output_file)
         self._name = 'amortized_attention'
 
-    #this was implemented for individual fairness
-    #as explained in the paper: https://arxiv.org/pdf/1805.01788.pdf
     def evaluate_user(self, test_user_data: np.array,
                   result_user_data: np.array) -> float:
         rec_num = int(self._params['list_size'])
@@ -87,8 +83,6 @@ if __name__ == '__main__':
         args['result'],
         delimiter=','
     )
-    print("****Creating Amortized Attention Metric/n")
     custom = CustomAmortizedAttentionMetric(params, config, test_data, result_data,
                             args['output_file'])
-    print('****EVALUATING Amortized Attention Metric/n')
     custom.evaluate()
