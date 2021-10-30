@@ -7,7 +7,7 @@ from librec_auto.core import read_config_file, ConfigCmd
 
 
 class ExpectedExposureMetric(ListBasedMetric):
-    """Expected Exposure Metric
+    """Expected Exposure Loss Metric
 
     From Diaz, Fernando, et al. "Evaluating stochastic rankings with expected exposure." Proceedings of the 29th ACM International Conference on Information & Knowledge Management. 2020.
 
@@ -42,7 +42,11 @@ class ExpectedExposureMetric(ListBasedMetric):
                 item_rankings = [uir_array[i][2] for i in relevant_indices]
 
                 exposure_values = normalize_results(item_rankings)
-                average_exposure = np.average(exposure_values)
+
+                if len(exposure_values) > 0:
+                    average_exposure = np.average(exposure_values)
+                else:
+                    average_exposure = 0
                 epsilon.append(average_exposure)
 
             return np.array(epsilon), items
