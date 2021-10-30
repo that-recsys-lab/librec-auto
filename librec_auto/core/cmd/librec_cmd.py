@@ -175,10 +175,10 @@ class LibrecCmd(Cmd):
                 if self.split_exists():
                     return 'exp-eval'
                 else:
-                    return 'full'
+                    return 'run'
 
         if self._command == 'full':
-            return 'full'
+            return 'run'
 
         if self._command == 'check':
             return 'check'

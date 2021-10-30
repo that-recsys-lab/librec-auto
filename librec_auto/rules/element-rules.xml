@@ -31,6 +31,7 @@
 		<appender-class>feature.appender.class</appender-class>
 		<item-feature-file>data.itemfeature.path</item-feature-file>
 		<user-feature-file>data.userfeature.path</user-feature-file>
+		<protected-feature action="no-translate"/>
 	</features>
 	<splitter>
 		<model>data.model.splitter</model>
@@ -206,8 +207,10 @@
 		
 		<!-- fairness-aware -->
 		
-		<protected>rec.fair.protected</protected>
-		
+		<protected-feature>rec.fair.protected</protected-feature>
+		<protected-feature type="*">rec.fair.type</protected-feature>
+		<protected-feature values="*">rec.fair.values</protected-feature>
+
 		<!-- bn slim -->
 		<l3-reg>rec.bnslim.regularization.l3</l3-reg>
 		<min-sim>rec.bnslim.minsimilarity</min-sim>
@@ -223,6 +226,8 @@
 		<class>rec.eval.classes</class>
 		<list-size>rec.recommender.ranking.topn</list-size>
 		<protected-feature>data.protected.feature</protected-feature>
+		<protected-feature type="*">data.protected.type</protected-feature>
+		<protected-feature values="*">data.protected.values</protected-feature>
 		<script action="no-translate"/>
 	</metric>
 	<post action="no-translate"/>

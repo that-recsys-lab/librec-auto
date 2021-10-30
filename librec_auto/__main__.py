@@ -10,6 +10,7 @@ from librec_auto.core.util import Files, create_study_output, BBO, create_log_na
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, \
                                  RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd
 import logging
+from librec_auto.core.util.utils import move_log_file
 import librec_auto
 import os
 
@@ -99,10 +100,21 @@ def read_args():
         help="Don't run the check command",
         action="store_true")
 
+    parser.add_argument(
+        "-nj",
+        "--no_java_check",
+        help="Don't run the java check",
+        action="store_true")
+
 
     input_args = parser.parse_args()
+    error_check(vars(input_args))
     return vars(input_args)
 
+def error_check(input_arguments: dict):
+    if input_arguments['target'] == None:
+        raise InvalidCommand("Missing instruction", "Target (-t) argument missing from command line instruction\n"\
+            "To use current directory, use \"-t .\", or for a specific directory use \"-t <directory-name>\"")
 
 def load_config(args: dict) -> ConfigCmd:
 
@@ -173,6 +185,8 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
     librec_commands = []
     threads = config.thread_count()
 
+
+  try:
     if BBO is False:
         librec_commands = [
             LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
@@ -189,6 +203,11 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
         return ParallelCmd(librec_commands, threads)
     else:
         return SequenceCmd(librec_commands)
+   except:
+        raise LibRecAutoException("Building Librec Commands", 
+                                  f"While building librec command {librec_action}, a script failed")
+
+   
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
@@ -285,7 +304,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
-        bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        bracketed_cmd = bracket_sequence('all', args, config, cmd)
         return bracketed_cmd
 
     # eval-only
@@ -310,18 +330,20 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = build_librec_commands('check', args, config)
         cmd2 = CheckCmd()
         cmd = SequenceCmd([cmd1, cmd2])
-        return cmd
+        bracketed_cmd = bracket_sequence('none', args, config, cmd)
+        return bracketed_cmd
 
 def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
     purge_no_ask = args['quiet']
     no_check = args['no_check']
+    no_java_check = args['no_java_check']
     post_flag = config.has_post()
     bracketed_commands = []
 
     # Add purge and setup.
     bracketed_commands.append(PurgeCmd(purge_action, purge_no_ask))
-    bracketed_commands.append(SetupCmd())
+    bracketed_commands.append(SetupCmd(no_java_flag=no_java_check))
     if not no_check:
         bracketed_commands.append(build_librec_commands('check', args, config))
         bracketed_commands.append(CheckCmd())
@@ -341,8 +363,8 @@ def bracket_sequence(purge_action, args, config, seq_cmd):
 if __name__ == '__main__':
     
     args = read_args()
-        
-    purge_old_logs(args['target'] + "/*")
+
+    # purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
     librec_auto_log = str(Path(args['target']) / args['log_name'])
@@ -360,6 +382,7 @@ if __name__ == '__main__':
             print_description(args)
         elif args['action'] == 'check':
             config = load_config(args)
+            move_log_file(config)
             if config.is_valid():
                 try:
                     command = setup_commands(args, config)
@@ -369,15 +392,18 @@ if __name__ == '__main__':
                     clean = CleanupCmd()
                     clean.execute(config)
                     exit(-1)
-
-                try: 
-                    command.execute(config)
-                except LibRecAutoException:
-                    print("Exception caught, check output.xml file.")
-                    logging.shutdown()
-                    clean = CleanupCmd()
-                    clean.execute(config)
-                    exit(-1)
+                
+                if args['dry_run']:
+                    command.dry_run(config)
+                else:
+                    try: 
+                        command.execute(config)
+                    except LibRecAutoException:
+                        print("Exception caught, check output.xml file.")
+                        logging.shutdown()
+                        clean = CleanupCmd()
+                        clean.execute(config)
+                        exit(-1)
         else:
             config = load_config(args)
             

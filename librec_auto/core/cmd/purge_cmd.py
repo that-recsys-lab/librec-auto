@@ -26,10 +26,13 @@ class PurgeCmd(Cmd):
         self.status = Cmd.STATUS_INPROC
         self._files = config.get_files()
 
+        if self._type == 'none':
+            pass
+
         if self._no_ask or self.purge_confirm():
             if self._type == "all" or self._type == 'split':
                 self.purge_subexperiments()
-                # self.purge_splits() # AS 10-23-20
+                self.purge_splits() # AS 10-23-20
                 self.purge_post()
 
             if self._type == "results":
@@ -69,14 +72,14 @@ class PurgeCmd(Cmd):
 
     # AS 10-23-20: Files.get_split_path() does not exist
 
-    # def purge_splits(self):
-    #     target = self._files.get_study_path()
-    #     split_path = self._files.get_split_path()
-    #     if split_path.exists():
-    #         print("librec-auto: Deleting split directories", target)
-    #         shutil.rmtree(split_path.as_posix())
-    #     else:
-    #         print("librec-auto: No split directories found in", target)
+    def purge_splits(self):
+        target = self._files.get_study_path()
+        split_path = target / self._files.get_split_path()
+        if split_path.exists():
+            print("librec-auto: Deleting split directories", target)
+            shutil.rmtree(split_path.as_posix())
+        else:
+            print("librec-auto: No split directories found in", target)
 
     def purge_post(self):
         target = self._files.get_study_path()
