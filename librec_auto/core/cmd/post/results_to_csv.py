@@ -48,6 +48,7 @@ def extract_full_info(study, entries = None, repeat = False):
         for metric in study.get_metric_names():
             table_values[metric] = curr_exp._metric_info[metric]
         
+        print('full', table_values)
         exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
     
@@ -69,6 +70,7 @@ def extract_summary_info(study):
             table_values[metric].append(curr_exp._metric_avg[metric])
 
     # try:
+    print('full', table_values)
     exp_results = pd.DataFrame(table_values)
     return (exp_results, time_stamp)
     # except:

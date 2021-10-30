@@ -26,10 +26,6 @@ class SetupCmd(Cmd):
         config.setup_exp_configs()
 
     def execute(self, config: ConfigCmd, startflag = None, exp_no = None):
-        # if not self._no_java_flag:
-        #     ensure_java_version()
-        # else:
-        #     logging.info("Java version checked not performed")
         config.ensure_experiments(exp_no)
         config.setup_exp_configs(startflag)
 

@@ -185,15 +185,17 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
     librec_commands = []
     threads = config.thread_count()
 
+
     try:
         if BBO is False:
             librec_commands = [
                 LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
             ]
         else:
-            librec_commands = [
-                LibrecCmd(librec_action, i) for i in range(BBO)
-            ]
+            if librec_action == 'check':
+                librec_commands =  [LibrecCmd(librec_action, 0)]
+            else:
+                librec_commands = [LibrecCmd(librec_action, i) for i in range(BBO) ]
 
         if BBO:
             return librec_commands
@@ -205,7 +207,7 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
         raise LibRecAutoException("Building Librec Commands", 
                                   f"While building librec command {librec_action}, a script failed")
 
-    
+   
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
@@ -263,26 +265,33 @@ def setup_commands(args: dict, config: ConfigCmd):
     # re-run experiment
     if action == 'bbo':
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
-        cmd3 = [cmd1, cmd2]
-        cmd_store = build_librec_commands('full', args, config, BBO = 200)
-        store_post = [PostCmd() for _ in range(len(cmd_store))]
+        cmd2 = SetupCmd(False)
 
-        for i in range(len(cmd_store)):
-            cmd3.append(cmd_store[i])
-
-        cmd = [SequenceCmd([cmd3[i]]) for i in range (2,len(cmd3))]
-        cmd = [cmd1, cmd2] + cmd
+        init_cmds = [cmd1, cmd2]
+        check_cmds = []
+        if not no_check_flag:
+            # check_cmds = [build_librec_commands('check',args,config), CheckCmd()]
+            librec_check = build_librec_commands('check',args,config, BBO = 200)
+            check_cmds = [librec_check[0], CheckCmd()]
+        
+        exec_cmds = build_librec_commands('full',args,config, BBO= 200)
+        exec_cmds = [SequenceCmd([exec_cmds[i]]) for i in range (len(exec_cmds))]
 
         if rerank_flag:
             # cmd.append(RerankCmd())
             # cmd.append(build_librec_commands('eval', args, config))
             raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
-        if post_flag:
-            cmd.append(PostCmd())
 
-        if not no_check_flag:
-            cmd[2:2] = [build_librec_commands('check', args, config), CheckCmd()]
+        final_cmds = []
+
+        if post_flag:
+            final_cmds.append(PostCmd())
+        else:
+            final_cmds.append(CleanupCmd)
+
+        # cmd = init_cmds + check_cmds + exec_cmds + final_cmds
+
+        cmd = init_cmds + exec_cmds + final_cmds
 
         return cmd
 
@@ -482,7 +491,6 @@ if __name__ == '__main__':
                         command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
 
                         bbo.file_path = file_path
-                        bbo.create_space()
                         
                         bbo.run(int(value_elems[0]))
 

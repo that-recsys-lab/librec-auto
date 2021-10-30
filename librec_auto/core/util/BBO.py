@@ -2,6 +2,7 @@ from librec_auto.core.util import Status
 from librec_auto.core.util.errors import *
 import hyperopt as hp
 from hyperopt import fmin, tpe, STATUS_OK
+import optuna
 
 #module to optimize
 class BBO:
@@ -19,6 +20,7 @@ class BBO:
         self.current_command = self.command[self.index]
         self.config = config
         self.file_path = file_path
+        self.create_params = True
         self.metric_map = {'auc': 'positive', 'ap': 'positive','arhr': 'positive',
                 'diversity': 'positive', 'hitrate': 'positive','idcg': 'positive',
                 'ndcg': 'positive', 'precision': 'positive', 'recall': 'positive',
@@ -38,9 +40,10 @@ class BBO:
                 'absunfairness': 'AbsoluteUnfairnessEvaluator','overestimate': 'OverestimationUnfairnessEvaluator','underestimate': 'UnderestimationUnfairnessEvaluator','ppr': 'PPercentRuleEvaluator'        
                 }
 
-    #creates hyperparameter dictionary in hyperopt format    
-    def create_space(self):
-        self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
+    #creates hyperparameter dictionary in optuna format    
+    def create_space(self, trial):
+        # self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
+        self.space = {self.alphabet[i]: trial.suggest_float(self.alphabet[i],self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
 
     #uses direction from existing metrics or user chosen direction if custom
     def set_optimization_direction(self, metric):
@@ -62,33 +65,36 @@ class BBO:
         store_val = ''
 
         i = 0
-
         for sub_paths in self.config._files.get_exp_paths_iterator():
 
             if i != self.exp_no:
                 i += 1
                 continue
-
             status = Status(sub_paths)
             store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
             break
                 
         return float(store_val)
     
-    #All function required for experiement are called from here
-    def run_experiments(self,params):
+    #All function required for experiments are called from here
+    def run_experiments(self, trial):
+
+        if self.create_params is not False:
+            self.create_space(trial)
+            self.create_params = False
+
+        params = self.space
         if self.exp_no != 0:
             self.modify_xml(params)
+
         self.current_command.execute(self.config)
         data = self.get_data()
         self.exp_no += 1
+        
         if self.exp_no != self.total_exp_no:
             self.change_current_command()
 
-        if self.direction == 'positive':
-            return {'loss': -data, 'status': STATUS_OK}
-        else:
-            return {'loss': data, 'status': STATUS_OK}
+        return data
     
     #sends values to write configs to create next experiment
     def modify_xml(self, params):
@@ -105,8 +111,25 @@ class BBO:
         return command._files._study_path
         
     def run(self,total_exp_no):
-        self.store_params = self.space
+        # self.store_params = self.space
         self.exp_no = 0
         self.total_exp_no = total_exp_no
         self.config.get_sub_exp_count()
-        best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
+        # best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
+        study = optuna.create_study()
+
+        if self.direction == 'positive':
+            study = optuna.create_study(direction = "maximize")
+            
+        study.optimize(self.run_experiments, n_trials=total_exp_no)
+
+        print("Best Trial:")
+
+        trial = study.best_trial
+
+        print("Value:", trial.value)
+
+        print("Params: ")
+
+        for key, value in trial.params.items():
+            print("{}:{}".format(key,value))

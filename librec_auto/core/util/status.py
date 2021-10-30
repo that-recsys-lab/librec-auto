@@ -26,7 +26,6 @@ class Status:
             self._name = sub_paths.exp_name
             self._status_xml = xml_load_from_path(output_path)
             self._messages = self._status_xml.xpath('/experiment/statuses/status/message')
-
         if self._subpaths.get_path('log').exists():
             self._log = LogFile(self._subpaths)
         else:
