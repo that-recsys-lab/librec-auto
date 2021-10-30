@@ -186,24 +186,24 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
     threads = config.thread_count()
 
 
-  try:
-    if BBO is False:
-        librec_commands = [
-            LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
-        ]
-    else:
-        if librec_action == 'check':
-            librec_commands =  [LibrecCmd(librec_action, 0)]
+    try:
+        if BBO is False:
+            librec_commands = [
+                LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
+            ]
         else:
-            librec_commands = [LibrecCmd(librec_action, i) for i in range(BBO) ]
+            if librec_action == 'check':
+                librec_commands =  [LibrecCmd(librec_action, 0)]
+            else:
+                librec_commands = [LibrecCmd(librec_action, i) for i in range(BBO) ]
 
-    if BBO:
-        return librec_commands
-    elif threads > 1 and not args['no_parallel']:
-        return ParallelCmd(librec_commands, threads)
-    else:
-        return SequenceCmd(librec_commands)
-   except:
+        if BBO:
+            return librec_commands
+        elif threads > 1 and not args['no_parallel']:
+            return ParallelCmd(librec_commands, threads)
+        else:
+            return SequenceCmd(librec_commands)
+    except:
         raise LibRecAutoException("Building Librec Commands", 
                                   f"While building librec command {librec_action}, a script failed")
 
@@ -265,7 +265,7 @@ def setup_commands(args: dict, config: ConfigCmd):
     # re-run experiment
     if action == 'bbo':
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
-        cmd2 = SetupCmd()
+        cmd2 = SetupCmd(False)
 
         init_cmds = [cmd1, cmd2]
         check_cmds = []
