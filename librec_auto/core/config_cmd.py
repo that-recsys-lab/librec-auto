@@ -348,6 +348,7 @@ class ConfigCmd:
 
 def read_config_file(config_file, target, log_filename=None):
     config = ConfigCmd(config_file, target, log_filename)
+    print(target)
     if config.is_valid():
         config.load_libraries()
         config.process_config()
