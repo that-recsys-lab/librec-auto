@@ -46,7 +46,11 @@ class Files:
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
+<<<<<<< HEAD
     _DEFAULT_DEEPREC_WRAPPER = "ms_recommend_wrapper.py"
+=======
+    _DEFAULT_DEEPREC_WRAPPER = "recommenders_wrapper.py"
+>>>>>>> 6593fdd6885198b93673fdd495b4f735c5178e1e
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
 
 

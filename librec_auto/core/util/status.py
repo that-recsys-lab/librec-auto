@@ -230,8 +230,10 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
 
         move_field_from_element(status_xml,
                                 'exp_no')  # remove exp_no from status
-        move_field_from_element(status_xml,
-                                'param')  # remove param from status
+        # 2021-10-17 RB TODO WK Fix for non-LibRec algorithms
+        if status_xml.find('param') is not None:
+           move_field_from_element(status_xml,
+                                    'param')  # remove param from status
 
         statuses_element.append(
             status_xml)  # append this new status to the end
@@ -272,7 +274,9 @@ def _update_output(output_file_path: str, status_xml: etree._Element,
         output_xml.attrib['count'] = experiment_number
 
         # move param to meta
-        move_field_from_element(status_xml, 'param', meta_element)
+        # 2021-10-17 RB Bigger fix needed for non-LibRec algorithm
+        if status_xml.find('param') is not None:
+            move_field_from_element(status_xml, 'param', meta_element)
 
         statuses_element.append(
             status_xml

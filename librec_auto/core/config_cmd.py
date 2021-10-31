@@ -222,6 +222,9 @@ class ConfigCmd:
         """
         return self._xml_input.findall('metric[@python="true"]')
 
+    def get_alg_scripts(self):
+        return self._xml_input.xpath('/librec-auto/alg/script')
+
     def get_cv_directories(self) -> List[Path]:
         """
         Gets the list of cv directories as Path objects.
