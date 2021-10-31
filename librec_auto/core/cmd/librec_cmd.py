@@ -116,12 +116,12 @@ class LibrecCmd(Cmd):
         else:
             self.ensure_clean_log()
 
-            Status.save_status("Executing", self._sub_no, config,
-                               self._exp_path)
+            # Status.save_status("Executing", self._sub_no, config,
+            #                    self._exp_path)
             if self._command == "eval":
                 self.fix_list_length()
             self.execute_librec()
-        Status.save_status("Completed", self._sub_no, config, self._exp_path)
+        # Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):
@@ -160,10 +160,10 @@ class LibrecCmd(Cmd):
 
         if self._command == 'split':
             # check if split exists, if so split command doesn't make sense. Does not purge here.
-            #            if self.split_exists():
-            #                print("Split already exists. Skipping.")
-            #                return None
-            #            else:
+#            if self.split_exists():
+#                print("Split already exists. Skipping.")
+#                return None
+#            else:
             return 'split'
 
         if self._command == 'eval':

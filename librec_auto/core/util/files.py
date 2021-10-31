@@ -38,6 +38,7 @@ class Files:
     _DEFAULT_RES_DIR_NAME = "result"
     #    _DEFAULT_SPLIT_DIR_NAME = "split"
     _DEFAULT_JAR_DIR_NAME = "librec_auto/jar"
+    _DEFAULT_MS_RECOMMEND_DIR_NAME ="librec_auto/core/cmd/alg"
     _DEFAULT_POST_DIR_NAME = "post"
     _DEFAULT_LIBRARY_DIR_NAME = "lib"
     _EXP_DIR_FORMAT = "exp{:05d}"
@@ -45,8 +46,9 @@ class Files:
 
     DEFAULT_PROP_FILE_NAME = "librec.properties"
     _DEFAULT_LA_JAR = "auto.jar"
-    _DEFAULT_DEEPREC_WRAPPER = "deep_rec_wrapper.py"
+    _DEFAULT_DEEPREC_WRAPPER = "ms_recommend_wrapper.py"
     _DEFAULT_RULES_FILE = "librec_auto/rules/element-rules.xml"
+
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
     DEFAULT_REF_EXP_FILENAME = "ref_exp.txt"
@@ -55,6 +57,7 @@ class Files:
         self._config_dir_path = Path(self._DEFAULT_CONFIG_DIR_NAME)
         #        self._split_dir_path = Path(self._DEFAULT_SPLIT_DIR_NAME)
         self._jar_dir_path = Path(self._DEFAULT_JAR_DIR_NAME)
+        self._deep_recommend_path = Path(self._DEFAULT_MS_RECOMMEND_DIR_NAME)
         self._post_dir_path = Path(self._DEFAULT_POST_DIR_NAME)
         self._lib_dir_path = Path(self._DEFAULT_LIBRARY_DIR_NAME)
         self._exp_path_dict = OrderedDict()
@@ -78,12 +81,15 @@ class Files:
     def get_jar_path(self):
         return self.get_global_path() / self._jar_dir_path
 
+    def get_deep_recommend_path(self):
+        return self.get_global_path() / self._deep_recommend_path
+
     def get_classpath(self):
         return (self.get_jar_path() /
                 self._DEFAULT_LA_JAR).absolute().as_posix()
 
     def get_deeprec_classpath(self):
-        return (self.get_jar_path() /
+        return (self.get_deep_recommend_path() /
                 self._DEFAULT_DEEPREC_WRAPPER).absolute().as_posix()
 
     # Paths related to the current study
@@ -195,7 +201,7 @@ class ExpPaths:
 
     - log
     - result
-    - original (for re-ranking)
+    - original (for re-ranking
     - conf
     """
 
@@ -211,6 +217,7 @@ class ExpPaths:
         'conf': 'dfs.config.dir'
     }
 
+    #   _sub_dirs = ['conf', 'log', 'result', 'original']
     _sub_dirs = ['conf', 'log', 'result', 'original']
 
     exp_name = None
@@ -224,8 +231,8 @@ class ExpPaths:
         exp_path = base / exp_name
         self.set_path('subexp', exp_path)
 
-        output_path = exp_path / 'output.xml'
-        self.set_path('output', output_path)
+        status_path = exp_path / '.status'
+        self.set_path('status', status_path)
 
         librec_result_path = Path(exp_name) / 'result'
         self.set_path('librec_result', librec_result_path)
@@ -321,6 +328,3 @@ class ExpPaths:
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         fname = ExpPaths.DEFAULT_LOG_PATTERN.format(stamp)
         return self.get_path('log') / fname
-
-    def get_custom_metrics_log_path(self):
-        return self.get_path('log') / 'python-metrics.json'

@@ -15,6 +15,9 @@ class DeeprecCmd(Cmd):
         return f'DeeprecCmd(sub-exp: {self._sub_no}, command: {self._command})'
 
     def __init__(self, command, sub_no):
+        self._train = '/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/data/split/cv_1/train.txt'
+        self._test = '/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/data/split/cv_1/test.txt'
+        self._result_file = "/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/demo02/exp00000/result/out1.txt"
         self._command = command
         self._sub_no = sub_no
         self._files = None
@@ -36,7 +39,7 @@ class DeeprecCmd(Cmd):
             return []
         else:
             return [
-                'python', classpath
+                'python', classpath, '--train', self._train, '--test', self._test, '--result_file', self._result_file
             ]
 
     def select_deeprec_action(self):
@@ -160,3 +163,10 @@ class DeeprecCmd(Cmd):
             self.execute_deeprec(sub_path)
 
         # Status.save_status("Completed", self._sub_no, config, self._exp_path)
+
+
+
+
+
+
+

@@ -15,29 +15,18 @@ import papermill as pm
 # import scrapbook as sb
 import pandas as pd
 
-from librec_auto.jar.recommenders.reco_utils.evaluation.python_evaluation import map_at_k, ndcg_at_k, precision_at_k, recall_at_k
-from librec_auto.jar.recommenders.reco_utils.recommender.cornac.cornac_utils import predict_ranking
-from librec_auto.jar.recommenders.reco_utils.common.timer import Timer
-from librec_auto.jar.recommenders.reco_utils.common.constants import SEED
+from librec_auto.recommenders.reco_utils.evaluation.python_evaluation import map_at_k, ndcg_at_k, precision_at_k, recall_at_k
+from librec_auto.recommenders.reco_utils.recommender.cornac.cornac_utils import predict_ranking
+from librec_auto.recommenders.reco_utils.common.timer import Timer
+from librec_auto.recommenders.reco_utils.common.constants import SEED
+
+RESULT_FILE_PATTERN = 'out-\d+.txt'
 
 def read_args():
     parser = argparse.ArgumentParser(description='nnRec')
     #parser.add_argument('conf', help='Name of configuration file')
     #parser.add_argument('split_directory', help='Path to original results directory')
     #parser.add_argument('result', help='Path to destination results directory')
-    '''
-    # top k items to recommend
-    TOP_K = 10
-
-    # Model parameters
-    LATENT_DIM = 50
-    ENCODER_DIMS = [100]
-    ACT_FUNC = "tanh"
-    LIKELIHOOD = "pois"
-    NUM_EPOCHS = 500
-    BATCH_SIZE = 128
-    LEARNING_RATE = 0.001
-    '''
     parser.add_argument('--model', choices=['BiVAE'],
                         default='BiVAE')
     parser.add_argument('--TOP_K', type=int, default=10)
@@ -49,14 +38,24 @@ def read_args():
     parser.add_argument('--BATCH_SIZE', type=int, default=128)
     parser.add_argument('--LEARNING_RATE', type=float, default=0.001)
 
+    parser.add_argument('--train', type=str)
+    parser.add_argument('--test', type=str)
+    parser.add_argument('--result_file', type=str)
+
     input_args = parser.parse_args()
     return vars(input_args)
 
+def get_top_k(dataframe, k):
+    user_unique_set = set(dataframe['userID'])
+    return_dataframe = pd.DataFrame()
+    for i in user_unique_set:
+        dataframe_by_user = dataframe.loc[dataframe['userID'] == i]
+        dataframe_by_user = dataframe_by_user.sort_values(by='prediction', ascending=False)[:k]
+        return_dataframe = return_dataframe.append(dataframe_by_user)
+    return return_dataframe
+
 def main():
     args = read_args()
-    #config_var = args['config']
-    #split_directory_var = args['split_directory']
-    #result_var = args['result']
     model = args['model']
     top_k = args['TOP_K']
     latent_dim = args['LATENT_DIM']
@@ -68,11 +67,16 @@ def main():
     batch_size = args['BATCH_SIZE']
     learning_rate = args['LEARNING_RATE']
 
+    training_path = args['train']
+    test_path = args['test']
+    result_file_path = args['result_file']
+
+
     if model == 'BiVAE':
-        train = pd.read_csv('/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/data/split/cv_1/train.txt',
+        train = pd.read_csv(training_path,
                             sep="	", header=None)
         train.columns = ["userID", "itemID", "rating"]
-        test = pd.read_csv('/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/data/split/cv_1/test.txt',
+        test = pd.read_csv(test_path,
                            sep="	", header=None)
         test.columns = ["userID", "itemID", "rating"]
 
@@ -99,7 +103,8 @@ def main():
 
         with Timer() as t:
             all_predictions = predict_ranking(bivae, train, usercol='userID', itemcol='itemID', remove_seen=True)
-            np.savetxt('/Users/liuzijun1/Desktop/librec-auto/librec-auto-demo2020/demo02/exp00000/result/result.txt', all_predictions.values, fmt='%d')
+            final_result = get_top_k(all_predictions, top_k)
+            final_result.to_csv(result_file_path, header=None, index=None, sep=' ')
         print("Took {} seconds for prediction.".format(t))
 
 if __name__ == '__main__':
