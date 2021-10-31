@@ -207,6 +207,12 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
 
     
 
+def maybe_add_eval(config: ConfigCmd):
+    study_xml = config._xml_input
+    script_alg = study_xml.xpath('/study/alg/script')
+    if script_alg is not None:
+        return True
+    else: return False
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
 def setup_commands(args: dict, config: ConfigCmd):
@@ -290,8 +296,11 @@ def setup_commands(args: dict, config: ConfigCmd):
     # re-run experiment and continue
     if action == 'run':
         cmd1 = build_librec_commands('full', args, config)
-        cmd2 = EvalCmd(args, config)  # python-side eval
-        cmd = SequenceCmd([cmd1, cmd2])
+        add_eval = maybe_add_eval(config=config)
+        if add_eval:
+            cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd = SequenceCmd([cmd1, cmd2])
+        else: cmd = SequenceCmd([cmd1])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
@@ -324,6 +333,7 @@ def setup_commands(args: dict, config: ConfigCmd):
         bracketed_cmd = bracket_sequence('none', args, config, cmd)
         return bracketed_cmd
 
+
 def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
     purge_no_ask = args['quiet']
@@ -355,7 +365,7 @@ if __name__ == '__main__':
     
     args = read_args()
 
-    # purge_old_logs(args['target'] + "/*")
+    purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
     librec_auto_log = str(Path(args['target']) / args['log_name'])
