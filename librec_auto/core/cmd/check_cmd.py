@@ -122,6 +122,8 @@ class CheckCmd(Cmd):
                             script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'post'
                         elif elem.tag == 'rerank':
                             script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'rerank'
+                        elif elem.tag == 'alg':
+                            script_path = files.get_global_path() / 'librec_auto' / 'core' / 'cmd' / 'alg'
                         else:
                             raise InvalidConfiguration(elem.tag, f"Scripts not allowed in {elem.tag} section.")
                     else:

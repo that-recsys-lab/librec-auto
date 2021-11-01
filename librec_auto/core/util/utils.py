@@ -135,6 +135,8 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
         # try with Popen as proc:
         # 
         output, errors = script_output.communicate()
+        rc = script_output.returncode
+
         if errors:
             str_err = str(errors, encoding='utf-8')
             str_err = str_err.strip('<')
@@ -143,9 +145,9 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
             ret_lst = [x for x in ret_lst if x != '']
             if len(ret_lst) > 1:
                 return ret_lst
-            return str_err
+            return rc
         else:
-            return 0
+            return rc
     except CalledProcessError as e:
         return e.returncode
 
