@@ -209,7 +209,10 @@ def build_alg_commands(args: dict, config: ConfigCmd, BBO = False):
 
 def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO = False):
     threads = config.thread_count()
-    exp_commands = [LibrecCmd('split', 0)]
+    if librec_action == 'full':
+        exp_commands = [LibrecCmd('split', 0)]
+    else:
+        exp_commands = []
 
     try:
         if BBO is False:
@@ -541,7 +544,7 @@ if __name__ == '__main__':
 
                         command = command + final_commands
 
-                    bbo = BBO.BBO(range_list, len(range_val_store), command[2:], config)
+                    bbo = BBO.BBO(range_list, len(range_val_store), command[3:], config)
                     file_path = bbo.run_purge(command[0])
 
                     metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
@@ -551,7 +554,10 @@ if __name__ == '__main__':
                     else:
                         bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
 
+                    # Setup Command
                     command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
+                    # Split Command
+                    command[2].execute(config)
 
                     bbo.file_path = file_path
                         
