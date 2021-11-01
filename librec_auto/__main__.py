@@ -11,6 +11,7 @@ from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd
                                  RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd
 import logging
 from librec_auto.core.util.utils import move_log_file
+from librec_auto.core.util.xml_utils import single_xpath
 import librec_auto
 import os
 
@@ -185,7 +186,6 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
     librec_commands = []
     threads = config.thread_count()
 
-
     try:
         if BBO is False:
             librec_commands = [
@@ -287,7 +287,7 @@ def setup_commands(args: dict, config: ConfigCmd):
         if post_flag:
             final_cmds.append(PostCmd())
         else:
-            final_cmds.append(CleanupCmd)
+            final_cmds.append(CleanupCmd())
 
         # cmd = init_cmds + check_cmds + exec_cmds + final_cmds
 
@@ -310,6 +310,9 @@ def setup_commands(args: dict, config: ConfigCmd):
 
     # eval-only
     if action == 'eval':
+        if single_xpath(config.get_xml(), '/librec-auto/optimize') is not None:
+            raise InvalidConfiguration("Eval-only not currently supported with Bayesian optimization.")
+
         # cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
         # cmd2 = SetupCmd()
         cmd1 = build_librec_commands('eval', args, config)
@@ -456,43 +459,43 @@ if __name__ == '__main__':
                     if check_rerank > 0:
                         raise InvalidConfiguration("Optimization", "Optimization is not currently supported with reranking")
 
-                    exponent_expected = num_of_vars
-
-                    for tup in range_val_store:
-                        if tup[0] == tup[1]:
-                            exponent_expected -= 1
+                    # exponent_expected = num_of_vars
+                    #
+                    # for tup in range_val_store:
+                    #     if tup[0] == tup[1]:
+                    #         exponent_expected -= 1
 
                    # if 2**exponent_expected == config.get_sub_exp_count():
-                        range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
-                        value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
+                    range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
+                    value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
 
-                        continue_rerank = False
+                    continue_rerank = False
 
-                        if isinstance(command[-2], RerankCmd):
+                    if isinstance(command[-2], RerankCmd):
 
-                            final_commands = command[-2:]
+                        final_commands = command[-2:]
 
-                            command = command[:int(value_elems[0])+2]
+                        command = command[:int(value_elems[0])+2]
 
-                            continue_rerank = True
+                        continue_rerank = True
 
-                            command = command + final_commands
+                        command = command + final_commands
 
-                        bbo = BBO.BBO(range_list, len(range_val_store), command[2:], config)
-                        file_path = bbo.run_purge(command[0])
+                    bbo = BBO.BBO(range_list, len(range_val_store), command[2:], config)
+                    file_path = bbo.run_purge(command[0])
 
-                        metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
+                    metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
 
-                        if metric in bbo.metric_map:
-                            bbo.set_optimization_direction(metric)
-                        else:
-                            bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
+                    if metric in bbo.metric_map:
+                        bbo.set_optimization_direction(metric)
+                    else:
+                        bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
 
-                        command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
+                    command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
 
-                        bbo.file_path = file_path
+                    bbo.file_path = file_path
                         
-                        bbo.run(int(value_elems[0]))
+                    bbo.run(int(value_elems[0]))
 
                         # print("continue_rerank", config.has_rerank())
                         # if config.has_rerank():
@@ -500,8 +503,9 @@ if __name__ == '__main__':
                         #     # command[-2].execute(config)
                         #     command[-1].execute(config)
                         # else:
-                        command[-1].execute(config)
-                        create_study_output(config)
+                    cleanup = command[-1]
+                    cleanup.execute(config)
+                    create_study_output(config)
 
 
 

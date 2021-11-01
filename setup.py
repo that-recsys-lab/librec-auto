@@ -5,9 +5,9 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="librec-auto",
-    version="0.1.62",
+    version="0.2.6",
 	scripts=['librec_auto/__main__.py'] ,
-    author="Masoud Mansoury, Nasim Sonboli and Robin Burke",
+    author="Masoud Mansoury, Nasim Sonboli, Robin Burke, Will Mardick-Kanter and others",
     author_email="masoodmansoury@gmail.com",
     description=
     "The librec-auto project aims to automate recommender system experimens using LibRec.",
@@ -25,7 +25,8 @@ setuptools.setup(
                       'slackclient>=2.0',
                       'slack',
                       'slacker',
-                      'hyperopt'
+                      'optuna',
+                      'tensorflow', 'keras', 'torch', 'cornac', 'recommenders'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

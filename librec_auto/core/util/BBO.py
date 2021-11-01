@@ -1,8 +1,26 @@
 from librec_auto.core.util import Status
 from librec_auto.core.util.errors import *
-import hyperopt as hp
-from hyperopt import fmin, tpe, STATUS_OK
 import optuna
+
+# Borrowed from https://stackoverflow.com/questions/58820574/how-to-sample-parameters-without-duplicates-in-optuna
+# Prevents repeated parameter values in the sampling. It seems like this should be the default
+# behavior.
+class RepeatPruner(optuna.pruners.BasePruner):
+    def prune(self, study, trial):
+        # type: (Study, FrozenTrial) -> bool
+
+        trials = study.get_trials(deepcopy=False)
+        completed_trials = [t.params for t in trials if t.state == optuna.trial.TrialState.COMPLETE]
+        n_trials = len(completed_trials)
+
+        if n_trials == 0:
+            return False
+
+        if trial.params in completed_trials:
+            return True
+
+        return False
+
 
 #module to optimize
 class BBO:
@@ -81,7 +99,7 @@ class BBO:
 
         if self.create_params is not False:
             self.create_space(trial)
-            self.create_params = False
+            # self.create_params = False
 
         params = self.space
         if self.exp_no != 0:
@@ -116,7 +134,7 @@ class BBO:
         self.total_exp_no = total_exp_no
         self.config.get_sub_exp_count()
         # best = fmin(fn=self.run_experiments, space = self.store_params, algo=tpe.suggest, max_evals=total_exp_no)
-        study = optuna.create_study()
+        study = optuna.create_study(pruner=RepeatPruner())
 
         if self.direction == 'positive':
             study = optuna.create_study(direction = "maximize")

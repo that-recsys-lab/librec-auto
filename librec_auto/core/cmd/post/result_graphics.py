@@ -58,7 +58,7 @@ def create_bar(path, metric_name, params, settings, metric_values, is_bbo):
 def create_bars(path, study, is_bbo):
     # Nasim: add list to it because in python 3 it returns a view, so it doesn't have indexing, you can't access it.
     # metric_names = study.get_metric_names()
-    metric_names = []
+    metric_names = study.get_metric_names()
     bar_paths = []
     experiments = sorted(study._experiments.keys())
     

@@ -2,9 +2,14 @@ matplotlib
 lxml
 pandas
 numpy
-hyperopt
 progressbar
 cryptography
 slackclient>=2.0
 slack
 slacker
+optuna
+tensorflow
+keras
+torch
+cornac
+recommenders
