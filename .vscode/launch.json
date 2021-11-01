@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/librec_auto/__main__.py",
             "console": "integratedTerminal",
-            "args": [ "-t", "demo01", "-c", "test-config.xml", "run"],
+            "args": [ "-t", "demo01", "-q", "run"],
             "cwd": "/Users/will/Desktop/work/librec-auto-demo2020"
         }
     ]

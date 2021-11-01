@@ -8,7 +8,7 @@ from librec_auto.core.util import Files, create_study_output, BBO, create_log_na
     purge_old_logs, InvalidConfiguration, InvalidCommand, UnsupportedFeatureException, \
     LibRecAutoException
 from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd, PostCmd, \
-                                 RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd
+                                 RerankCmd, StatusCmd, ParallelCmd, CheckCmd, CleanupCmd, AlgCmd
 import logging
 from librec_auto.core.util.utils import move_log_file
 from librec_auto.core.util.xml_utils import single_xpath
@@ -182,32 +182,65 @@ def purge_type(args: dict) -> str:
 # TODO: Need to rewrite as "build_exec_commands" where the action incorporates both execution
 # and reranking. Remember that the re-ranker only requires one run of the prediction algorithm for any
 # variation its own parameters.
-def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO = False):
-    librec_commands = []
+def build_alg_commands(args: dict, config: ConfigCmd, BBO = False):
     threads = config.thread_count()
+
+    # Need to split because normally librec does that
+    exp_commands = [LibrecCmd('split', 0)]
+    exp_range = range(BBO) if BBO else range(config.get_sub_exp_count())
+
+    try:
+        for i in exp_range:
+            alg_cmd = AlgCmd(i)
+            eval_cmd = LibrecCmd('eval', i) # Need eval after each experiment
+            alg_seq = SequenceCmd([alg_cmd, eval_cmd])
+            exp_commands.append(alg_seq)
+
+        if BBO:
+            return exp_commands
+        elif threads > 1 and not args['no_parallel']:
+            return ParallelCmd(exp_commands, threads)
+        else:
+            return SequenceCmd(exp_commands)
+    except:
+        raise LibRecAutoException("Building Alg Commands",
+                                  f"While building alg command an error was thrown.")
+
+
+def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO = False):
+    threads = config.thread_count()
+    exp_commands = [LibrecCmd('split', 0)]
 
     try:
         if BBO is False:
-            librec_commands = [
-                LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())
-            ]
+            exp_commands = exp_commands + \
+                [LibrecCmd(librec_action, i) for i in range(config.get_sub_exp_count())]
+
         else:
             if librec_action == 'check':
-                librec_commands =  [LibrecCmd(librec_action, 0)]
+                exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
             else:
-                librec_commands = [LibrecCmd(librec_action, i) for i in range(BBO) ]
+                exp_commands = exp_commands + \
+                    [LibrecCmd(librec_action, i) for i in range(BBO)]
 
         if BBO:
-            return librec_commands
+            return exp_commands
         elif threads > 1 and not args['no_parallel']:
-            return ParallelCmd(librec_commands, threads)
+            return ParallelCmd(exp_commands, threads)
         else:
-            return SequenceCmd(librec_commands)
+            return SequenceCmd(exp_commands)
     except:
-        raise LibRecAutoException("Building Librec Commands", 
+        raise LibRecAutoException("Building Librec Commands",
                                   f"While building librec command {librec_action}, a script failed")
 
-   
+
+def maybe_add_eval(config: ConfigCmd):
+    study_xml = config._xml_input
+    script_alg = study_xml.xpath('/study/alg/script')
+    if script_alg is not None:
+        return True
+    else: return False
+
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
@@ -266,6 +299,13 @@ def setup_commands(args: dict, config: ConfigCmd):
     if action == 'bbo':
         cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
         cmd2 = SetupCmd(False)
+        cmd3 = [cmd1, cmd2]
+        if config.has_alg_script():
+            cmd_store = build_alg_commands(args, config, BBO=200)
+        else:
+            cmd_store = build_librec_commands('full', args, config, BBO = 200)
+        store_post = [PostCmd() for _ in range(len(cmd_store))]
+
 
         init_cmds = [cmd1, cmd2]
         check_cmds = []
@@ -279,7 +319,7 @@ def setup_commands(args: dict, config: ConfigCmd):
 
         if rerank_flag:
             # cmd.append(RerankCmd())
-            # cmd.append(build_librec_commands('eval', args, config))
+            # cmd.append(build_exp_commands('eval', args, config))
             raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
 
         final_cmds = []
@@ -297,16 +337,34 @@ def setup_commands(args: dict, config: ConfigCmd):
 
 
     # re-run experiment and continue
-    if action == 'run':
+    if action == 'run' and not config.has_alg_script():
         cmd1 = build_librec_commands('full', args, config)
-        cmd2 = EvalCmd(args, config)  # python-side eval
-        cmd = SequenceCmd([cmd1, cmd2])
+        add_eval = maybe_add_eval(config=config)
+        if add_eval:
+            cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd = SequenceCmd([cmd1, cmd2])
+        else: cmd = SequenceCmd([cmd1])
         if rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(build_librec_commands('eval', args, config))
         # bracketed_cmd = bracket_sequence('results', args, config, cmd)
         bracketed_cmd = bracket_sequence('all', args, config, cmd)
         return bracketed_cmd
+
+    if action =='run' and config.has_alg_script():
+        cmd1 = build_alg_commands(args, config)
+        add_eval = maybe_add_eval(config=config)
+        if add_eval:
+            cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd = SequenceCmd([cmd1, cmd2])
+        else: cmd = SequenceCmd([cmd1])
+        if rerank_flag:
+            cmd.add_command(RerankCmd())
+            cmd.add_command(build_librec_commands('eval', args, config))
+        # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        bracketed_cmd = bracket_sequence('all', args, config, cmd)
+        return bracketed_cmd
+
 
     # eval-only
     if action == 'eval':
@@ -329,12 +387,14 @@ def setup_commands(args: dict, config: ConfigCmd):
     #     return cmd
 
     # check setup of experiment
+    # We don't check on algorithm scripts
     if action == 'check':
         cmd1 = build_librec_commands('check', args, config)
         cmd2 = CheckCmd()
         cmd = SequenceCmd([cmd1, cmd2])
         bracketed_cmd = bracket_sequence('none', args, config, cmd)
         return bracketed_cmd
+
 
 def bracket_sequence(purge_action, args, config, seq_cmd):
     # purge based on what action is being called
@@ -367,7 +427,7 @@ if __name__ == '__main__':
     
     args = read_args()
 
-    # purge_old_logs(args['target'] + "/*")
+    purge_old_logs(args['target'] + "/*")
     log_name = create_log_name('LibRec-Auto_log{}.log')
     args['log_name'] = log_name
     librec_auto_log = str(Path(args['target']) / args['log_name'])

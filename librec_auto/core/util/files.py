@@ -52,6 +52,8 @@ class Files:
 
     DEFAULT_CONFIG_FILENAME = "config.xml"
     DEFAULT_REF_EXP_FILENAME = "ref_exp.txt"
+    DEFAULT_TRAIN_FILENAME = "train.txt"
+    DEFAULT_TEST_FILENAME = "test.txt"
 
     _DEFAULT_SPLIT_DIR_NAME = "split"
 

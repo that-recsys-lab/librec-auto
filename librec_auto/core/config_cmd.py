@@ -72,6 +72,10 @@ class ConfigCmd:
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]
 
+    def has_alg_script(self):
+        alg_script_elem = single_xpath(self._xml_input, '/librec-auto/alg/script')
+        return (alg_script_elem is not None)
+
     def get_bbo_steps(self):
         if self._bbo_steps > 0:
             return self._bbo_steps
