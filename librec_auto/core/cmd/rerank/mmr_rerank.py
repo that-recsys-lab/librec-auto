@@ -35,7 +35,7 @@ class MMR(Reranker):
                         sim[i][j] = rerank_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
 
                     sim_max[i] = np.max(sim[i])
-                scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_max
+                scores = (1 - rerank_helper.lamb) * rec - rerank_helper.lamb * sim_max
 
             return scores, rerank_helper, user_helper
         return mmr

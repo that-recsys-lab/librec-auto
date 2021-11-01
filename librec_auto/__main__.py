@@ -25,7 +25,7 @@ def read_args():
         description=
         'The librec-auto tool for running recommender systems experiments.',
         epilog=
-        'TODO- This is a work in progress. For now, refer to this link: https://librec-auto.readthedocs.io/en/latest/'
+        'For documentation, refer to: https://librec-auto.readthedocs.io/en/latest/'
     )
 
     # todo remove py-eval AS
@@ -74,22 +74,6 @@ def read_args():
         help="Help with documentation, code formatting, and Docker",
         action="store_true")
 
-    parser.add_argument("-HT",
-                        "--HT",
-                        help="Help with using libraries (Not implemented)",
-                        action="store_true")
-
-    parser.add_argument(
-        "-PCO",
-        "--PCO",
-        help="Help with producting CSV outputs (Not implemented)",
-        action="store_true")
-
-    parser.add_argument("-int",
-                        "--int",
-                        help="Help with Integrations (Not implemented)",
-                        action="store_true")
-
     parser.add_argument(
         "-k",
         "--key_password",
@@ -106,7 +90,6 @@ def read_args():
         "--no_java_check",
         help="Don't run the java check",
         action="store_true")
-
 
     input_args = parser.parse_args()
     error_check(vars(input_args))

@@ -37,7 +37,7 @@ class OFAIR(Reranker):
                         sim[i][j] = rerank_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
 
                     sim_mean[i] = np.mean(sim[i])
-                scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_mean
+                scores = (1 - rerank_helper.lamb) * rec - rerank_helper.lamb * sim_mean
 
             return scores, rerank_helper, user_helper
         return ofair
@@ -94,7 +94,7 @@ def read_args():
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
-    parser.add_argument('--lambda', help='The weight for re-ranking.')
+    parser.add_argument('--lambda', help='The weight for re-ranking. Higher lambda means more diversity.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
     parser.add_argument('--alpha', help='alpha.')
     parser.add_argument('--protected-feature', help='protected feature', default="new")

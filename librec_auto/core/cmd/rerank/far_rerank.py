@@ -19,6 +19,9 @@ class FAR(Reranker):
     def fun(self):
         def rescore_binary(item, original_score, items_so_far, score_profile, helper):
             answer = original_score
+            if helper.lamb == 0.0: # Ignoring the diversity term
+                return answer
+
             div_term = 0
 
             # If there are both kind of items in the list, no re-ranking happens
@@ -30,14 +33,16 @@ class FAR(Reranker):
                 if count_prot == len(items_so_far):
                     div_term = 1 - score_profile
 
-            div_term *= (1 - helper.lamb)
-            answer *= helper.lamb
+            div_term *= helper.lamb
+            answer *= (1 - helper.lamb)
             answer += div_term
 
             return answer
 
         def rescore_prop(item, original_score, items_so_far, score_profile, helper):
             answer = original_score
+            if helper.lamb == 0.0: # Ignoring the diversity term
+                return answer
 
             count_prot = helper.num_prot(items_so_far)
             count_items = len(items_so_far)
@@ -96,7 +101,7 @@ def read_args():
     parser.add_argument('original', help='Path to original results directory')
     parser.add_argument('result', help='Path to destination results directory')
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
-    parser.add_argument('--lambda', help='The weight for re-ranking.')
+    parser.add_argument('--lambda', help='The weight for re-ranking. Higher lambda = more diversity.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
     parser.add_argument('--alpha', help='alpha.')
     parser.add_argument('--protected-feature', help='protected feature', default="new")
