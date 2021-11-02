@@ -128,7 +128,7 @@ def read_args():
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
     parser.add_argument('--alpha', help='alpha.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
-    parser.add_argument('--protected-feature', help='protected feature', default="new")
+    parser.add_argument('--protected_feature', help='protected feature')
     input_args = parser.parse_args()
     return vars(input_args)
 
