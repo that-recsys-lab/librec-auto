@@ -10,7 +10,7 @@ setuptools.setup(
     author="Masoud Mansoury, Nasim Sonboli, Robin Burke, Will Mardick-Kanter and others",
     author_email="masoodmansoury@gmail.com",
     description=
-    "The librec-auto project aims to automate recommender system experimens using LibRec.",
+    "The librec-auto project aims to automate recommender system experiments using LibRec.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/that-recsys-lab/librec-auto",
