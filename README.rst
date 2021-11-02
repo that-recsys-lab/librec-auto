@@ -23,6 +23,7 @@ minimal experimenter intervention, and supports such capabilities as:
 
 * recommendation result re-ranking
 * re-running evaluations without re-computing results
+* fairness-aware metrics
 * summarizing results in output graphs
 * integration with Slack and Dropbox
 
@@ -49,16 +50,18 @@ This directory contains the Python libraries for the librec_auto module. There a
 respositories:
 
 * `librec-auto-java`_: Contains the java source for the wrapper between LibRec and librec-auto, which is implemented in the ``auto.jar`` file.
-* `librec-auto-sample`_: Contains sample data and configuration files that can be used to explore the functionality of librec-auto
+* `librec-auto-demo2021`_: Contains sample data and configuration files that can be used to explore the functionality of librec-auto
 
 .. _librec-auto-java: https://github.com/that-recsys-lab/librec-auto-java
-.. _librec-auto-sample: https://github.com/that-recsys-lab/librec-auto-sample
+.. _librec-auto-sample: https://github.com/that-recsys-lab/librec-auto-demo2021
 
 Repo structure
 ===============
 
-* ``/jar``: Contains the jar files for LibRec and the wrapper.
-* ``/rules``: Contains the rules for translating configuration data to LibRec properties format.
-* ``/librec_auto``: Contains the Python code for the project.
-* ``/doc``: Contains documentation for the project
-* ``/test``: Contains the unit tests (not many right now)
+* ``/bin``: Contains auxiliary scripts including the study setup wizard.
+* ``/librec_auto/jar``: Contains the jar files for LibRec and the wrapper.
+* ``/librec_auto/rules``: Contains the rules for translating configuration data to LibRec properties format.
+* ``/librec_auto/core``: Contains the Python code for the project.
+* ``/librec_auto/docs``: Contains documentation for the project
+* ``/librec_auto/test``: Contains the unit tests (not many right now)
+* ``/librec_auto/library``: Contains libraries of configuration information (look hear to see how to configure different algorithms)
