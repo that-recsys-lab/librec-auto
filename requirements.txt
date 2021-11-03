@@ -8,8 +8,3 @@ slackclient>=2.0
 slack
 slacker
 optuna
-tensorflow=2.2.0
-keras
-torch
-cornac
-recommenders

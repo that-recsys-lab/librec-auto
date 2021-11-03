@@ -3,6 +3,8 @@ import setuptools
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+ms_recommend_extras = ['tensorflow==2.2.0', 'keras', 'torch', 'cornac', 'recommenders']
+
 setuptools.setup(
     name="librec-auto",
     version="0.2.6",
@@ -26,8 +28,9 @@ setuptools.setup(
                       'slack',
                       'slacker',
                       'optuna',
-                      'tensorflow', 'keras', 'torch', 'cornac', 'recommenders'
+
     ],
+    extras_require={ 'ms_recommend': ms_recommend_extras },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
