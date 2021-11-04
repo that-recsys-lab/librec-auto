@@ -3,6 +3,10 @@ include librec_auto/core/*
 include librec_auto/core/cmd/*
 include librec_auto/core/cmd/post/*
 include librec_auto/core/cmd/rerank/*
+include librec_auto/core/cmd/eval/*
+include librec_auto/core/cmd/alg/*
+include librec_auto/core/eval/*
+include librec_auto/core/eval/metrics/*
 include librec_auto/core/util/*
 include librec_auto/jar/*.jar
 include librec_auto/docs/*
@@ -17,3 +21,4 @@ include librec_auto/library/*.xml
 include librec_auto/rules/*.xml
 include librec_auto/test/conf/*.xml
 include librec_auto/core/cmd/rerank/MCFSolve
+include bin/*
