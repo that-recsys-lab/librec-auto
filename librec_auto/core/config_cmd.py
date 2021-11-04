@@ -37,6 +37,8 @@ class ConfigCmd:
         self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
+        if self._xml_input is None:
+            raise InvalidConfiguration('Parsing of config file failed.')
         self.protected_features = ProtectedFeature(ProtectedFeature.parse_protected(self), 
                                                    self._files.get_temp_dir_path())
 
