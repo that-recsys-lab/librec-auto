@@ -53,7 +53,7 @@ respositories:
 * `librec-auto-demo2021`_: Contains sample data and configuration files that can be used to explore the functionality of librec-auto
 
 .. _librec-auto-java: https://github.com/that-recsys-lab/librec-auto-java
-.. _librec-auto-sample: https://github.com/that-recsys-lab/librec-auto-demo2021
+.. _librec-auto-demo2021: https://github.com/that-recsys-lab/librec-auto-demo2021
 
 Repo structure
 ===============
