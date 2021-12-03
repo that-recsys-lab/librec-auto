@@ -33,7 +33,6 @@ def extract_full_info(study, entries = None, repeat = False):
     table_values = defaultdict(list)
     time_stamp = study._timestamp
 
-
     # iterate over experiments in study for metric info
     for exp in study._experiments.keys():
         
@@ -48,6 +47,8 @@ def extract_full_info(study, entries = None, repeat = False):
         for metric in study.get_metric_names():
             table_values[metric] = curr_exp._metric_info[metric]
         
+        # print(table_values)
+        # this is where error is caused
         exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
     

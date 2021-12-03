@@ -8,10 +8,11 @@ import os
 
 
 class ProtectedFeature:
-    def __init__(self, protected_features: defaultdict, temp_dir) -> None:
+    def __init__(self, protected_features: dict, temp_dir) -> None:
+
         self._protected_features = protected_features
         self._temporary_file_directory = temp_dir
-        self.create_protected_features_file()
+        # self.create_protected_features_file()
 
     def cleanup(self):
         # cleanup temp directory
@@ -23,7 +24,10 @@ class ProtectedFeature:
                 print(var, self._protected_features[feature][var])
 
     def get_protected_feature_names(self):
-        return list(self._protected_features.keys())
+        if self._protected_features:
+            return list(self._protected_features.keys())
+        else:
+            return None
 
     def protected_feature_cli(self, pro_feat=None):
         if pro_feat:
