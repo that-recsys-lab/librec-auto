@@ -139,9 +139,6 @@ class LogFile:
                 if evaluator is not None:
                     metric_name = evaluator.group(1)
                     metric_value = evaluator.group(2)
-                    print(f'Name: {metric_name}')
-                    print(f'value: {metric_value}')
-                    print(f'value casted to float: {float("{:.8f}".format(float(metric_value)))}')
                     self.add_metric_value(metric_name, metric_value)
 
                 if final is not None:
