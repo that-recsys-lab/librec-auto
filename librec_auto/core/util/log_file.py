@@ -108,7 +108,7 @@ class LogFile:
         * Exceptions from librec log
         * Errors from librec log 
         """
-        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is (-?[0-9.]*)'
+        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is [-]?(((\d+\.\d*)?|\.\d+)([eE][+-]?\d+)?)'
         kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[.+split/cv_(\d+)/test.txt\]'
         # Old pattern
         # kcv_pattern_str = r'.*Splitting training and testing with [.0-9]*% ratio on fold ([0-9]*)'
@@ -139,6 +139,9 @@ class LogFile:
                 if evaluator is not None:
                     metric_name = evaluator.group(1)
                     metric_value = evaluator.group(2)
+                    print(f'Name: {metric_name}')
+                    print(f'value: {metric_value}')
+                    print(f'value casted to float: {float("{:.8f}".format(float(metric_value)))}')
                     self.add_metric_value(metric_name, metric_value)
 
                 if final is not None:
