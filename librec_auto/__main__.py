@@ -287,7 +287,7 @@ def setup_commands(args: dict, config: ConfigCmd):
         if post_flag:
             final_cmds.append(PostCmd())
         else:
-            final_cmds.append(CleanupCmd)
+            final_cmds.append(CleanupCmd())
 
         # cmd = init_cmds + check_cmds + exec_cmds + final_cmds
 
@@ -465,6 +465,8 @@ if __name__ == '__main__':
                    # if 2**exponent_expected == config.get_sub_exp_count():
                         range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
                         value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
+
+                        print("ranges:",config._xml_input.xpath('/librec-auto/rerank/*/@range'))
 
                         continue_rerank = False
 
