@@ -15,9 +15,10 @@ from librec_auto.core.util.errors import *
 
 
 class RerankCmd(Cmd):
-    def __init__(self):
+    def __init__(self, exp_no=-1):
         self._files = None
         self._config = None
+        self._exp_no = exp_no
 
     def __str__(self):
         return f'RerankCmd()'
@@ -54,10 +55,14 @@ class RerankCmd(Cmd):
         self._files = config.get_files()
         self._config = config
 
-        if self._files.get_exp_count() > 0:
-            for i in range(0, self._files.get_exp_count()):
-                sub_path = self._files.get_exp_paths(i)
-                self.rerank(sub_path)
+        if self._exp_no == -1:
+            if self._files.get_exp_count() > 0:
+                for i in range(0, self._files.get_exp_count()):
+                    sub_path = self._files.get_exp_paths(i)
+                    self.rerank(sub_path)
+        else:
+            sub_path = self._files.get_exp_paths(self._exp_no)
+            self.rerank(sub_path)
 
     def rerank(self, sub_path):
         conf_xml = sub_path.get_study_conf()
