@@ -23,6 +23,7 @@ def read_args():
     parser.add_argument('result', help='Path to destination results file')
     parser.add_argument('--model', choices=['StandardVAE'],
                         default='StandardVAE')
+    # -- Arguments for StandardVAE --
     parser.add_argument('--max_len', type=int, default=10)
     parser.add_argument('--LATENT_DIM', type=int, default=50)
     parser.add_argument('--ENCODER_DIMS', type=int, default=100)
