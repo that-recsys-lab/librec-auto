@@ -35,7 +35,7 @@ class MMR(Reranker):
                         sim[i][j] = rerank_helper.update_sim_matrix_dic(index1, index2, rerank_helper.binary)
 
                     sim_max[i] = np.max(sim[i])
-                scores = rerank_helper.lamb * rec - (1 - rerank_helper.lamb) * sim_max
+                scores = (1 - rerank_helper.lamb) * rec - rerank_helper.lamb * sim_max
 
             return scores, rerank_helper, user_helper
         return mmr
@@ -60,7 +60,7 @@ def read_args():
     parser.add_argument('--lambda', help='The weight for re-ranking.')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
     parser.add_argument('--alpha', help='alpha.')
-    parser.add_argument('--protected-feature', help='protected feature', default="new")
+    parser.add_argument('--protected_feature', help='protected feature')
     parser.add_argument('--method', help='reranking method')
 
     input_args = parser.parse_args()

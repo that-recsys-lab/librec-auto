@@ -149,7 +149,7 @@ class CheckCmd(Cmd):
                     else:
                         # for now continue, should add check to make sure value
                         # from reference xml and config xml are same type.
-                        continue
+                        pass
                 
 
         # create filepath attribute for errors as src
@@ -174,7 +174,7 @@ class CheckCmd(Cmd):
             if check_tree is not None:
                 if len(log_object._err_msgs.keys()) != 0:
                     # dict-list comprehension to filter out ignorable errors
-                    temp_dict = {k:[m for _, m in log_object._err_msgs[k] if not self.is_ignorable_error(m)]
+                    temp_dict = {k:[(line, m) for line, m in log_object._err_msgs[k] if not self.is_ignorable_error(m)]
                                                                     for k in log_object._err_msgs.keys()}
                     # filter out empty lists
                     temp_dict = {k:v for k,v in temp_dict.items() if v}
@@ -182,15 +182,15 @@ class CheckCmd(Cmd):
                     if len(temp_dict.keys()) != 0:
                         for error in temp_dict.keys():
                             for line_number, message in temp_dict[error]:
-                                message_element = etree.SubElement(check_tree, "message", {'src': str(exp_path), 
+                                message_element = etree.SubElement(check_tree, "message", {'src': str(log_object.get_log_path()),
                                                                                            'logline': str(line_number),
                                                                                            'exp_num': str(i)})
                                 message_element.text = message.strip('\n')
                     else:
-                        message_element = etree.SubElement(check_tree, "message", {'src': str(log_object._log_path)})
+                        message_element = etree.SubElement(check_tree, "message", {'src': str(log_object.get_log_path())})
                         message_element.text = f"No errors found in experiment {i} log."
                 else:
-                    message_element = etree.SubElement(check_tree, "message", {'src': str(log_object._log_path)})
+                    message_element = etree.SubElement(check_tree, "message", {'src': str(log_object.get_log_path())})
                     message_element.text = f"No errors found in experiment {i} log."
 
         output_tree.getroottree().write(output_xml_path, pretty_print=True)

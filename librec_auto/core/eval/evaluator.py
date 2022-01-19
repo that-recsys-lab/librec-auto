@@ -70,8 +70,9 @@ class Evaluator:
             if metric_dict.get('script') != None:
                 # Run this script with the params
                 exec_path = self._conf.get_files().get_study_path()
+                metric_script = metric_dict['script'].as_posix()
 
-                proc_spec = [sys.executable, metric_dict['script']]
+                proc_spec = [sys.executable, metric_script]
                 params = [
                     '--conf', self._conf.get_files().get_config_file_path().name,
                     '--test', str(self._test_data_file),

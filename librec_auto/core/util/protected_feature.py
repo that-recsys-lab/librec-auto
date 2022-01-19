@@ -107,7 +107,7 @@ class ProtectedFeature:
                 try:
                     protected_feat = copy.copy(self._protected_features[pf_name])
 
-                    element.attrib['name'] = 'protected-feature'
+                    element.attrib['name'] = 'protected_feature'
                     del element.attrib['ref']
                     element.attrib['type'] = protected_feat['type']
                     if 'values' in protected_feat.keys():
