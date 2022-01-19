@@ -227,13 +227,58 @@ def maybe_add_eval(config: ConfigCmd):
         return True
     else: return False
 
+def execution_platform(config: ConfigCmd, section: str) -> str:
+    '''
+    pass in section to examine what platform will be used for execution
+    params:
+        config: config object
+        section: string, name of section to examine
+    returns:
+        'librec': if section uses librec
+        'system': if section uses script
+        'both': if section has both librec and system executables
+    '''
+    study_xml = config._xml_input
+    config_section = study_xml.xpath(f'/librec-auto/{section}/script')
+    # if something returns from xpath
+    if config_section:
+        # for metric, could have both librec and system metrics
+
+        # look for scripts and classes, return either script, class, or both
+
+        if section == 'metric':
+            # get the children
+            for sib in config_section[0].itersiblings(preceding=True):
+                if sib.tag != 'script':
+                    return 'both'
+
+            for sib in config_section[0].itersiblings():
+                if sib.tag != 'script':
+                    return 'both'
+            
+            return 'system'
+            # if it's only a script then the length of getchildren will be 1: <script>
+            
+
+
+        else:
+            # if section is <alg> then there can only be one algorithm provided
+            # if config_section has something, then the algorithm is a script
+            return 'system'
+    
+    # should only enter if user doesn't provide metric
+    else:
+        return 'librec'
+
+
 
 
 # The purge rule is: if the command says to run step X, purge the results of X and everything after.
 def setup_commands(args: dict, config: ConfigCmd):
     action = args['action']
     purge_no_ask = args['quiet']
-
+    alg_lang = execution_platform(config, 'alg')
+    met_lang = execution_platform(config, 'metric')
     # Create flags for optional steps
     rerank_flag = config.has_rerank()
     post_flag = config.has_post()
@@ -413,15 +458,20 @@ if __name__ == '__main__':
     
     args = read_args()
 
-    purge_old_logs(args['target'] + "/*")
-    log_name = create_log_name('LibRec-Auto_log{}.log')
-    args['log_name'] = log_name
-    librec_auto_log = str(Path(args['target']) / args['log_name'])
+    
     if args['dev']:
+        log_name = create_log_name('LibRec-Auto_log{}.log')
+        args['log_name'] = log_name
+        librec_auto_log = str(Path(args['target']) / args['log_name'])
         logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.DEBUG)
     else:
+        purge_old_logs(args['target'] + "/*")
+        log_name = create_log_name('LibRec-Auto_log{}.log')
+        args['log_name'] = log_name
+        librec_auto_log = str(Path(args['target']) / args['log_name'])
         logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.WARNING)
 
+    logging.info("test")
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file():
         print("Error: LibRec JAR file is missing.")
@@ -431,10 +481,12 @@ if __name__ == '__main__':
             print_description(args)
         elif args['action'] == 'check':
             config = load_config(args)
+            #config.set_python_only(needs_librec(config))
             move_log_file(config)
             if config.is_valid():
                 try:
                     command = setup_commands(args, config)
+                    
                 except LibRecAutoException:
                     print("Exception caught, check output.xml file.")
                     logging.shutdown()

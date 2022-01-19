@@ -8,9 +8,11 @@ import os
 
 
 class ProtectedFeature:
-    def __init__(self, protected_features: defaultdict, temp_dir) -> None:
+    def __init__(self, protected_features: dict, temp_dir) -> None:
+
         self._protected_features = protected_features
         self._temporary_file_directory = temp_dir
+        # self.create_protected_features_file()
 
     def cleanup(self):
         # cleanup temp directory
@@ -22,7 +24,60 @@ class ProtectedFeature:
                 print(var, self._protected_features[feature][var])
 
     def get_protected_feature_names(self):
-        return list(self._protected_features.keys())
+        if self._protected_features:
+            return list(self._protected_features.keys())
+        else:
+            return None
+
+    def protected_feature_cli(self, pro_feat=None):
+        if pro_feat:
+            # pro_feat will be a string/key to map to self._protected_features
+            # which is a dict made of {attribute: value} pairs for a protected feature
+            protected_feature = self._protected_features[pro_feat]
+            cli_string = "--protected \"" + pro_feat
+            for attr in protected_feature.keys():
+                # if attr == 'xml':
+                #     continue
+                append_str = " " + attr + ":" + protected_feature[attr]
+                cli_string = cli_string + append_str
+            return cli_string + "\""
+        else:
+            master_string = ""
+            for pf in self._protected_features.keys():
+                if master_string == "":
+                    cli_string = master_string + "--protected \"" + pf
+                else:
+                    cli_string = master_string + " --protected \"" + pf
+                append_str = ""
+                for attr in self._protected_features[pf].keys():
+                    # if attr == 'xml':
+                    #     continue
+                    append_str = append_str + " " + attr + ":" + self._protected_features[pf][attr]
+                master_string = cli_string + append_str + "\""
+            return master_string
+    
+    def create_protected_features_file(self):
+        temp_dir_path = self._temporary_file_directory
+        protected_features_file = str(temp_dir_path / "protected-feature-file.xml")
+        
+        root = etree.Element("protected-feature-file")
+
+        pf_copy = copy.deepcopy(self._protected_features)
+
+        for protected_feature in pf_copy.keys():
+            new_pf = etree.SubElement(root, 'protected_feature')
+            new_pf.set('name', protected_feature)
+            for attr in pf_copy[protected_feature].keys():
+                if attr == 'column':
+                    new_pf.text = pf_copy[protected_feature][attr]
+                    continue
+                new_pf.set(attr, pf_copy[protected_feature][attr])
+
+        root.getroottree().write(protected_features_file, pretty_print=True)
+
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.parse(protected_features_file, parser)
+        tree.write(protected_features_file, encoding='utf-8', pretty_print=True)
     
     def replace_referenced_protected_features(self, tree):
         # function for replacing the referenced protected features with all data
