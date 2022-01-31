@@ -29,6 +29,9 @@ class LogFile:
 
         self.parse_log()
 
+    def get_log_path(self):
+        return self._log_path
+
     def newest_log(self, paths):
         log_dir = paths.get_path('log')
         log_dir_files = os.listdir(log_dir)

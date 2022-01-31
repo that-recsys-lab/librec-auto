@@ -49,6 +49,7 @@ def extract_full_info(study, entries = None, repeat = False):
         
         # print(table_values)
         # this is where error is caused
+
         exp_df = pd.DataFrame(table_values)
         exp_frames.append(exp_df)
     
@@ -70,6 +71,7 @@ def extract_summary_info(study):
             table_values[metric].append(curr_exp._metric_avg[metric])
 
     # try:
+    print('full', table_values)
     exp_results = pd.DataFrame(table_values)
     return (exp_results, time_stamp)
     # except:
