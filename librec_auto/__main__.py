@@ -219,6 +219,20 @@ def build_librec_commands(librec_action: str, args: dict, config: ConfigCmd, BBO
         raise LibRecAutoException("Building Librec Commands",
                                   f"While building librec command {librec_action}, a script failed")
 
+def build_eval_commands(args: dict, config: ConfigCmd, execution: str):
+    '''
+    function to build the seqeunce of eval commands based on where they'll be executed
+    '''
+    experiment_cmds = None
+    if execution == 'system':
+        experiment_cmds = [EvalCmd(args, config)]
+    if execution == 'both':
+        experiment_cmds = [build_librec_commands('eval', args, config), EvalCmd(args, config)]
+    # third option: if librec
+    if execution == 'librec':
+        experiment_cmds = [build_librec_commands('eval', args, config)]
+
+    return SequenceCmd(experiment_cmds)
 
 def maybe_add_eval(config: ConfigCmd):
     study_xml = config._xml_input
@@ -243,12 +257,13 @@ def execution_platform(config: ConfigCmd, section: str) -> str:
     # if something returns from xpath
     if config_section:
         # for metric, could have both librec and system metrics
-
         # look for scripts and classes, return either script, class, or both
-
         if section == 'metric':
             # get the children
+            # have to check siblings before and after 'config_section' element
             for sib in config_section[0].itersiblings(preceding=True):
+                # if there are only other script tags, then return 'system'
+                # if there's anything else, return 'both'
                 if sib.tag != 'script':
                     return 'both'
 
@@ -258,15 +273,12 @@ def execution_platform(config: ConfigCmd, section: str) -> str:
             
             return 'system'
             # if it's only a script then the length of getchildren will be 1: <script>
-            
-
-
         else:
             # if section is <alg> then there can only be one algorithm provided
-            # if config_section has something, then the algorithm is a script
+            # if config_section is not none, then the algorithm must be a script
             return 'system'
     
-    # should only enter if user doesn't provide metric
+    # should only enter if user doesn't include a script, meaning librec only
     else:
         return 'librec'
 
@@ -372,7 +384,8 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd1 = build_librec_commands('full', args, config)
         add_eval = maybe_add_eval(config=config)
         if add_eval:
-            cmd2 = EvalCmd(args, config)  # python-side eval
+            # cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd2 = build_eval_commands(args, config, met_lang)
             cmd = SequenceCmd([cmd1, cmd2])
         else: cmd = SequenceCmd([cmd1])
         if rerank_flag:
@@ -383,6 +396,7 @@ def setup_commands(args: dict, config: ConfigCmd):
         return bracketed_cmd
 
     if action =='run' and config.has_alg_script():
+        # if met_lang == 'system':
         cmd1 = build_alg_commands(args, config)
         add_eval = maybe_add_eval(config=config)
         if add_eval:
@@ -471,7 +485,7 @@ if __name__ == '__main__':
         librec_auto_log = str(Path(args['target']) / args['log_name'])
         logging.basicConfig(filename=librec_auto_log,filemode='w',level=logging.WARNING)
 
-    logging.info("test")
+
     jar_path = Path(librec_auto.__file__).parent / "jar" / "auto.jar"
     if not jar_path.is_file():
         print("Error: LibRec JAR file is missing.")
