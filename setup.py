@@ -19,7 +19,6 @@ setuptools.setup(
 	install_requires=['matplotlib',
                       'pandas',
                       'numpy',
-                      'progressbar',
                       'lxml',
                       'cryptography',
                       'slackclient>=2.0',

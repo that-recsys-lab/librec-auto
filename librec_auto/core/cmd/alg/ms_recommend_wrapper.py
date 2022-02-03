@@ -64,7 +64,9 @@ def main():
     temp_weights_path = result_file_path.parent / 'svae_weights.hdf5'
 
     if model == 'StandardVAE':
-        tensorflow.python.framework_ops.disable_eager_execution()
+        print("Running StandardVAE")
+        tensorflow.compat.v1.disable_eager_execution()
+        #tensorflow.python.framework_ops.disable_eager_execution()
         train_df = pd.read_csv(training_path,
                             sep="	", header=None)
         train_df.columns = ["userID", "itemID", "rating"]
