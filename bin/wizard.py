@@ -90,6 +90,8 @@ if __name__ == '__main__':
     config_dir.mkdir(parents=True)
     data_dir = study_path / 'data'
     data_dir.mkdir(parents=True)
+    data_split_dir = data_dir / 'split'
+    data_split_dir.mkdir()
     post_dir = study_path / 'post'
     post_dir.mkdir(parents=True)
 
@@ -104,7 +106,7 @@ if __name__ == '__main__':
     print(f'Your study located at {study_path} is ready to run.')
     print('Run the following commands (assumes librec-auto package is installed):')
     print(f'cd {study_path}')
-    print('python -m librec_auto run')
+    print('python -m librec_auto run -t .')
     print('When the study completes, the evaluation results can be found in the')
     print(f'directory {post_dir} as CSV files.')
     print('To make changes to your study configuration, edit the configuration file')
