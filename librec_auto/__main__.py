@@ -28,11 +28,10 @@ def read_args():
         'For documentation, refer to: https://librec-auto.readthedocs.io/en/latest/'
     )
 
-    # todo remove py-eval AS
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check', 'py-eval'
+                            'status', 'describe', 'check', 'show'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
@@ -140,7 +139,8 @@ May result in no action if all computations are up-to-date and no purge option i
     'post': 'Run post-processing steps',
     'purge':
     'Purge cached computations. Uses -p flag to determine what to purge',
-    'status': 'Print out the status of the experiments'
+    'status': 'Print out the status of the experiments',
+    'show': 'Show the steps compiled from the configuration file.'
 }
 
 
@@ -380,7 +380,7 @@ def setup_commands(args: dict, config: ConfigCmd):
 
 
     # re-run experiment and continue
-    if action == 'run' and not config.has_alg_script():
+    if (action == 'run' or action == 'show') and not config.has_alg_script():
         cmd1 = build_librec_commands('full', args, config)
         add_eval = maybe_add_eval(config=config)
         if add_eval:
@@ -395,7 +395,7 @@ def setup_commands(args: dict, config: ConfigCmd):
         bracketed_cmd = bracket_sequence('all', args, config, cmd)
         return bracketed_cmd
 
-    if action =='run' and config.has_alg_script():
+    if (action == 'run' or action == 'show') and config.has_alg_script():
         # if met_lang == 'system':
         cmd1 = build_alg_commands(args, config)
         add_eval = maybe_add_eval(config=config)
@@ -423,13 +423,6 @@ def setup_commands(args: dict, config: ConfigCmd):
         cmd = SequenceCmd([cmd1, cmd2])
         bracketed_cmd = bracket_sequence('post', args, config, cmd)
         return bracketed_cmd
-
-    # # Running python side evaluation
-    # if action == 'py-eval':
-    #     cmd = SequenceCmd([EvalCmd(args, config)])
-    #     if post_flag:
-    #         cmd.add_command(PostCmd())
-    #     return cmd
 
     # check setup of experiment
     # We don't check on algorithm scripts
@@ -507,6 +500,8 @@ if __name__ == '__main__':
                     clean = CleanupCmd()
                     clean.execute(config)
                     exit(-1)
+
+
                 
                 if args['dry_run']:
                     command.dry_run(config)
@@ -541,7 +536,9 @@ if __name__ == '__main__':
                     command = setup_commands(args, config)
 
                 if isinstance(command, Cmd):
-                    if args['dry_run']:
+                    if args['action'] == 'show':
+                        command.show()
+                    elif args['dry_run']:
                         command.dry_run(config)
                     else:
                         try: 
@@ -556,61 +553,65 @@ if __name__ == '__main__':
 
 
                 elif isinstance(command, list):
-                    vconf = config._var_coll.var_confs
-
-                    num_of_vars = len([0 for var in vconf[0].vars])
-                    
-                    range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
-
-                    range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
-
-                    range_val_store = [[min(array), max(array)] for array in range_val_store]
-
-                    check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//lower')])
-
-                    if check_rerank > 0:
-                        raise InvalidConfiguration("Optimization", "Optimization is not currently supported with reranking")
-
-                    # exponent_expected = num_of_vars
-                    #
-                    # for tup in range_val_store:
-                    #     if tup[0] == tup[1]:
-                    #         exponent_expected -= 1
-
-                   # if 2**exponent_expected == config.get_sub_exp_count():
-                    range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
-                    value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
-
-                    continue_rerank = False
-
-                    if isinstance(command[-2], RerankCmd):
-
-                        final_commands = command[-2:]
-
-                        command = command[:int(value_elems[0])+2]
-
-                        continue_rerank = True
-
-                        command = command + final_commands
-
-                    bbo = BBO.BBO(range_list, len(range_val_store), command[3:], config)
-                    file_path = bbo.run_purge(command[0])
-
-                    metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
-
-                    if metric in bbo.metric_map:
-                        bbo.set_optimization_direction(metric)
+                    if args['action'] == 'show':
+                        for cmd in command:
+                            cmd.show()
                     else:
-                        bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
+                        vconf = config._var_coll.var_confs
 
-                    # Setup Command
-                    command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
-                    # Split Command
-                    command[2].execute(config)
+                        num_of_vars = len([0 for var in vconf[0].vars])
 
-                    bbo.file_path = file_path
-                        
-                    bbo.run(int(value_elems[0]))
+                        range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
+
+                        range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
+
+                        range_val_store = [[min(array), max(array)] for array in range_val_store]
+
+                        check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//lower')])
+
+                        if check_rerank > 0:
+                            raise InvalidConfiguration("Optimization", "Optimization is not currently supported with reranking")
+
+                        # exponent_expected = num_of_vars
+                        #
+                        # for tup in range_val_store:
+                        #     if tup[0] == tup[1]:
+                        #         exponent_expected -= 1
+
+                        # if 2**exponent_expected == config.get_sub_exp_count():
+                        range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
+                        value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
+
+                        continue_rerank = False
+
+                        if isinstance(command[-2], RerankCmd):
+
+                            final_commands = command[-2:]
+
+                            command = command[:int(value_elems[0])+2]
+
+                            continue_rerank = True
+
+                            command = command + final_commands
+
+                        bbo = BBO.BBO(range_list, len(range_val_store), command[3:], config)
+                        file_path = bbo.run_purge(command[0])
+
+                        metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
+
+                        if metric in bbo.metric_map:
+                            bbo.set_optimization_direction(metric)
+                        else:
+                            bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
+
+                        # Setup Command
+                        command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
+                        # Split Command
+                        command[2].execute(config)
+
+                        bbo.file_path = file_path
+
+                        bbo.run(int(value_elems[0]))
 
                         # print("continue_rerank", config.has_rerank())
                         # if config.has_rerank():
@@ -618,9 +619,9 @@ if __name__ == '__main__':
                         #     # command[-2].execute(config)
                         #     command[-1].execute(config)
                         # else:
-                    cleanup = command[-1]
-                    cleanup.execute(config)
-                    create_study_output(config)
+                        cleanup = command[-1]
+                        cleanup.execute(config)
+                        create_study_output(config)
 
 
 

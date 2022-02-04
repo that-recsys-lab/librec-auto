@@ -21,8 +21,8 @@ class PostCmd(Cmd):
     def __str__(self):
         return f'PostCmd()'
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config):
         self._config = config

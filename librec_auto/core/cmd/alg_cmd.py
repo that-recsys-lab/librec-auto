@@ -20,9 +20,8 @@ class AlgCmd(Cmd):
         self._config: ConfigCmd = None
         self._exp_path: ExpPaths = None
 
-
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config):
         self.execute(dry_run=True)

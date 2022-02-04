@@ -17,8 +17,8 @@ class SetupCmd(Cmd):
         super().__init__()
         self._no_java_flag = no_java_flag
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config: ConfigCmd):
         print(f"librec-auto (DR): Executing setup command {self}")

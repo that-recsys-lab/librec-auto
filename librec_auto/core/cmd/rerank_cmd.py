@@ -22,8 +22,8 @@ class RerankCmd(Cmd):
     def __str__(self):
         return f'RerankCmd()'
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config):
         self._files = config.get_files()
