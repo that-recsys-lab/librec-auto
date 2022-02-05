@@ -582,6 +582,8 @@ if __name__ == '__main__':
                         range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
                         value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
 
+                        print("ranges:",config._xml_input.xpath('/librec-auto/rerank/*/@range'))
+
                         continue_rerank = False
 
                         if isinstance(command[-2], RerankCmd):
