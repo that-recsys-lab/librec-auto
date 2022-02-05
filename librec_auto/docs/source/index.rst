@@ -18,6 +18,7 @@ Find a section
    configuration_checking
    python-side-evaluation
    supported-algorithms
+   alg_info
    command-line
 
 Indices and tables

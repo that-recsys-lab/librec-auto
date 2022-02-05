@@ -22,8 +22,8 @@ class LibrecCmd(Cmd):
         self._config: ConfigCmd = None
         self._exp_path: ExpPaths = None
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     # 2020-01-06 RB Theoretically, subprocess.run is the right way to do this, but capturing the log output
     # seems to work more naturally with Popen. A mystery for future developers. Also, capture_output requires
@@ -175,10 +175,10 @@ class LibrecCmd(Cmd):
                 if self.split_exists():
                     return 'exp-eval'
                 else:
-                    return 'run'
+                    return 'full'
 
         if self._command == 'full':
-            return 'run'
+            return 'full'
 
         if self._command == 'check':
             return 'check'

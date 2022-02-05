@@ -29,6 +29,9 @@ class LogFile:
 
         self.parse_log()
 
+    def get_log_path(self):
+        return self._log_path
+
     def newest_log(self, paths):
         log_dir = paths.get_path('log')
         log_dir_files = os.listdir(log_dir)
@@ -108,7 +111,7 @@ class LogFile:
         * Exceptions from librec log
         * Errors from librec log 
         """
-        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is (-?[0-9.]*)'
+        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is [-]?(((\d+\.\d*)?|\.\d+)([eE][+-]?\d+)?)'
         kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[.+split/cv_(\d+)/test.txt\]'
         # Old pattern
         # kcv_pattern_str = r'.*Splitting training and testing with [.0-9]*% ratio on fold ([0-9]*)'

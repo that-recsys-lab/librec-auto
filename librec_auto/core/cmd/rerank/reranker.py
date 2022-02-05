@@ -39,7 +39,7 @@ class Rerank_Helper():
         # protected data
         # try: rerank_helper.protected = str(args['protected'])
         try:
-            self.protected = args['protected-feature']
+            self.protected = args['protected_feature']
                 
         
         except:

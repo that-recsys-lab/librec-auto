@@ -19,16 +19,16 @@ class Cmd(ABC):
         return f"Cmd({type(self)})"
 
     @abstractmethod
-    def setup(self, args):
-        pass
-
-    @abstractmethod
     def dry_run(self, config):
         print(f"librec-auto (DR): Executing command {self}")
 
     @abstractmethod
     def execute(self, config):
         pass
+
+    @abstractmethod
+    def show(self):
+        print(type(self))
 
 
 class SequenceCmd(Cmd):
@@ -42,10 +42,6 @@ class SequenceCmd(Cmd):
         if len(cmds) > 0:
             self.set_commands(cmds)
 
-    def setup(self, args):
-        for cmd in self.commands:
-            cmd.setup(args)
-
     def set_commands(self, cmds):
         self._commands = cmds
         self.status = Cmd.STATUS_CONFIG
@@ -58,7 +54,6 @@ class SequenceCmd(Cmd):
                 self._commands[pos:pos] = cmd
             else:
                 self._commands.extend(cmd)
-
 
     def get_commands(self):
         return self._commands
@@ -76,3 +71,8 @@ class SequenceCmd(Cmd):
                 self.status = Cmd.STATUS_ERROR
                 return
         self.status = Cmd.STATUS_COMPLETE
+
+    def show(self):
+        for cmd in self._commands:
+            cmd.show()
+

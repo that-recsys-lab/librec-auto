@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 from datetime import datetime
 import logging
+
+# from librec_auto.core.config_cmd import ConfigCmd
 # from librec_auto.core.config_cmd import ConfigCmd
 from . import xml_utils
 import subprocess
@@ -135,6 +137,8 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
         # try with Popen as proc:
         # 
         output, errors = script_output.communicate()
+        rc = script_output.returncode
+
         if errors:
             str_err = str(errors, encoding='utf-8')
             str_err = str_err.strip('<')
@@ -143,9 +147,9 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
             ret_lst = [x for x in ret_lst if x != '']
             if len(ret_lst) > 1:
                 return ret_lst
-            return str_err
+            return rc
         else:
-            return 0
+            return rc
     except CalledProcessError as e:
         return e.returncode
 
@@ -156,15 +160,19 @@ def create_log_name(filename: str):
     return filename.format(_timestamp)
 
 def move_log_file(config):
+        
+    print(logging.root.level)
+    log_level = logging.root.level
+    
     current_log_name = config._log_filename
     temp_dir_path = config._files.get_temp_dir_path()
     moved_file = str(temp_dir_path / current_log_name)
-    os.rename(current_log_name, moved_file)
-    new_log_file = logging.FileHandler(moved_file, mode='a')
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-    logger.addHandler(new_log_file)
+    
+    
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    logging.basicConfig(moved_file,level=log_level, force=True)
+    logging.warning("inside move_log_file...")
 
 def purge_old_logs(path: str):
     for file in glob.glob(path):

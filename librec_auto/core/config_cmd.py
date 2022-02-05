@@ -37,8 +37,12 @@ class ConfigCmd:
         self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
+        if self._xml_input is None:
+            raise InvalidConfiguration('Parsing of config file failed.')
         self.protected_features = ProtectedFeature(ProtectedFeature.parse_protected(self), 
                                                    self._files.get_temp_dir_path())
+
+        self._python_only = False
 
         if self.is_valid():
             self._files.set_data_path(self._xml_input)
@@ -72,6 +76,20 @@ class ConfigCmd:
     def get_value_conf(self, subexp_no):
         return self._var_coll.var_confs[subexp_no]
 
+    def has_alg_script(self):
+        '''
+        Determine if <alg> element in configuration file has script.
+        '''
+        alg_script_elem = single_xpath(self._xml_input, '/librec-auto/alg/script')
+        return (alg_script_elem is not None)
+    
+    def has_metric_script(self):
+        '''
+        Determine if <metric> element in configuration file has script.
+        '''
+        metric_script_element = single_xpath(self._xml_input, '/librec-auto/metric/script')
+        return (metric_script_element is not None)
+
     def get_bbo_steps(self):
         if self._bbo_steps > 0:
             return self._bbo_steps
@@ -93,6 +111,9 @@ class ConfigCmd:
 
     def get_files(self):
         return self._files
+
+    def set_python_only(self, python_check: bool):
+        self._python_only = python_check
 
     def read_xml(self, path_str):
         path = self._files.get_config_file_path()

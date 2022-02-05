@@ -15,8 +15,8 @@ class PurgeCmd(Cmd):
         self._no_ask = no_ask
         self._files = None
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config):
         print(f"librec-auto (DR): Executing purge command {self}")

@@ -48,6 +48,7 @@
 	
 	<alg>
 		<class>rec.recommender.class</class>
+		<script action="no-translate"/>
 
 		<!--general algorithm parameters -->
 		<iterator-max>rec.iterator.maximum</iterator-max>

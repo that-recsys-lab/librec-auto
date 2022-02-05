@@ -22,8 +22,8 @@ class CleanupCmd(Cmd):
     def __str__(self):
         return f"CleanupCmd()"
 
-    def setup(self, args):
-        pass
+    def show(self):
+        print(str(self))
 
     def dry_run(self, config):
         print(f'librec-auto (DR): Running status command {self}')

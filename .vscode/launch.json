@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         
         {
             "name": "librec_auto",
@@ -11,8 +12,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/librec_auto/__main__.py",
             "console": "integratedTerminal",
-            "args": [ "-t", "demo01", "-c", "test-config.xml", "run"],
-            "cwd": "/Users/will/Desktop/work/librec-auto-demo2020"
+            "args": [ "-t", "demo03","-c", "config03.xml", "-q", "run"],
+            "cwd": "/Users/will/Desktop/work/librec-auto-demo2021"
         }
     ]
 }

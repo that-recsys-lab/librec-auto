@@ -1,10 +1,9 @@
 from librec_auto.core.util import Status
 from librec_auto.core.util.errors import *
-import hyperopt as hp
-from hyperopt import fmin, tpe, STATUS_OK
 import optuna
 
-#Borrowed from https://stackoverflow.com/questions/58820574/how-to-sample-parameters-without-duplicates-in-optuna
+
+# Borrowed from https://stackoverflow.com/questions/58820574/how-to-sample-parameters-without-duplicates-in-optuna
 # Prevents repeated parameter values in the sampling. It seems like this should be the default
 # behavior.
 class RepeatPruner(optuna.pruners.BasePruner):
@@ -22,6 +21,7 @@ class RepeatPruner(optuna.pruners.BasePruner):
             return True
 
         return False
+
 
 #module to optimize
 class BBO:
@@ -113,7 +113,7 @@ class BBO:
 
         if self.create_params is not False:
             self.create_space(trial)
-            self.create_params = False
+            # self.create_params = False
 
         params = self.space
         if self.exp_no != 0:
