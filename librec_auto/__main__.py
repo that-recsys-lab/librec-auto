@@ -1,6 +1,6 @@
 import argparse
 from librec_auto.core.cmd.eval_cmd import EvalCmd
-from librec_auto.core.config_cmd import ConfigCmd
+from librec_auto.core.config_cmd import ConfigCmd, compile_commands
 from datetime import datetime
 from pathlib import Path
 from librec_auto.core import read_config_file
@@ -12,7 +12,6 @@ from librec_auto.core.cmd import Cmd, SetupCmd, SequenceCmd, PurgeCmd, LibrecCmd
 import logging
 from librec_auto.core.util.utils import move_log_file
 from librec_auto.core.util.xml_utils import single_xpath
-from compile import compile_commands
 import librec_auto
 import os
 
