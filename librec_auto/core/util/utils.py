@@ -137,6 +137,8 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
         # try with Popen as proc:
         # 
         output, errors = script_output.communicate()
+        #Delete following line later - for debugging purposes
+        print(output)
         rc = script_output.returncode
 
         if errors:

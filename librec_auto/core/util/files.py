@@ -232,6 +232,7 @@ class ExpPaths:
 
     - log
     - result
+    - model (for MS alg implementation)
     - original (for re-ranking)
     - conf
     """
@@ -245,10 +246,11 @@ class ExpPaths:
         'log': 'dfs.log.dir',
         #                 'split': 'dfs.split.dir',
         'librec_result': 'dfs.result.dir',
+        'model': 'dfs.model.dir',
         'conf': 'dfs.config.dir'
     }
 
-    _sub_dirs = ['conf', 'log', 'result', 'original']
+    _sub_dirs = ['conf', 'log', 'result', 'original', 'model']
 
     exp_name = None
 
@@ -266,6 +268,10 @@ class ExpPaths:
 
         librec_result_path = Path(exp_name) / 'result'
         self.set_path('librec_result', librec_result_path)
+
+        #ADDED for wide and deep MS alg implementation
+        librec_model_path = Path(exp_name) / 'model'
+        self.set_path('model', librec_model_path)
 
         librec_prop_path = Path(
             exp_name

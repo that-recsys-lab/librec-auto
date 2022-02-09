@@ -90,8 +90,9 @@ class AlgCmd(Cmd):
                 split = cv_item['split']
 
                 result_file = sub_path.get_path('result') / f"out-{split}.txt"
-
-                ret_val = self.run_script(script_path, sub_path, train, test, result_file,
+                #MODEL DIR:
+                model_file = sub_path.get_path('model') / f"wide-deep-model.txt"
+                ret_val = self.run_script(script_path, sub_path, train, test, result_file, model_file,
                                         param_spec, dry_run=dry_run)
 
                 if ret_val != 0:
@@ -106,7 +107,7 @@ class AlgCmd(Cmd):
             logging.warning(
                 'More than one algorithm script found. Ignoring.')
 
-    def run_script(self, script, sub_paths, training_set, test_set, result_file, param_spec,
+    def run_script(self, script, sub_paths, training_set, test_set, result_file, model_file, param_spec,
                    dry_run=False):
         exec_path = self._config.get_files().get_study_path()
 
@@ -116,7 +117,8 @@ class AlgCmd(Cmd):
             self._config.get_files().get_config_file_path().name,
             training_set.absolute().as_posix(),
             test_set.absolute().as_posix(),
-            result_file.absolute().as_posix()
+            result_file.absolute().as_posix(),
+            model_file.absolute().as_posix(),
         ] + param_spec
         print("    Parameters: " + str(proc_spec))
         print("    Working directory: " + str(exec_path.absolute()))
