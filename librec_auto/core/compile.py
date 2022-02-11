@@ -19,9 +19,6 @@ class compile_commands():
     def __init__(self):
         pass
 
-
-
-
     def purge_type(self, args: dict) -> str:
         if 'purge' in args:
             return args['purge']
@@ -119,7 +116,9 @@ class compile_commands():
             'both': if section has both librec and system executables
         '''
         study_xml = config._xml_input
+        #need to relocate
         config_section = study_xml.xpath(f'/librec-auto/{section}/script')
+
         # if something returns from xpath
         if config_section:
             # for metric, could have both librec and system metrics
@@ -148,42 +147,48 @@ class compile_commands():
         else:
             return 'librec'
 
-
-    # The purge rule is: if the command says to run step X, purge the results of X and everything after.
     def setup_commands(self, args: dict, config: ConfigCmd):
-        action = args['action']
-        purge_no_ask = args['quiet']
-        alg_lang = self.execution_platform(config, 'alg')
-        met_lang = self.execution_platform(config, 'metric')
+        self.action = args['action']
+        self.purge_no_ask = args['quiet']
+
+        #generally returns 'librec' if there is no script
+        self.alg_lang = self.execution_platform(config, 'alg')
+        self.met_lang = self.execution_platform(config, 'metric')
         # Create flags for optional steps
-        rerank_flag = config.has_rerank()
-        post_flag = config.has_post()
+        self.rerank_flag = config.has_rerank()
+        self.post_flag = config.has_post()
 
         # Flag to use/avoid check
         # if true, user specified don't run check, else, run check.
-        no_check_flag = args['no_check']
-
-        # Set the password in the configuration if we have it
+        self.no_check_flag = args['no_check']
         if args['key_password']:
             config.set_key_password(args['key_password'])
 
-        # Purge files (possibly) from splits and subexperiments
-        if action == 'purge':
-            return PurgeCmd(self.purge_type(args), no_ask=purge_no_ask)
 
-        # Shows the status of the experiment
-        if action == 'status':
-            return StatusCmd()
+        #no describe?
+        call_functions_dictionary = {'split': self.split(), 'check': self.check(), 'bbo': self.bbo(), 'split': self.split(), 'purge': self.purge(), 'rerank': self.rerank(), \
+        'run': self.run_or_show(), 'show': self.run_or_show(), 'status': self.status(), 'post': self.post(), 'eval': self.eval()}
 
-        # Perform (only) post-processing on results
-        if action == 'post' and post_flag:
+        function = call_functions_dictionary[self.action]
+        function()
+
+        # Set the password in the configuration if we have it
+        
+
+    def purge(self): 
+        return PurgeCmd(self.purge_type(self.args), no_ask=self.purge_no_ask)
+
+    def status(self):
+        return StatusCmd()
+
+    def post(self):
+        if post_flag:
             return PostCmd()
-        # No post scripts available
-        if action == 'post' and not post_flag:
+        else:
             raise InvalidCommand(action, "No post-processing scripts available for \"post\" command")
-            
-        # Perform re-ranking on results, followed by evaluation and post-processing
-        if action == 'rerank' and rerank_flag:  # Runs a reranking script on the python side
+
+    def rerank(self): 
+        if self.rerank_flag:  # Runs a reranking script on the python side
             cmd1 = RerankCmd()
             cmd2 = self.build_librec_commands('eval', args, config)
             cmd3 = EvalCmd(args, config)  # python-side eval
@@ -191,19 +196,20 @@ class compile_commands():
             
             bracketed_cmd = self.bracket_sequence('rerank', args, config, cmd)
             return bracketed_cmd
-        # No re-ranker available
-        if action == 'rerank' and not rerank_flag:
-            raise InvalidCommand(action, "No re-ranker scripts available for \"rerank\" command.")
 
-        # LibRec actions
-        # re-run splits only
-        if action == 'split':
+        else:
+            raise InvalidCommand(action, "No re-ranker scripts available for \"rerank\" command.")
+            
+            
+
+    def split(self):
+        # if action == 'split':
             cmd = SequenceCmd([self.build_librec_commands('split', args, config)])
             bracketed_cmd = self.bracket_sequence('split', args, config, cmd)
             return bracketed_cmd
 
-        # re-run experiment
-        if action == 'bbo':
+    def bbo(self):
+        # if action == 'bbo':
             cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
             cmd2 = SetupCmd(False)
             cmd3 = [cmd1, cmd2]
@@ -242,9 +248,14 @@ class compile_commands():
 
             return cmd
 
+    def run_or_show(self):
+        if self.config.has_alg_script(): 
+            self.run_or_show_not_alg_script() 
+        else: 
+            self.run_or_show_with_alg_script()
 
-        # re-run experiment and continue
-        if (action == 'run' or action == 'show') and not config.has_alg_script():
+    def run_or_show_not_alg_script(self):
+        # if (action == 'run' or action == 'show') and not config.has_alg_script():
             cmd1 = self.build_librec_commands('full', args, config)
             add_eval = self.maybe_add_eval(config=config)
             if add_eval:
@@ -259,7 +270,8 @@ class compile_commands():
             bracketed_cmd = self.bracket_sequence('all', args, config, cmd)
             return bracketed_cmd
 
-        if (action == 'run' or action == 'show') and config.has_alg_script():
+    def run_or_show_with_alg_script(self):
+        # if (action == 'run' or action == 'show') and config.has_alg_script():
             # if met_lang == 'system':
             cmd1 = self.build_alg_commands(args, config)
             add_eval = self.maybe_add_eval(config=config)
@@ -274,9 +286,8 @@ class compile_commands():
             bracketed_cmd = self.bracket_sequence('all', args, config, cmd)
             return bracketed_cmd
 
-
-        # eval-only
-        if action == 'eval':
+    def eval(self):
+        # if action == 'eval':
             if single_xpath(config.get_xml(), '/librec-auto/optimize') is not None:
                 raise InvalidConfiguration("Eval-only not currently supported with Bayesian optimization.")
 
@@ -288,14 +299,55 @@ class compile_commands():
             bracketed_cmd = self.bracket_sequence('post', args, config, cmd)
             return bracketed_cmd
 
-        # check setup of experiment
-        # We don't check on algorithm scripts
-        if action == 'check':
+    def check(self):
+        # if action == 'check':
             cmd1 = self.build_librec_commands('check', args, config)
             cmd2 = CheckCmd()
             cmd = SequenceCmd([cmd1, cmd2])
             bracketed_cmd = self.bracket_sequence('none', args, config, cmd)
             return bracketed_cmd
+
+    # The purge rule is: if the command says to run step X, purge the results of X and everything after.
+    # def setup_commands(self, args: dict, config: ConfigCmd):
+    #     print('args:',args)
+        
+
+
+        # Purge files (possibly) from splits and subexperiments
+       
+
+        # Shows the status of the experiment
+
+
+        # Perform (only) post-processing on results
+        
+        # No post scripts available
+
+            
+        # Perform re-ranking on results, followed by evaluation and post-processing
+
+        # No re-ranker available
+
+
+        # LibRec actions
+        # re-run splits only
+
+
+        # re-run experiment
+       
+
+
+        # re-run experiment and continue
+
+        
+
+
+        # eval-only
+        
+
+        # check setup of experiment
+        # We don't check on algorithm scripts
+        
 
 
     def bracket_sequence(self, purge_action, args, config, seq_cmd):

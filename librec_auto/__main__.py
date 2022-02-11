@@ -1,6 +1,7 @@
 import argparse
 from librec_auto.core.cmd.eval_cmd import EvalCmd
-from librec_auto.core.config_cmd import ConfigCmd, compile_commands
+from librec_auto.core.config_cmd import ConfigCmd
+from librec_auto.core.compile import compile_commands
 from datetime import datetime
 from pathlib import Path
 from librec_auto.core import read_config_file
@@ -181,6 +182,7 @@ if __name__ == '__main__':
         print("Error: LibRec JAR file is missing.")
 
     else:
+        print(args)
         if args['action'] == 'describe':
             print_description(args)
         elif args['action'] == 'check':
