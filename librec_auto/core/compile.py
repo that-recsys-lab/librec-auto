@@ -182,62 +182,62 @@ class compile_commands():
         return StatusCmd()
 
     def post(self):
-        if post_flag:
+        if self.post_flag:
             return PostCmd()
         else:
-            raise InvalidCommand(action, "No post-processing scripts available for \"post\" command")
+            raise InvalidCommand(self.action, "No post-processing scripts available for \"post\" command")
 
     def rerank(self): 
         if self.rerank_flag:  # Runs a reranking script on the python side
             cmd1 = RerankCmd()
-            cmd2 = self.build_librec_commands('eval', args, config)
-            cmd3 = EvalCmd(args, config)  # python-side eval
+            cmd2 = self.build_librec_commands('eval', self.args, self.config)
+            cmd3 = EvalCmd(self.args, self.config)  # python-side eval
             cmd = SequenceCmd([cmd1, cmd2, cmd3])
             
-            bracketed_cmd = self.bracket_sequence('rerank', args, config, cmd)
+            bracketed_cmd = self.bracket_sequence('rerank', self.args, self.config, cmd)
             return bracketed_cmd
 
         else:
-            raise InvalidCommand(action, "No re-ranker scripts available for \"rerank\" command.")
+            raise InvalidCommand(self.action, "No re-ranker scripts available for \"rerank\" command.")
             
             
 
     def split(self):
         # if action == 'split':
-            cmd = SequenceCmd([self.build_librec_commands('split', args, config)])
-            bracketed_cmd = self.bracket_sequence('split', args, config, cmd)
+            cmd = SequenceCmd([self.build_librec_commands('split', self.args, self.config)])
+            bracketed_cmd = self.bracket_sequence('split', self.args, self.config, cmd)
             return bracketed_cmd
 
     def bbo(self):
         # if action == 'bbo':
-            cmd1 = PurgeCmd('results', no_ask=purge_no_ask)
+            cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
             cmd2 = SetupCmd(False)
             cmd3 = [cmd1, cmd2]
-            if config.has_alg_script():
-                cmd_store = self.build_alg_commands(args, config, BBO=200)
+            if self.config.has_alg_script():
+                cmd_store = self.build_alg_commands(self.args, self.config, BBO=200)
             else:
-                cmd_store = self.build_librec_commands('full', args, config, BBO = 200)
+                cmd_store = self.build_librec_commands('full', self.args, self.config, BBO = 200)
             store_post = [PostCmd() for _ in range(len(cmd_store))]
 
 
             init_cmds = [cmd1, cmd2]
             check_cmds = []
-            if not no_check_flag:
+            if not self.no_check_flag:
                 # check_cmds = [build_librec_commands('check',args,config), CheckCmd()]
-                librec_check = self.build_librec_commands('check',args,config, BBO = 200)
+                librec_check = self.build_librec_commands('check',self.args,self.config, BBO = 200)
                 check_cmds = [librec_check[0], CheckCmd()]
             
-            exec_cmds = self.build_librec_commands('full',args,config, BBO= 200)
+            exec_cmds = self.build_librec_commands('full',self.args,self.config, BBO= 200)
             exec_cmds = [SequenceCmd([exec_cmds[i]]) for i in range (len(exec_cmds))]
 
-            if rerank_flag:
+            if self.rerank_flag:
                 # cmd.append(RerankCmd())
                 # cmd.append(build_exp_commands('eval', args, config))
                 raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
 
             final_cmds = []
 
-            if post_flag:
+            if self.post_flag:
                 final_cmds.append(PostCmd())
             else:
                 final_cmds.append(CleanupCmd())
@@ -256,55 +256,55 @@ class compile_commands():
 
     def run_or_show_not_alg_script(self):
         # if (action == 'run' or action == 'show') and not config.has_alg_script():
-            cmd1 = self.build_librec_commands('full', args, config)
-            add_eval = self.maybe_add_eval(config=config)
+            cmd1 = self.build_librec_commands('full', self.args, self.config)
+            add_eval = self.maybe_add_eval(config=self.config)
             if add_eval:
                 # cmd2 = EvalCmd(args, config)  # python-side eval
-                cmd2 = self.build_eval_commands(args, config, met_lang)
+                cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang)
                 cmd = SequenceCmd([cmd1, cmd2])
             else: cmd = SequenceCmd([cmd1])
-            if rerank_flag:
+            if self.rerank_flag:
                 cmd.add_command(RerankCmd())
-                cmd.add_command(self.build_librec_commands('eval', args, config))
+                cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
             # bracketed_cmd = bracket_sequence('results', args, config, cmd)
-            bracketed_cmd = self.bracket_sequence('all', args, config, cmd)
+            bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
             return bracketed_cmd
 
     def run_or_show_with_alg_script(self):
         # if (action == 'run' or action == 'show') and config.has_alg_script():
             # if met_lang == 'system':
-            cmd1 = self.build_alg_commands(args, config)
-            add_eval = self.maybe_add_eval(config=config)
+            cmd1 = self.build_alg_commands(self.args, self.config)
+            add_eval = self.maybe_add_eval(config=self.config)
             if add_eval:
-                cmd2 = EvalCmd(args, config)  # python-side eval
+                cmd2 = EvalCmd(self.args, self.config)  # python-side eval
                 cmd = SequenceCmd([cmd1, cmd2])
             else: cmd = SequenceCmd([cmd1])
-            if rerank_flag:
+            if self.rerank_flag:
                 cmd.add_command(RerankCmd())
-                cmd.add_command(self.build_librec_commands('eval', args, config))
+                cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
             # bracketed_cmd = bracket_sequence('results', args, config, cmd)
-            bracketed_cmd = self.bracket_sequence('all', args, config, cmd)
+            bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
             return bracketed_cmd
 
     def eval(self):
         # if action == 'eval':
-            if single_xpath(config.get_xml(), '/librec-auto/optimize') is not None:
+            if single_xpath(self.config.get_xml(), '/librec-auto/optimize') is not None:
                 raise InvalidConfiguration("Eval-only not currently supported with Bayesian optimization.")
 
             # cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
             # cmd2 = SetupCmd()
-            cmd1 = self.build_librec_commands('eval', args, config)
-            cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd1 = self.build_librec_commands('eval', self.args, self.config)
+            cmd2 = EvalCmd(self.args, self.config)  # python-side eval
             cmd = SequenceCmd([cmd1, cmd2])
-            bracketed_cmd = self.bracket_sequence('post', args, config, cmd)
+            bracketed_cmd = self.bracket_sequence('post', self.args, self.config, cmd)
             return bracketed_cmd
 
     def check(self):
         # if action == 'check':
-            cmd1 = self.build_librec_commands('check', args, config)
+            cmd1 = self.build_librec_commands('check', self.args, self.config)
             cmd2 = CheckCmd()
             cmd = SequenceCmd([cmd1, cmd2])
-            bracketed_cmd = self.bracket_sequence('none', args, config, cmd)
+            bracketed_cmd = self.bracket_sequence('none', self.args, self.config, cmd)
             return bracketed_cmd
 
     # The purge rule is: if the command says to run step X, purge the results of X and everything after.
