@@ -14,6 +14,8 @@ from librec_auto.core.util.xml_utils import single_xpath
 import librec_auto
 import os
 
+
+
 class compile_commands():
 
     def __init__(self):
@@ -98,9 +100,7 @@ class compile_commands():
         return SequenceCmd(experiment_cmds)
 
     def maybe_add_eval(self, config: ConfigCmd):
-        study_xml = config._xml_input
-        script_alg = study_xml.xpath('/study/alg/script')
-        if script_alg is not None:
+        if self.script_alg is not None:
             return True
         else: return False
 
@@ -164,6 +164,8 @@ class compile_commands():
         if args['key_password']:
             config.set_key_password(args['key_password'])
 
+        self.study_xml = config._xml_input
+        self.script_alg = self.study_xml.xpath('/study/alg/script')
 
         #no describe?
         call_functions_dictionary = {'split': self.split(), 'check': self.check(), 'bbo': self.bbo(), 'split': self.split(), 'purge': self.purge(), 'rerank': self.rerank(), \
