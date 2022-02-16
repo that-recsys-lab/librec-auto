@@ -1,6 +1,6 @@
 from librec_auto.core import ConfigCmd
 from .metrics.list_based_metric import ListBasedMetric
-from librec_auto.core.util import ScriptFailureException, safe_run_subprocess
+from librec_auto.core.util import ScriptFailureException, safe_run_subprocess, print_process_cli
 import re
 import numpy as np
 from pathlib import Path
@@ -137,3 +137,25 @@ class Evaluator:
         This should be a numpy array (shape 3 x n: user_id, item_id, score)
         """
         return np.genfromtxt(self._result_data_file, delimiter=",")
+
+    def dry_run(self):
+
+        for metric_dict in self._metrics:
+            if metric_dict.get('script') != None:
+                # Run this script with the params
+                exec_path = self._conf.get_files().get_study_path()
+                metric_script = metric_dict['script'].as_posix()
+
+                proc_spec = [sys.executable, metric_script]
+                params = [
+                    '--conf', self._conf.get_files().get_config_file_path().name,
+                    '--test', str(self._test_data_file),
+                    '--result', str(self._result_data_file.absolute()),
+                    '--output-file', str(self._temp_output_file.absolute())
+                ]
+
+                for key in metric_dict['params']:
+                    params.append('--' + key)
+                    params.append(metric_dict['params'][key])
+
+                print_process_cli(proc_spec + params, str(self._conf.get_files().get_study_path().absolute()))

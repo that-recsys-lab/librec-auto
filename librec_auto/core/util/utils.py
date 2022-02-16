@@ -153,6 +153,10 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
     except CalledProcessError as e:
         return e.returncode
 
+def print_process_cli(process_specs: list, wd: str):
+    # print(f'cd {wd}')
+    print(' '.join(process_specs))
+
 def create_log_name(filename: str):
     _time = str(datetime.now())
     _time_obj = datetime.strptime(_time, '%Y-%m-%d %H:%M:%S.%f')

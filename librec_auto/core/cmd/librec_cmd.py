@@ -69,10 +69,9 @@ class LibrecCmd(Cmd):
     def dry_run_librec(self):
         cmd = self.create_proc_spec()
 
-        proc_spec = ' '.join(cmd)
-        print(
-            f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._exp_path.exp_name}, exec: {proc_spec}'
-        )
+        proc_spec_str = ' '.join(cmd)
+        print(f'librec-auto (DR): Executing librec command: {self},  sub-exp: {self._exp_path.exp_name}')
+        print(proc_spec_str)
         # Only for testing parallel function
         # time.sleep(1.0)
 
