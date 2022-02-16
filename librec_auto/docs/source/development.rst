@@ -65,3 +65,21 @@ To use the Dockerfile, run the following in your bash terminal:
 
 	docker build -t librec_auto:latest .
 	docker run librec_auto:latest
+
+Scripting
+======
+
+You can write your own Python scripts for recommendation generation, for evaluation metrics, for re-ranking and for post-processing. 
+
+See existing examples in the code base in 
+
+::
+
+	librec-auto/librec_auto/core/cmd/alg
+	librec-auto/librec_auto/core/cmd/eval
+	librec-auto/librec_auto/core/cmd/rerank
+	librec-auto/librec_auto/core/cmd/post
+	
+See the sample studies in ``https://github.com/that-recsys-lab/librec-auto-demo2021`` for examples of configurations using scripting.
+
+To debug your scripts, use the ``--dry_run`` option. This will walk through the configuration and output the precise command line begin produced for invoking scripts. Copy the command line and use it to run the script independently of ``librec-auto`` or set it up in your IDE to run with a debugger.
