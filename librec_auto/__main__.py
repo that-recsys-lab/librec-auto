@@ -550,13 +550,15 @@ if __name__ == '__main__':
                             clean.execute(config)
                             exit(-1)
                             
-
-
                 elif isinstance(command, list):
                     if args['action'] == 'show':
                         for cmd in command:
                             cmd.show()
                     else:
+                        if args['dry_run']:
+                            raise LibRecAutoException('command line',
+                                                      'Dry-run option not available with Bayesian optimization')
+
                         vconf = config._var_coll.var_confs
 
                         num_of_vars = len([0 for var in vconf[0].vars])

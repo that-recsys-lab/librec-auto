@@ -1,6 +1,8 @@
 from librec_auto.core.util.study_status import StudyStatus
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, utils, StudyStatus, ScriptFailureException, safe_run_subprocess
+from librec_auto.core.util import Files, utils, StudyStatus, ScriptFailureException, \
+    safe_run_subprocess, print_process_cli
+
 from librec_auto.core.util.xml_utils import single_xpath
 from librec_auto.core import ConfigCmd
 from pathlib import Path
@@ -37,8 +39,13 @@ class PostCmd(Cmd):
                 param_spec = param_spec + ['--password=<password hidden>']
             script_path = utils.get_script_path(post_elem, 'post')
 
-            print(f'\tPost script: {script_path}')
-            print(f'\tParameters: {param_spec}')
+            proc_spec = [
+                sys.executable,
+                script_path.absolute().as_posix(),
+                self._config.get_files().get_config_file_path().name
+            ] + param_spec
+
+            print_process_cli(proc_spec, self._config.get_files().get_study_path().absolute)
 
     def execute(self, config: ConfigCmd):
         self._config = config

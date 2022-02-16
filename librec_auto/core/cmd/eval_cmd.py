@@ -28,7 +28,8 @@ class EvalCmd(Cmd):
         print(str(self))
 
     def dry_run(self, config):
-        print(f'librec-auto (DR): Running python eval command {self}')
+        self.execute(config, dry_run=True)
+        # print(f'librec-auto (DR): Running python eval command {self}')
 
     def get_metrics(self) -> list:
         """
@@ -95,7 +96,7 @@ class EvalCmd(Cmd):
         with open(log_file, 'w') as file:
             json.dump(experiment_results, file)
 
-    def execute(self, config: ConfigCmd):
+    def execute(self, config: ConfigCmd, dry_run=False):
         self._config = config
         self.status = Cmd.STATUS_INPROC
 
@@ -119,16 +120,19 @@ class EvalCmd(Cmd):
                 # Create an evaluator for each cv...
                 evaluator = Evaluator(config, metrics, cv_dir, experiment_num,
                                       cv_num)
-                cv_results = evaluator.evaluate()  # Evaluate it.
-                experiment_results.append(cv_results)  # Add to results.
+                if dry_run:
+                    evaluator.dry_run()
+                else:
+                    cv_results = evaluator.evaluate()  # Evaluate it.
+                    experiment_results.append(cv_results)  # Add to results.
 
-            self.save_results(experiment_num, experiment_results)
-            Status.save_status(
-                "Python-side metrics completed", experiment_num, config,
-                config.get_files().get_exp_paths(experiment_num))
+                    self.save_results(experiment_num, experiment_results)
+                    Status.save_status("Python-side metrics completed", experiment_num, config, \
+                        config.get_files().get_exp_paths(experiment_num))
 
-        temp_binary_path = self._config.get_files().get_study_path() / Path(
-            'py-eval-temp.pickle')
-        if os.path.exists(temp_binary_path):
-            # Remove temporary eval binary
-            os.remove(temp_binary_path)
+        if not dry_run:
+            temp_binary_path = self._config.get_files().get_study_path() / Path(
+                'py-eval-temp.pickle')
+            if os.path.exists(temp_binary_path):
+                # Remove temporary eval binary
+                os.remove(temp_binary_path)
