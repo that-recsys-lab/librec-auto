@@ -205,10 +205,9 @@ class compile_commands():
             
 
     def split(self):
-        # if action == 'split':
-            cmd = SequenceCmd([self.build_librec_commands('split', self.args, self.config)])
-            bracketed_cmd = self.bracket_sequence('split', self.args, self.config, cmd)
-            return bracketed_cmd
+        cmd = SequenceCmd([self.build_librec_commands('split', self.args, self.config)])
+        bracketed_cmd = self.bracket_sequence('split', self.args, self.config, cmd)
+        return bracketed_cmd
 
     def bbo(self):
         # if action == 'bbo':
@@ -251,42 +250,58 @@ class compile_commands():
             return cmd
 
     def run_or_show(self):
+
+        cmd1 = self.build_librec_commands('full', self.args, self.config)
+
         if self.config.has_alg_script(): 
-            self.run_or_show_not_alg_script() 
-        else: 
-            self.run_or_show_with_alg_script()
-
-    def run_or_show_not_alg_script(self):
-        # if (action == 'run' or action == 'show') and not config.has_alg_script():
             cmd1 = self.build_librec_commands('full', self.args, self.config)
-            add_eval = self.maybe_add_eval(config=self.config)
-            if add_eval:
-                # cmd2 = EvalCmd(args, config)  # python-side eval
-                cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang)
-                cmd = SequenceCmd([cmd1, cmd2])
-            else: cmd = SequenceCmd([cmd1])
-            if self.rerank_flag:
-                cmd.add_command(RerankCmd())
-                cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
-            # bracketed_cmd = bracket_sequence('results', args, config, cmd)
-            bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
-            return bracketed_cmd
 
-    def run_or_show_with_alg_script(self):
-        # if (action == 'run' or action == 'show') and config.has_alg_script():
-            # if met_lang == 'system':
-            cmd1 = self.build_alg_commands(self.args, self.config)
-            add_eval = self.maybe_add_eval(config=self.config)
-            if add_eval:
-                cmd2 = EvalCmd(self.args, self.config)  # python-side eval
-                cmd = SequenceCmd([cmd1, cmd2])
-            else: cmd = SequenceCmd([cmd1])
-            if self.rerank_flag:
-                cmd.add_command(RerankCmd())
-                cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
-            # bracketed_cmd = bracket_sequence('results', args, config, cmd)
-            bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
-            return bracketed_cmd
+        add_eval = self.maybe_add_eval(config=self.config)
+        if add_eval:
+            # cmd2 = EvalCmd(args, config)  # python-side eval
+            cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
+            cmd = SequenceCmd([cmd1, cmd2])
+        else: cmd = SequenceCmd([cmd1])
+        if self.rerank_flag:
+            cmd.add_command(RerankCmd())
+            cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
+        # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+        bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
+        return bracketed_cmd
+
+    
+
+    # def run_or_show_not_alg_script(self):
+    #     # if (action == 'run' or action == 'show') and not config.has_alg_script():
+    #         cmd1 = self.build_librec_commands('full', self.args, self.config)
+    #         add_eval = self.maybe_add_eval(config=self.config)
+    #         if add_eval:
+    #             # cmd2 = EvalCmd(args, config)  # python-side eval
+    #             cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
+    #             cmd = SequenceCmd([cmd1, cmd2])
+    #         else: cmd = SequenceCmd([cmd1])
+    #         if self.rerank_flag:
+    #             cmd.add_command(RerankCmd())
+    #             cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
+    #         # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+    #         bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
+    #         return bracketed_cmd
+
+    # def run_or_show_with_alg_script(self):
+    #     # if (action == 'run' or action == 'show') and config.has_alg_script():
+    #         # if met_lang == 'system':
+    #         cmd1 = self.build_alg_commands(self.args, self.config)
+    #         add_eval = self.maybe_add_eval(config=self.config)
+    #         if add_eval:
+    #             cmd2 = EvalCmd(self.args, self.config)  # python-side eval
+    #             cmd = SequenceCmd([cmd1, cmd2])
+    #         else: cmd = SequenceCmd([cmd1])
+    #         if self.rerank_flag:
+    #             cmd.add_command(RerankCmd())
+    #             cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
+    #         # bracketed_cmd = bracket_sequence('results', args, config, cmd)
+    #         bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
+    #         return bracketed_cmd
 
     def eval(self):
         # if action == 'eval':
