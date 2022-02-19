@@ -13,6 +13,9 @@ import pandas as pd
 import tensorflow as tf
 import os
 import scrapbook as sb
+from librec_auto.core.cmd.alg.ms_wide_deep_model_helper import load_item_features
+from librec_auto.core.cmd.alg.ms_wide_deep_model_helper import get_feature_list
+from librec_auto.core.cmd.alg.ms_wide_deep_model_helper import create_df_wide_deep
 tf.get_logger().setLevel('ERROR') # only show error messages
 
 from librec_auto.core import read_config_file
@@ -90,28 +93,6 @@ def read_args():
     input_args = parser.parse_args()
     return vars(input_args)
 
-# def get_top_k(dataframe, k):
-#     user_unique_set = set(dataframe['userID'])
-#     return_dataframe = pd.DataFrame()
-#     for i in user_unique_set:
-#         dataframe_by_user = dataframe.loc[dataframe['userID'] == i]
-#         dataframe_by_user = dataframe_by_user.sort_values(by='prediction', ascending=False)[:k]
-#         return_dataframe = return_dataframe.append(dataframe_by_user)
-#     return return_dataframe
-
-def load_item_features(config, data_path):
-    item_feature_file = single_xpath(
-        config.get_xml(), '/librec-auto/features/item-feature-file').text
-    item_feature_path = data_path / item_feature_file
-
-    if not item_feature_path.exists():
-        print("Cannot locate item features. Path: " + item_feature_path)
-        return None
-
-    item_feature_df = pd.read_csv(item_feature_path,
-                                      names=['item_id', 'feature', 'value'])
-    return item_feature_df
-
 def main():
     args = read_args()
     # global params for both models:
@@ -171,17 +152,9 @@ def main():
     ]
     # Use session hook to evaluate model while training
     EVALUATE_WHILE_TRAINING = True
-    if len(args['categorical_feats']) > 0:
-        categorical_feats = args['categorical_feats'].split(",")
-    else:
-        categorical_feats = []
-    if len(args['continuous_feats']) > 0:
-        continuous_feats = args['continuous_feats'].split(",")
-    else:
-        continuous_feats = []
+    categorical_feats, continuous_feats = get_feature_list(args['categorical_feats'], args['continuous_feats'])
+
     if model_type == 'wide_deep':
-        #Code from MS RecSys here
-        print("***** Running MS Recommendation Code Now ******")
         ratings_data = pd.read_csv(training_path,
                                sep="	", header=None)
         ratings_data.columns = ["user_id", "item_id", "rating"]
@@ -190,61 +163,8 @@ def main():
         data_path = Path(data_dir)
         data_path = data_path.resolve()
         item_data = load_item_features(config, data_path)
-        print("\nSuccessfully loaded item features")
-        item_data_expanded = item_data.pivot_table(index=['item_id'], columns='feature', values='value').reset_index()
-        item_data_expanded.rename_axis(None, axis=1, inplace=True)
-
-        # Code to generalize the correct dataset creation with categorical & continuous variables
-        # The following creates a large pandas dataframe with one hot encoding of all features
-        # TODO: Fix this to use the tensorflow Record to feed data in sequentially when features have high cardinality
-        if len(categorical_feats) > 0 and len(continuous_feats) > 0:
-            categorical_dfs = [item_data_expanded[["item_id"] + continuous_feats]]
-            for feat in categorical_feats:
-                categorical_dfs.append(pd.get_dummies(item_data_expanded[feat], prefix=feat))
-            concatenated_dataframes = pd.concat(categorical_dfs, axis=1)
-        elif len(categorical_feats) > 0:
-            categorical_dfs = [item_data_expanded[["item_id"]]]
-            for feat in categorical_feats:
-                categorical_dfs.append(pd.get_dummies(item_data_expanded[feat], prefix=feat))
-            concatenated_dataframes = pd.concat(categorical_dfs, axis=1)
-        else:
-            concatenated_dataframes = item_data_expanded[["item_id"] + continuous_feats]
-
-        # merge both datasets (ratings and concatenated item features)
-        # to get a user, item, rating, featureslist dataframe
-        features_lists = []
-        for index, row in concatenated_dataframes.iterrows():
-            features_list = []
-            i = 0
-            for column_name in concatenated_dataframes.columns:
-                features_list.append(row[column_name])
-                i += 1
-            features_lists.append(features_list[1:])
-
-        item_data_expanded['features'] = features_lists
-        data = pd.merge(ratings_data[['user_id', 'item_id', 'rating']], item_data_expanded[['item_id', 'features']],
-                        on="item_id")
-        data.columns = ['userID', 'itemID', 'rating', 'features']
-
-        #DELETE ALL OF THIS IF YOU GET IT RUNNING
-        # # merge both datasets to get a user, item, rating, featureslist dataframe
-        # features_lists = []
-        # for index, row in item_data_expanded.iterrows():
-        #     features_list = []
-        #     features_list.append(row['author_id'])
-        #     features_list.append(row['item_city'])
-        #     features_list.append(row['channel'])
-        #     features_list.append(row['music_id'])
-        #     features_list.append(row['video_duration'])
-        #     features_list.append(row['gender'])
-        #     features_list.append(row['beauty'])
-        #     features_lists.append(features_list)
-        #
-        # item_data_expanded['features'] = features_lists
-        # data = pd.merge(ratings_data[['user_id', 'item_id', 'rating']], item_data_expanded[['item_id', 'features']],
-        #                 on="item_id")
-        # data.columns = ['userID', 'itemID', 'rating', 'features']
-        print("*** SUCCESSFULLY CREATED THE DATASET FOR THIS MODEL***")
+        #creating the dataset pandas df required for wide deep model
+        data = create_df_wide_deep(ratings_data,item_data,categorical_feats,continuous_feats)
         train, test = python_random_split(data, ratio=0.75, seed=SEED)
         print("{} train samples and {} test samples".format(len(train), len(test)))
         # Unique items in the dataset
@@ -362,9 +282,6 @@ def main():
             shuffle=True,
             seed=SEED,
         )
-
-        print("\n*** TRAINING THE MODEL **", end='\n')
-
         print(
             "Training steps = {}, Batch size = {} (num epochs = {})"
                 .format(steps, batch_size, (steps * batch_size) // len(train))
@@ -383,7 +300,9 @@ def main():
                 "Training stopped with NanLossDuringTrainingError. "
                 "Try other optimizers, smaller batch size and/or smaller learning rate."
             )
-        print("\n*****End of Training", end='\n')
+
+        #End of Training, Beginning of Evaluation
+        #Feel free to modify this code to more easily access these eval metrics
         if len(RATING_METRICS) > 0:
             predictions = list(model.predict(input_fn=tf_utils.pandas_input_fn(df=test)))
             prediction_df = test.drop(RATING_COL, axis=1)
@@ -413,10 +332,8 @@ def main():
         top_k_sorted = top_k_df.sort_values(by=['userID', 'rating'], ascending=[True, False])
         top_k_sorted.to_csv(result_file_path, header=None, index=None, sep=',')
 
-        print("*** FINISHED!")
+        print("Completed MS Wide Deep Algorithm")
         # os.makedirs(EXPORT_DIR_BASE, exist_ok=True)
-
-
 
     elif model_type == 'StandardVAE':
         #MIGHT NEED TO COMMENT OUT THE FOLLOWING LINE! important
