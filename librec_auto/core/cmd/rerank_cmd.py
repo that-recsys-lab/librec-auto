@@ -1,4 +1,4 @@
-from librec_auto.core.util.study_status import check_output_xml
+from librec_auto.core.util.utils import print_process_cli
 import sys
 import os
 import subprocess
@@ -15,9 +15,10 @@ from librec_auto.core.util.errors import *
 
 
 class RerankCmd(Cmd):
-    def __init__(self):
+    def __init__(self, exp_no=-1):
         self._files = None
         self._config = None
+        self._exp_no = exp_no
 
     def __str__(self):
         return f'RerankCmd()'
@@ -32,20 +33,33 @@ class RerankCmd(Cmd):
         files = config.get_files()
         if files.get_exp_count() > 0:
             for i in range(0, files.get_exp_count()):
-                sub_path = files.get_exp_paths(i)
-                script_elem = single_xpath(sub_path.get_study_conf(),
+                sub_paths = files.get_exp_paths(i)
+                script_elem = single_xpath(sub_paths.get_study_conf(),
                                            '/librec-auto/rerank/script')
                 param_spec = create_param_spec(script_elem)
                 script_path = get_script_path(script_elem, 'rerank')
-                ref_path = sub_path.get_ref_exp_name()
+                ref_path = sub_paths.get_ref_exp_name()
+                result_path = sub_paths.get_path('result')
+
+                original_path = self.find_original_results(result_path, script_path, sub_paths)
 
                 print(
-                    f'librec-auto (DR): Running re-ranking command {self} for {sub_path.exp_name}'
+                    f'librec-auto (DR): Running re-ranking command {self} for {sub_paths.exp_name}'
                 )
-                print(f'\tRe-rank script: {script_path}')
-                print(f'\tParameters: {param_spec}')
-                if ref_path:
-                    print(f'\tResults from: {ref_path}')
+
+                proc_spec = [
+                                sys.executable,
+                                script_path.as_posix(),
+                                self._config.get_files().get_config_file_path().name,
+                                original_path.absolute().as_posix(),
+                                sub_paths.get_path('result').absolute().as_posix()
+                            ] + param_spec
+                print_process_cli(proc_spec, str(self._config.get_files().get_study_path().absolute()))
+
+                #print(f'\tRe-rank script: {script_path}')
+                #print(f'\tParameters: {param_spec}')
+                #if ref_path:
+                #    print(f'\tResults from: {ref_path}')
 
     # TODO RB 2019-12-12 You can only have one re-ranking script. Others will be silently ignored. Should probably
     # have a warning for this.
@@ -54,10 +68,14 @@ class RerankCmd(Cmd):
         self._files = config.get_files()
         self._config = config
 
-        if self._files.get_exp_count() > 0:
-            for i in range(0, self._files.get_exp_count()):
-                sub_path = self._files.get_exp_paths(i)
-                self.rerank(sub_path)
+        if self._exp_no == -1:
+            if self._files.get_exp_count() > 0:
+                for i in range(0, self._files.get_exp_count()):
+                    sub_path = self._files.get_exp_paths(i)
+                    self.rerank(sub_path)
+        else:
+            sub_path = self._files.get_exp_paths(self._exp_no)
+            self.rerank(sub_path)
 
     def rerank(self, sub_path):
         conf_xml = sub_path.get_study_conf()
@@ -69,27 +87,8 @@ class RerankCmd(Cmd):
             study_path = self._files.get_study_path()
             result_path = sub_path.get_path('result')
 
-            if not sub_path.get_ref_exp_name(
-            ):  # If there is no ref, then LibRec was run
-                if not result_path.exists():
-                    print('librec-auto: No results. Cannot rerank ',
-                          self._config.get_target())
-                    return
-                original_path = sub_path.get_path('original')
-                # If original dir not empty, don't overwrite
-                if not os.listdir(original_path):
-                    sub_path.results2original()  # and there are results here
-                original_path = sub_path.get_path('original')
-            else:  # If there is a ref, the results are in
-                ref_sub_path = sub_path.get_ref_exp_path(
-                )  # that experiment's directory
-                original_path = ref_sub_path.get_path('original')
-                result_path.mkdir(
-                    exist_ok=True)  # script needs a place for results
-            print(
-                f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
-            )
-    
+            original_path = self.find_original_results(result_path, script_path, sub_path)
+
             ret_val = self.run_script(script_path, sub_path, original_path,
                                       param_spec)
             
@@ -103,6 +102,27 @@ class RerankCmd(Cmd):
             if len(script_elems) > 1:
                 logging.warning(
                     'More than one re-ranking script found. Ignoring.')
+
+    def find_original_results(self, result_path, script_path, sub_path):
+        if not sub_path.get_ref_exp_name(
+        ):  # If there is no ref, then LibRec was run
+            if not result_path.exists():
+                raise ScriptFailureException('rerank', f'No results. Cannot rerank: {self._config.get_target()}')
+            original_path = sub_path.get_path('original')
+            # If original dir not empty, don't overwrite
+            if not os.listdir(original_path):
+                sub_path.results2original()  # and there are results here
+            original_path = sub_path.get_path('original')
+        else:  # If there is a ref, the results are in
+            ref_sub_path = sub_path.get_ref_exp_path(
+            )  # that experiment's directory
+            original_path = ref_sub_path.get_path('original')
+            result_path.mkdir(
+                exist_ok=True)  # script needs a place for results
+        print(
+            f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
+        )
+        return original_path
 
     def run_script(self, script, sub_paths, original_path, param_spec):
         # TODO: RB If rerank only, then leave original folder alone and delete results files
@@ -121,3 +141,4 @@ class RerankCmd(Cmd):
         print("    Working directory: " + str(exec_path.absolute()))
         
         return safe_run_subprocess(proc_spec, str(exec_path.absolute()))
+

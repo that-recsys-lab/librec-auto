@@ -2,6 +2,7 @@ from librec_auto.core.util import Status
 from librec_auto.core.util.errors import *
 import optuna
 
+
 # Borrowed from https://stackoverflow.com/questions/58820574/how-to-sample-parameters-without-duplicates-in-optuna
 # Prevents repeated parameter values in the sampling. It seems like this should be the default
 # behavior.
@@ -25,10 +26,10 @@ class RepeatPruner(optuna.pruners.BasePruner):
 #module to optimize
 class BBO:
     '''
-    Class for managing hyperopt optimization.
+    Class for managing optuna optimization.
     '''
     
-    def __init__(self, Ranges, num_of_vars, command, config, file_path = None):
+    def __init__(self, Ranges, num_of_vars, command, config, ranges = None, file_path = None):
         
         self.Ranges = Ranges
         self.num_of_vars = num_of_vars
@@ -55,18 +56,31 @@ class BBO:
                 'icov': 'ItemCoverageEvaluator', 'dppf': 'DiscountedProportionalPFairnessEvaluator', 'dpcf': 'DiscountedProportionalCFairnessEvaluator',
                 'giniindex': 'GiniIndexEvaluator', 'mae': 'MAEEvaluator','mpe': 'MPEEvaluator','mse': 'MSEEvaluator','rmse': 'RMSEEvaluator',
                 'csp': 'CStatisticalParityEvaluator', 'psp': 'PStatisticalParityEvaluator','miscalib': 'MiscalibrationEvaluator','nonpar': 'NonParityUnfairnessEvaluator','valunfairness': 'ValueUnfairnessEvaluator',
-                'absunfairness': 'AbsoluteUnfairnessEvaluator','overestimate': 'OverestimationUnfairnessEvaluator','underestimate': 'UnderestimationUnfairnessEvaluator','ppr': 'PPercentRuleEvaluator'        
+                'absunfairness'
+                : 'AbsoluteUnfairnessEvaluator','overestimate': 'OverestimationUnfairnessEvaluator','underestimate': 'UnderestimationUnfairnessEvaluator','ppr': 'PPercentRuleEvaluator'        
                 }
 
-    #creates hyperparameter dictionary in optuna format    
+        if ranges == []:
+            self.discrete = None
+        else:
+            self.discrete = ranges
+
+    #creates hyperparameter dictionary in optuna format
+    # Might need to move into compile.py or create an object    
     def create_space(self, trial):
         # self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
-        self.space = {self.alphabet[i]: trial.suggest_float(self.alphabet[i],self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
-
+        if self.discrete == None:
+            self.space = {self.alphabet[i]: trial.suggest_float(self.alphabet[i],self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
+        else:
+            self.space = {}
+            for i,type in enumerate(self.discrete):
+                if type == "continuous":
+                    self.space[self.alphabet[i]] = trial.suggest_float(self.alphabet[i],self.Ranges[i][0], self.Ranges[i][1])
+                else:
+                    self.space[self.alphabet[i]] = trial.suggest_int(self.alphabet[i],self.Ranges[i][0], self.Ranges[i][1])
     #uses direction from existing metrics or user chosen direction if custom
     def set_optimization_direction(self, metric):
         self.metric = metric
-
         if metric == "higher":
             self.direction = "positive"
         elif metric == "lower":
@@ -137,9 +151,17 @@ class BBO:
         study = optuna.create_study(pruner=RepeatPruner())
 
         if self.direction == 'positive':
-            study = optuna.create_study(direction = "maximize")
-            
-        study.optimize(self.run_experiments, n_trials=total_exp_no)
+            study = optuna.create_study(direction = "maximize", pruner=RepeatPruner())
+        
+        for i in range(total_exp_no):
+            trial = study.ask()
+
+            self.create_space(trial)
+
+            result = self.run_experiments(trial)
+
+            study.tell(trial,result)
+
 
         print("Best Trial:")
 

@@ -1,3 +1,4 @@
+
 from lxml import etree
 from inspect import getsourcefile
 from os.path import abspath
@@ -18,7 +19,6 @@ import os
 def force_list(item):
     """
     Ensures that an item is of list type.
-
     :param item:
     :return: item or [item]
     """
@@ -31,7 +31,6 @@ def force_list(item):
 def force_path(item):
     """
     Ensures that an item is of Path type.
-
     :param item:
     :return: item or [item]
     """
@@ -51,10 +50,8 @@ def frange(start, stop, step):
 def confirm(prompt=None, resp=False):
     """prompts for yes or no response from the user. Returns True for yes and
     False for no.
-
     'resp' should be set to the default value assumed by the caller when
     user simply types ENTER.
-
     >>> confirm(prompt='Create Directory?', resp=True)
     Create Directory? [y]|n:
     True
@@ -64,7 +61,6 @@ def confirm(prompt=None, resp=False):
     >>> confirm(prompt='Create Directory?', resp=False)
     Create Directory? [n]|y: y
     True
-
     """
 
     if prompt is None:
@@ -126,7 +122,6 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
         0: int - the cript ran and executed normally
         e.returncode: int - if the script has error code exits built in and the
             script returns one, this will catch and return it
-
     """
     try:
         script_output = subprocess.Popen(process_specs, 
@@ -139,6 +134,7 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
         output, errors = script_output.communicate()
         rc = script_output.returncode
 
+        #maybe print errors (BBO)?
         if errors:
             str_err = str(errors, encoding='utf-8')
             str_err = str_err.strip('<')
@@ -152,6 +148,10 @@ def safe_run_subprocess(process_specs: list, current_working_directory: str):
             return rc
     except CalledProcessError as e:
         return e.returncode
+
+def print_process_cli(process_specs: list, wd: str):
+    # print(f'cd {wd}')
+    print(' '.join(process_specs))
 
 def create_log_name(filename: str):
     _time = str(datetime.now())
@@ -178,3 +178,4 @@ def purge_old_logs(path: str):
     for file in glob.glob(path):
         if re.match(r'.*/LibRec-Auto_log.*', file):
             os.remove(file)
+

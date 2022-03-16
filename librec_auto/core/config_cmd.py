@@ -37,6 +37,7 @@ class ConfigCmd:
         self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
+        print(self._files.get_config_file_path())
         if self._xml_input is None:
             raise InvalidConfiguration('Parsing of config file failed.')
         self.protected_features = ProtectedFeature(ProtectedFeature.parse_protected(self), 
@@ -250,6 +251,7 @@ class ConfigCmd:
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
                     iter(self._var_coll.var_confs)))
+        print(self.get_bbo_steps(), startflag)
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
 
