@@ -132,47 +132,38 @@ class compile_commands():
             exp_commands = []
 
 
-        # try:
-        if librec_action == 'check':
-            exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
-        else:
-            study = optuna.create_study(pruner=RepeatPruner())
-            addition_exp_commands = []
-            parameter_space = {}        
-            vconf = config._var_coll.var_confs
-            num_of_vars = len([0 for var in vconf[0].vars])
+        try:
+            if librec_action == 'check':
+                exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
+            else:
+                study = optuna.create_study(pruner=RepeatPruner())
+                addition_exp_commands = []
+                parameter_space = {}        
+                vconf = config._var_coll.var_confs
+                num_of_vars = len([0 for var in vconf[0].vars])
 
-            range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
-            range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
-            ranges = [[min(array), max(array)] for array in range_val_store]
-            iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
-            print([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')])
-            print("iterations",iterations)
+                range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
+                range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
+                ranges = [[min(array), max(array)] for array in range_val_store]
+                iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
-            for i in range(int(iterations)):
-                print(i)
-                print("ask")
-                # ask = AskCmd()
-                # (self,Ranges, args, config, current_exp_no, study, ranges, space, num_of_vars)
-                ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars)
-                print("trial")
-                trial = ask.trial
-                print("execute")
-                execute = LibrecCmd("full", i)
-                print("tell")
+                for i in range(int(iterations)):
+                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars)
+                    trial = ask.trial
+                    execute = LibrecCmd("full", i)
 
-                #if rerank, add reranking step here
-                # self, args, config, current_exp_no, study, trial, metric, direction)
-                tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
-                seq = SequenceCmd([ask, execute, tell])
-                addition_exp_commands.append(seq)
+                    #if rerank, add reranking step here
+                    # self, args, config, current_exp_no, study, trial, metric, direction)
+                    tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+                    seq = SequenceCmd([ask, execute, tell])
+                    addition_exp_commands.append(seq)
 
-            exp_commands += addition_exp_commands
+                exp_commands += addition_exp_commands
 
-            return [SequenceCmd(exp_commands)]
-        # except:
-        #     raise LibRecAutoException("Building Librec Commands",
-        #                             f"While building librec command {librec_action}, a script failed")
+                return [SequenceCmd(exp_commands)]
+        except:
+            raise LibRecAutoException("Building Librec Commands",
+                                    f"While building librec command {librec_action}, a script failed")
 
     def build_eval_commands(self, args: dict, config: ConfigCmd, execution: str):
         '''

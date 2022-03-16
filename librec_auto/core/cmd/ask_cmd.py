@@ -32,10 +32,7 @@ class AskCmd(Cmd):
 
         self.ranges = Ranges
 
-        print(self.ranges)
-
         self.num_of_vars = num_of_vars
-
 
         metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
 
@@ -45,10 +42,6 @@ class AskCmd(Cmd):
             self.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
 
         self.trial = self.study.ask()
-
-        #issue with config. Must look into issue
-
-        print(self.space)
 
     def ask(self):
         self.create_space()
@@ -90,11 +83,9 @@ class AskCmd(Cmd):
             self.direction = self.metric_map[metric]
 
     def modify_xml(self, params):
-        print(params)
         self.config.write_exp_configs(val = list(params.values()), iteration = self.current_exp_no)
 
     def execute(self, command):
-        print("running ask")
         self.ask()
 
     

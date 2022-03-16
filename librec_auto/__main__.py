@@ -200,8 +200,6 @@ if __name__ == '__main__':
                     clean.execute(config)
                     exit(-1)
 
-
-                
                 if args['dry_run']:
                     command.dry_run(config)
                 else:
@@ -217,7 +215,6 @@ if __name__ == '__main__':
             config = load_config(args)
             
             if config.is_valid():
-                print("here")
                 try:
                     if len(config._xml_input.xpath('/librec-auto/alg//*/lower')) >0 and \
                         (args['action'] == 'run' or args['action'] == 'dry_run'):
@@ -226,7 +223,6 @@ if __name__ == '__main__':
                         print('Running BBO. Recreating Config.')
                         config = load_config(args)
                         command = compile.setup_commands(args, config)
-                        print("done")
                     else:
                         command = compile.setup_commands(args, config)
                 except LibRecAutoException:
@@ -236,7 +232,6 @@ if __name__ == '__main__':
                     clean.execute(config)
                     exit(-1)
 
-                print(isinstance(command, list))
                 if isinstance(command, Cmd):
                     if args['action'] == 'show':
                         command.show()
@@ -252,99 +247,13 @@ if __name__ == '__main__':
                             clean.execute(config)
                             exit(-1)
                             
-
-
                 elif isinstance(command, list):
                     if args['action'] == 'show':
                         for cmd in command:
                             cmd.show()
                     else:
-                        # vconf = config._var_coll.var_confs
-
-                        # num_of_vars = len([0 for var in vconf[0].vars])
-
-                        # range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
-
-                        # range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
-
-                        # range_val_store = [[min(array), max(array)] for array in range_val_store]
-
-                        # check_rerank = len([elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/*//lower')])
-
-                        # if check_rerank > 0:
-                        #     raise InvalidConfiguration("Optimization", "Optimization is not currently supported with reranking")
-
-                        # # exponent_expected = num_of_vars
-                        # #
-                        # # for tup in range_val_store:
-                        # #     if tup[0] == tup[1]:
-                        # #         exponent_expected -= 1
-
-                        # # if 2**exponent_expected == config.get_sub_exp_count():
-                        # range_list = [(range_val_store[i][0],range_val_store[i][1]) for i in range(len(range_val_store))]
-                        # value_elems = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')]
-
-                        # continue_rerank = False
-
-                        # if isinstance(command[-2], RerankCmd):
-
-                        #     final_commands = command[-2:]
-
-                        #     command = command[:int(value_elems[0])+2]
-
-                        #     continue_rerank = True
-
-                        #     command = command + final_commands
-
-                        # bbo = BBO.BBO(range_list, len(range_val_store), command[3:], config)
-                        # file_path = bbo.run_purge(command[0])
-
-                        # metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
-
-                        # if metric in bbo.metric_map:
-                        #     bbo.set_optimization_direction(metric)
-                        # else:
-                        #     bbo.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
-
-                        # # Setup Command
-
-
-
-                        
-
-                        #### THIS IS THE PART YOU MUST RECREATE###
-
-
-
-
-
-
-                        # command[1].execute(config, startflag = 1, exp_no = int(value_elems[0]))
-                        # # Split Command
-                        # command[2].execute(config)
-
-                        # bbo.file_path = file_path
-
-                        # bbo.run(int(value_elems[0]))
-
-                        # # print("continue_rerank", config.has_rerank())
-                        # # if config.has_rerank():
-                        # #     command[-3].execute(config)
-                        # #     # command[-2].execute(config)
-                        # #     command[-1].execute(config)
-                        # # else:
-                        # cleanup = command[-1]
-                        # cleanup.execute(config)
-                        # create_study_output(config)
-                        for i,cmd in enumerate(command):
-                            print(i)
+                        for cmd in command:
                             cmd.execute(config)
-
-
-
-                 #   else:
-                 #       print("Each range must have only two values!")
-                 #       print("Expected", exponent_expected, "values, got", config.get_sub_exp_count())
                      
                 else:
                     logging.error("Command instantiation failed.")
