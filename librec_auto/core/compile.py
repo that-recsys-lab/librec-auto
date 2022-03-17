@@ -145,6 +145,8 @@ class compile_commands():
                 range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
                 range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
                 ranges = [[min(array), max(array)] for array in range_val_store]
+                
+                if self.
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
                 for i in range(int(iterations)):
@@ -154,6 +156,9 @@ class compile_commands():
 
                     #if rerank, add reranking step here
                     # self, args, config, current_exp_no, study, trial, metric, direction)
+                    #if self.rerank_flag:
+                    #   RerankCmd(exp_no = i)
+                    
                     tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
                     seq = SequenceCmd([ask, execute, tell])
                     addition_exp_commands.append(seq)
@@ -277,7 +282,6 @@ class compile_commands():
             raise InvalidCommand(self.action, "No post-processing scripts available for \"post\" command")
 
     def rerank(self): 
-        print("rerank")
         if self.rerank_flag:  # Runs a reranking script on the python side
             cmd1 = RerankCmd()
             cmd2 = self.build_librec_commands('eval', self.args, self.config)
