@@ -109,12 +109,14 @@ class compile_commands():
             else:
                 if librec_action == 'check':
                     exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
+                elif librec_action == 'eval':
+                    exp_commands =  exp_commands + [LibrecCmd(librec_action, BBO, write_config = False)]
                 else:
                     exp_commands = exp_commands + \
-                        [LibrecCmd(librec_action, i) for i in range(BBO)]
+                        [LibrecCmd(librec_action, BBO)]
 
             if BBO:
-                return exp_commands
+                return SequenceCmd(exp_commands)
             elif threads > 1 and not args['no_parallel']:
                 return ParallelCmd(exp_commands, threads)
             else:
@@ -125,6 +127,7 @@ class compile_commands():
 
     #likely will delete later, need this as a placeholder
     def build_librec_ask_tell(self, librec_action: str, args: dict, config: ConfigCmd):
+        print("build ask/tell")
         threads = config.thread_count()
         if librec_action == 'full':
             exp_commands = [LibrecCmd('split', 0)]
@@ -136,6 +139,7 @@ class compile_commands():
             if librec_action == 'check':
                 exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
             else:
+                print("here")
                 study = optuna.create_study(pruner=RepeatPruner())
                 addition_exp_commands = []
                 parameter_space = {}        
@@ -145,22 +149,38 @@ class compile_commands():
                 range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
                 range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
                 ranges = [[min(array), max(array)] for array in range_val_store]
-                
-                if self.
+
+                print("rerank ranges after thsi")
+                lower_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
+                upper_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/upper')]
+                rerank_ranges = [[float(lower_rerank[i]), float(upper_rerank[i])] for i in range(len(lower_rerank))]
+                print("RERANK RANGES", rerank_ranges)
+                # if rerank_ranges == []:
+                #     rerank_ranges = None
+
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
                 for i in range(int(iterations)):
-                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars)
+                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars, rerank_ranges = rerank_ranges)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
 
                     #if rerank, add reranking step here
                     # self, args, config, current_exp_no, study, trial, metric, direction)
-                    #if self.rerank_flag:
-                    #   RerankCmd(exp_no = i)
+                    rerank = None
+                    if self.rerank_flag:
+                      cmd1 = RerankCmd(exp_no = i)
+                      cmd2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
+                    #   cmd3 = EvalCmd(self.args, self.config)  # python-side eval
+                      rerank = SequenceCmd([cmd1, cmd2])
+                    #   rerank = SequenceCmd([cmd1, cmd3])
                     
                     tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
-                    seq = SequenceCmd([ask, execute, tell])
+                    seq = None
+                    if self.rerank_flag:
+                        seq = SequenceCmd([ask, execute, rerank, tell])
+                    else:
+                        seq = SequenceCmd([ask, execute, tell])
                     addition_exp_commands.append(seq)
 
                 exp_commands += addition_exp_commands
@@ -244,6 +264,7 @@ class compile_commands():
         self.met_lang = self.execution_platform(config, 'metric')
         # Create flags for optional steps
         self.rerank_flag = config.has_rerank()
+        # print(self.rerank_flag,"rerank")
         self.post_flag = config.has_post()
 
         # Flag to use/avoid check
@@ -260,10 +281,16 @@ class compile_commands():
         self.script_alg = self.study_xml.xpath('/study/alg/script')
 
         #no describe?
+        print(args)
         call_functions_dictionary = {'split': self.split, 'check': self.check, 'bbo': self.new_bbo, 'split': self.split, 'purge': self.purge, 'rerank': self.rerank, \
         'run': self.run_or_show, 'show': self.run_or_show, 'status': self.status, 'post': self.post, 'eval': self.eval}
 
         function = call_functions_dictionary[self.action]
+
+        if 'show_bbo' in args:
+            print("show_bbo")
+            function = call_functions_dictionary['bbo']
+            
         return function()
 
         # Set the password in the configuration if we have it
@@ -364,10 +391,10 @@ class compile_commands():
             exec_cmds = self.build_librec_ask_tell('full', self.args, self.config)
         
         print("rerank")
-        if self.rerank_flag:
+        # if self.rerank_flag:
                 # cmd.append(RerankCmd())
                 # cmd.append(build_exp_commands('eval', args, config))
-                raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
+                # raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
 
         final_cmds = []
 

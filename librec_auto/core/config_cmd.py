@@ -238,15 +238,33 @@ class ConfigCmd:
     def collect_rerank_vars(self):
         value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
         parents = [elem.getparent() for elem in value_elems]
+
+        print("b c l")
+        check_lower = [elem.getparent() for elem in self._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
+        print(" a c l")
+        tag = "value"
+        if len(check_lower) > 0:
+            value_elems = self._xml_input.xpath('/librec-auto/rerank/*//lower')
+            parents = [elem.getparent() for elem in value_elems]
+            tag = "lower"
+
         parents = list(set(parents))
-        for parent in parents:
-            vals = [elem.text for elem in parent.iterchildren(tag='value')]
-            parent_path = build_parent_path(parent)
-            self._var_coll.add_var('rerank', parent_path, vals)
+
+        if tag == 'value':
+            for parent in parents:
+                vals = [elem.text for elem in parent.iterchildren(tag='value')]
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('rerank', parent_path, vals)
+        else:
+            for parent in parents:
+                vals = [elem.text for elem in parent.iterchildren(tag='lower')]
+                vals += [elem.text for elem in parent.iterchildren(tag='upper')]
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('rerank', parent_path, vals)
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
-    def write_exp_configs(self, startflag = None, val = None, iteration = None):
+    def write_exp_configs(self, startflag = None, val = None, iteration = None, rerank_reduction = 0):
         
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
@@ -254,7 +272,8 @@ class ConfigCmd:
         print(self.get_bbo_steps(), startflag)
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
-
+            print(vconf.vars)
+            print(val)
             for x in range(len(val)):
                 vconf.vars[x].val = val[x]
             vconf.exp_no = None

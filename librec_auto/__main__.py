@@ -217,9 +217,11 @@ if __name__ == '__main__':
             if config.is_valid():
                 try:
                     if len(config._xml_input.xpath('/librec-auto/alg//*/lower')) >0 and \
-                        (args['action'] == 'run' or args['action'] == 'dry_run'):
+                        (args['action'] == 'run' or args['action'] == 'dry_run' or args['action'] == 'show'):
                         if args['action'] == 'run':
                             args['action'] = 'bbo'
+                        elif args['action'] == 'show':
+                            args['show_bbo'] = True
                         print('Running BBO. Recreating Config.')
                         config = load_config(args)
                         command = compile.setup_commands(args, config)
