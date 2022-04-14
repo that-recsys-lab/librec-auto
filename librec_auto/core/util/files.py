@@ -315,6 +315,7 @@ class ExpPaths:
 
     def get_study_conf(self):
         path = self.get_path('conf') / Files.DEFAULT_CONFIG_FILENAME
+        print("path files", path)
         xml_input = xml_load_from_path(path)
         return xml_input
 

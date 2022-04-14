@@ -239,9 +239,7 @@ class ConfigCmd:
         value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
         parents = [elem.getparent() for elem in value_elems]
 
-        print("b c l")
         check_lower = [elem.getparent() for elem in self._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
-        print(" a c l")
         tag = "value"
         if len(check_lower) > 0:
             value_elems = self._xml_input.xpath('/librec-auto/rerank/*//lower')
@@ -264,7 +262,7 @@ class ConfigCmd:
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
-    def write_exp_configs(self, startflag = None, val = None, iteration = None, rerank_reduction = 0):
+    def write_exp_configs(self, startflag = None, val = None, iteration = None):
         
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
@@ -286,7 +284,7 @@ class ConfigCmd:
             self.write_exp_config(exp, vconf, current_exp_path)
 
 
-        elif startflag is not None:
+        elif startflag is not False:
             i = 0
             for exp, vconf in configs[:1]:
                 vconf.exp_no = i
