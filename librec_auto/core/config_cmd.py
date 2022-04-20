@@ -270,8 +270,6 @@ class ConfigCmd:
         print(self.get_bbo_steps(), startflag)
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
-            print(vconf.vars)
-            print(val)
             for x in range(len(val)):
                 vconf.vars[x].val = val[x]
             vconf.exp_no = None

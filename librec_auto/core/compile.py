@@ -150,18 +150,20 @@ class compile_commands():
                 range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
                 ranges = [[min(array), max(array)] for array in range_val_store]
 
-                print("rerank ranges after thsi")
+
+                discrete_optimization = ["continuous" if elem.getparent().get("type") is not None else "discrete" for elem in config._xml_input.xpath('/librec-auto/alg/*/lower') ]
+                print("discrete",discrete_optimization)
                 lower_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
                 upper_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/upper')]
                 rerank_ranges = [[float(lower_rerank[i]), float(upper_rerank[i])] for i in range(len(lower_rerank))]
-                print("RERANK RANGES", rerank_ranges)
+
                 # if rerank_ranges == []:
                 #     rerank_ranges = None
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
                 for i in range(int(iterations)):
-                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars, rerank_ranges = rerank_ranges)
+                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars, discrete = discrete_optimization, rerank_ranges = rerank_ranges)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
 

@@ -28,7 +28,7 @@ class AskCmd(Cmd):
         self.space = space
 
         #continuous/discrete function must be readded
-        self.discrete = None
+        self.discrete = discrete
 
         self.ranges = Ranges
 
@@ -60,39 +60,35 @@ class AskCmd(Cmd):
 
     def create_space(self):
         print("CREATE SPACE")
-        if self.discrete == None:
-            self.space = {self.alphabet[i]: self.trial.suggest_float(self.alphabet[i],self.ranges[i][0], self.ranges[i][1]) for i in range(len(self.ranges))}
-            print(self.rerank_ranges)
-            if self.rerank_ranges is not None:
-                print("entered_range")
-                for i,type in enumerate(self.rerank_ranges):
-                    if type != "continuous":
-                        rerank_val = self.trial.suggest_float(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
-                        print("RERANK VAL", rerank_val)
-                        self.space[self.alphabet[i+self.num_of_vars-1]] = rerank_val
-                    else:
-                        rerank_val = self.trial.suggest_int(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
-                        self.space[self.alphabet[i+self.num_of_vars-1]] = rerank_val
-        else:
-            self.space = {}
-            self.num_of_vars = len(self.ranges)
-            for i,type in enumerate(self.discrete):
-                if type == "continuous":
-                    self.space[self.alphabet[i]] = self.trial.suggest_float(self.alphabet[i],self.ranges[i][0], self.ranges[i][1])
-                else:
-                    self.space[self.alphabet[i]] = self.trial.suggest_int(self.alphabet[i],self.ranges[i][0], self.ranges[i][1])
+        # if len(self.discrete) == 0:
+        #     self.space = {self.alphabet[i]: self.trial.suggest_float(self.alphabet[i],self.ranges[i][0], self.ranges[i][1]) for i in range(len(self.ranges))}
+        #     print(self.rerank_ranges)
+        #     if self.rerank_ranges is not None:
+        #         print("entered_range")
+        #         for i,type in enumerate(self.rerank_ranges):
+        #             if type != "continuous":
+        #                 rerank_val = self.trial.suggest_float(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
+        #                 print("RERANK VAL", rerank_val)
+        #                 self.space[self.alphabet[i+self.num_of_vars-1]] = rerank_val
+        #             else:
+        #                 rerank_val = self.trial.suggest_int(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
+        #                 self.space[self.alphabet[i+self.num_of_vars-1]] = rerank_val
+        # else:
+        self.space = {}
+        self.num_of_vars = len(self.ranges)
+        for i,type in enumerate(self.discrete):
+            if type == "discrete":
+                self.space[self.alphabet[i]] = self.trial.suggest_int(self.alphabet[i],self.ranges[i][0], self.ranges[i][1])
+            else:
+                self.space[self.alphabet[i]] = self.trial.suggest_float(self.alphabet[i],self.ranges[i][0], self.ranges[i][1])
 
-            if self.rerank_ranges is not None:
-                for i,type in enumerate(self.rerank_ranges):
-                    if type == "continuous":
-                        rerank_val = self.trial.suggest_float(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
-                        self.space[self.alphabet[i+self.num_of_vars]] = rerank_val
-                        self.rerank_val = rerank_val
-                    else:
-                        rerank_val = self.trial.suggest_int(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
-                        self.space[self.alphabet[i+self.num_of_vars]] = rerank_val
-                        self.rerank_val = rerank_val
-    
+        #may have to add discrete option for reranking
+        if self.rerank_ranges is not None:
+            for i,type in enumerate(self.rerank_ranges):
+                    rerank_val = self.trial.suggest_float(self.alphabet[i+self.num_of_vars],self.rerank_ranges[i][0], self.rerank_ranges[i][1])
+                    self.space[self.alphabet[i+self.num_of_vars]] = rerank_val
+                    self.rerank_val = rerank_val
+
     def set_optimization_direction(self, metric):
 
         self.metric = metric
