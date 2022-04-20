@@ -112,7 +112,7 @@ class AskCmd(Cmd):
         print("PARAMS")
         print(params.values())
         print(self.space)
-        self.config.write_exp_configs(val = list(params.values()), iteration = self.current_exp_no, rerank_reduction = len(self.rerank_ranges))
+        self.config.write_exp_configs(val = list(params.values()), iteration = self.current_exp_no)
 
     def execute(self, command):
         self.ask()

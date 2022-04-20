@@ -46,6 +46,8 @@ class TellCmd(Cmd):
                 i += 1
                 continue
             status = Status(sub_paths)
+            print("status", status.get_metric_info(status._log, BBO = True))
+
             store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
             break
                 

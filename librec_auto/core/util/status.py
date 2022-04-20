@@ -86,6 +86,7 @@ class Status:
         for metric_name in log.get_metrics():
             str_vals = log.get_metric_values(metric_name)['cv_results']
             num_vals = [float(val) for val in str_vals]
+            print(num_vals, "num_vals")
             avg_metric_value = np.average(num_vals)
             metric_info = metric_info + f' {metric_name}: {float(avg_metric_value):.3f}'
 
