@@ -86,6 +86,7 @@ class RerankCmd(Cmd):
             script_path = get_script_path(script_elem, 'rerank')
             study_path = self._files.get_study_path()
             result_path = sub_path.get_path('result')
+            print("PATHS", sub_path, result_path)
 
             original_path = self.find_original_results(result_path, script_path, sub_path)
 
@@ -104,6 +105,8 @@ class RerankCmd(Cmd):
                     'More than one re-ranking script found. Ignoring.')
 
     def find_original_results(self, result_path, script_path, sub_path):
+        print("    Finding original results")
+        print(sub_path.get_ref_exp_name())
         if not sub_path.get_ref_exp_name(
         ):  # If there is no ref, then LibRec was run
             if not result_path.exists():
@@ -114,6 +117,7 @@ class RerankCmd(Cmd):
                 sub_path.results2original()  # and there are results here
             original_path = sub_path.get_path('original')
         else:  # If there is a ref, the results are in
+            print("IN ELSE")
             ref_sub_path = sub_path.get_ref_exp_path(
             )  # that experiment's directory
             original_path = ref_sub_path.get_path('original')

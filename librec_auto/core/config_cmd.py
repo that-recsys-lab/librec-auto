@@ -183,9 +183,10 @@ class ConfigCmd:
                     logging.warning(f"No such element in library {ref_name}")
 
     def collect_vars(self):
+        print("COLLECTING VARS")
         self.collect_librec_vars()
         self.collect_rerank_vars()
-        self._var_coll.compute_var_configurations()
+        self._var_coll.compute_var_configurations(self._bbo_steps)
 
     def collect_librec_vars(self):
         Tag = 'value'
@@ -267,13 +268,14 @@ class ConfigCmd:
         configs = list(
                 zip(self.get_files().get_exp_paths_iterator(),
                     iter(self._var_coll.var_confs)))
-        print(self.get_bbo_steps(), startflag)
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
+            print("before", vconf.vars)
             for x in range(len(val)):
-                vconf.vars[x].val = val[x]
+                vconf.vars[x].val = val[vconf.vars[x].path]
             vconf.exp_no = None
             vconf.exp_dir = exp.exp_name
+            print("after", vconf.vars)
 
             current_exp_path = self._files.get_study_path() / self._files.get_exp_name(iteration)
 

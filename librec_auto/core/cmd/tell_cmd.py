@@ -6,7 +6,7 @@ import optuna
 
 class TellCmd(Cmd):
     def __init__(self, args, config, current_exp_no, study, trial, metric, direction):
-        print("inside tell")
+        # print("inside tell")
         self.config = config
         self.args = args
         self.current_exp_no = current_exp_no

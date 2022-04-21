@@ -146,24 +146,59 @@ class compile_commands():
                 vconf = config._var_coll.var_confs
                 num_of_vars = len([0 for var in vconf[0].vars])
 
-                range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
-                range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
-                ranges = [[min(array), max(array)] for array in range_val_store]
+                value_store = [[(i.path,i.val) for i in j.vars if i.type == 'librec'] for j in vconf]
+                rerank_value_store = [[(i.path,i.val) for i in j.vars if i.type == 'rerank'] for j in vconf]
+                value_store_dict = {}
+                rerank_value_store_dict = {}
 
+                for arr in value_store:
+                    for item in arr:
+                        path, val = item[0],item[1]
+                        if path not in value_store_dict:
+                            value_store_dict[path] = []
+                        value_store_dict[path].append(val)
 
-                discrete_optimization = ["continuous" if elem.getparent().get("type") is not None else "discrete" for elem in config._xml_input.xpath('/librec-auto/alg/*/lower') ]
-                print("discrete",discrete_optimization)
-                lower_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
-                upper_rerank = [elem.text for elem in config._xml_input.xpath('/librec-auto/rerank/script/*/upper')]
-                rerank_ranges = [[float(lower_rerank[i]), float(upper_rerank[i])] for i in range(len(lower_rerank))]
+                for val in value_store_dict.keys():
+                    arr = value_store_dict[val]
+                    arr = [float(i) for i in arr]
+                    value_store_dict[val] = [min(arr), max(arr)]
 
+                print("1")
+
+                for arr in rerank_value_store:
+                    for item in arr:
+                        path, val = item[0],item[1]
+                        if path not in rerank_value_store_dict:
+                            rerank_value_store_dict[path] = []
+                        rerank_value_store_dict[path].append(val)
+
+                for val in rerank_value_store_dict.keys():
+                    arr = rerank_value_store_dict[val]
+                    arr = [float(i) for i in arr]
+                    rerank_value_store_dict[val] = [min(arr), max(arr)]
+
+                print("2")
+                print(rerank_value_store_dict)
+
+                discrete_optimization = {elem.getparent().tag: "discrete" if elem.getparent().get("type") is not None else "continuous" for elem in config._xml_input.xpath('/librec-auto/alg/*/lower')}
+
+                key_split = {i:i.split('/')[-1] for i in value_store_dict.keys()}
+                
+                print(discrete_optimization)
+                continuous = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "continuous"}
+                discrete = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "discrete"}
+
+                print(continuous)
+                print(discrete)
+
+                print("dicts created")
                 # if rerank_ranges == []:
                 #     rerank_ranges = None
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
                 for i in range(int(iterations)):
-                    ask = AskCmd(ranges,self.args, self.config, i, study, ranges, parameter_space, num_of_vars, discrete = discrete_optimization, rerank_ranges = rerank_ranges)
+                    ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
 
