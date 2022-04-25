@@ -5,7 +5,7 @@ from librec_auto.core.util import Status
 import optuna
 
 class TellCmd(Cmd):
-    def __init__(self, args, config, current_exp_no, study, trial, metric, direction):
+    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, hack = False):
         # print("inside tell")
         self.config = config
         self.args = args
@@ -25,6 +25,10 @@ class TellCmd(Cmd):
         'absunfairness'
         : 'AbsoluteUnfairnessEvaluator','overestimate': 'OverestimationUnfairnessEvaluator','underestimate': 'UnderestimationUnfairnessEvaluator','ppr': 'PPercentRuleEvaluator'        
         }
+
+        self.old_librec_value_command = old_librec_value_command
+
+        self.hack = hack
         
     def __str__(self):
         return f"TellCmd()"
@@ -46,9 +50,21 @@ class TellCmd(Cmd):
                 i += 1
                 continue
             status = Status(sub_paths)
-            print("status", status.get_metric_info(status._log, BBO = True))
+            print("STATUS", status.get_metric_info(status._log, BBO = True))
+            if self.hack is not False:
+                old_val = self.old_librec_value_command._previous_status["NormalizedDCGEvaluator"]
+                store_dict = status.get_metric_info(status._log, BBO = True)
+                store_val = min(0,(store_dict["NormalizedDCGEvaluator"] - 0.9*old_val)) + store_dict["PStatisticalParityEvaluator"]
 
-            store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
+                print(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])
+                s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
+                print(s)
+                with open(s,"w+") as f:
+                    f.write(str(store_val))
+                print("HACK VAL", store_val)
+                print(status._params, status._vals, status._log)
+            else:
+                store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
             break
                 
         return float(store_val)

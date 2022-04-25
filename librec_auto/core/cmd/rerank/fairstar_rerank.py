@@ -77,6 +77,7 @@ def generate_fairstar(helper):
     max_len = helper.max_len
     p = helper.prop
     alpha = helper.alpha
+    print("alpha: ", alpha)
     fair = fsc.Fair(max_len, p, alpha)
     return fair
 
@@ -144,7 +145,7 @@ def load_item_features(config, data_path):
     item_feature_path = data_path / item_feature_file
 
     if not item_feature_path.exists():
-        print("Cannot locate item features. Path: " + item_feature_path)
+        print("Cannot locate item features. Path: " + str(item_feature_path))
         return None
 
     item_feature_df = pd.read_csv(item_feature_path,
@@ -183,6 +184,7 @@ def main():
     max_len = int(args['max_len'])
     binary = args['binary'] == 'True'
     # protected = str(args['protected'])
+    print(alpha, max_len, binary)
 
     helper = set_helper(alpha, max_len, binary, protected, item_feature_df)
 

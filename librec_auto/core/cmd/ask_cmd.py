@@ -49,6 +49,17 @@ class AskCmd(Cmd):
     def ask(self):
         self.create_space()
         self.modify_xml(self.space)
+    #     self.try_hack()
+
+    # def try_hack(self):
+    #     i = 0
+    #     for sub_paths in self.config._files.get_exp_paths_iterator():
+    #         if i != self.current_exp_no:
+    #             i += 1
+    #             continue
+
+    #         status = Status(sub_paths)
+    #         print("PRIOR STATUS", status.get_metric_info(status._log, BBO = True))
 
     def __str__(self):
         return f"AskCmd()"
@@ -100,6 +111,7 @@ class AskCmd(Cmd):
         print(params.values())
         print(self.space)
         self.config.write_exp_configs(val = params, iteration = self.current_exp_no)
+
 
     def execute(self, command):
         self.ask()

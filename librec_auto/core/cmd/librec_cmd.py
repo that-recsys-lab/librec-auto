@@ -32,6 +32,9 @@ class LibrecCmd(Cmd):
     # proc = subprocess.run(cmd, capture_output=True
     def execute_librec(self):
         cmd = self.create_proc_spec()
+        print(cmd)
+        print("EXECUTING LIBREC")
+        print(self.select_librec_action())
 
         if len(cmd) == 0:
             print(
@@ -125,6 +128,18 @@ class LibrecCmd(Cmd):
             self.execute_librec()
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
+
+        i = 0
+        for sub_paths in self._config._files.get_exp_paths_iterator():
+
+            if i != self._sub_no:
+                i += 1
+                continue
+            status = Status(sub_paths)
+            self._previous_status = status.get_metric_info(status._log, BBO = True)
+            break
+
+        
 
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):

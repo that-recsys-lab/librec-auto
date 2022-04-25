@@ -255,6 +255,13 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     item_id_list = rating_df['itemid'].values.tolist()
     rating_list = rating_df['rating'].values.tolist()
 
+    user_dict = dict(zip(user_id_list, range(len(user_id_list))))
+    item_dict = dict(zip(item_id_list, range(len(item_id_list))))
+
+    user_id_list = [int(user_dict[x]) for x in user_id_list]
+    item_id_list = [int(item_dict[x]) for x in item_id_list]
+    rating_list = [float(x) for x in rating_list]
+
     # V = [(user_id_list[i], rating_list[i], item_id_list[i]) for i in range(len(rating_df))]
 
     # arg_1 = range(len(rating_df))
@@ -265,12 +272,12 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     m = max(user_id_list)
     n = max(item_id_list)
 
-    with open(file_path, 'r') as f:
-        for line in f:
-            # print(line)
-            split = line.split(',')
-            m = max(m, int(split[1]))
-            n = max(n, int(split[0]))
+    # with open(file_path, 'r') as f:
+    #     for line in f:
+    #         # print(line)
+    #         split = line.split(',')
+    #         m = max(m, int(split[1]))
+    #         n = max(n, int(split[0]))
     m += 1
     n += 1 #check if kiva is one indexed
 

@@ -115,8 +115,8 @@ class compile_commands():
                     exp_commands = exp_commands + \
                         [LibrecCmd(librec_action, BBO)]
 
-            if BBO:
-                return SequenceCmd(exp_commands)
+            if BBO is not False:
+                return exp_commands
             elif threads > 1 and not args['no_parallel']:
                 return ParallelCmd(exp_commands, threads)
             else:
@@ -201,18 +201,29 @@ class compile_commands():
                     ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
+                    print("i")
 
                     #if rerank, add reranking step here
                     # self, args, config, current_exp_no, study, trial, metric, direction)
-                    rerank = None
+                    tell = None
+                    rerank1 = None
+                    rerank2 = None
                     if self.rerank_flag:
-                      cmd1 = RerankCmd(exp_no = i)
-                      cmd2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
+                    #   print("in rerank")
+                      rerank1 = RerankCmd(exp_no = i)
+                      rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
                     #   cmd3 = EvalCmd(self.args, self.config)  # python-side eval
-                      rerank = SequenceCmd([cmd1, cmd2])
                     #   rerank = SequenceCmd([cmd1, cmd3])
+
+                      print(rerank2)
                     
-                    tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True)
+
+                      rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
+
+                    else:
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+
                     seq = None
                     if self.rerank_flag:
                         seq = SequenceCmd([ask, execute, rerank, tell])
