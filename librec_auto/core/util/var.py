@@ -27,7 +27,6 @@ class VarColl:
             self.conf_merge(conf_elem) for conf_elem in conf_product
         ]
         if bbo is not False:
-            print("CALLING SET REFS")
             self.set_refs()
 
     def add_var(self, type, path, vals):
@@ -63,7 +62,6 @@ class VarColl:
             row = i // librec_factor
             col = i % librec_factor
             if row > 0:
-                print(self.var_confs[col])
                 self.var_confs[i].ref_config = self.var_confs[col]
 
 
