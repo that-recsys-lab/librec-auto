@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, ExpPaths, Status, safe_run_subprocess
+from librec_auto.core.util import Files, ExpPaths, Status, safe_run_subprocess, print_process_cli
 from librec_auto.core import ConfigCmd
 from pathlib import Path
 from librec_auto.core.util.utils import create_param_spec, get_script_path
@@ -24,7 +24,7 @@ class AlgCmd(Cmd):
         print(str(self))
 
     def dry_run(self, config):
-        self.execute(dry_run=True)
+        self.execute(config, dry_run=True)
 
 
     # script is going to need train file and test file. 
@@ -117,8 +117,9 @@ class AlgCmd(Cmd):
             test_set.absolute().as_posix(),
             result_file.absolute().as_posix()
         ] + param_spec
-        print("    Parameters: " + str(proc_spec))
-        print("    Working directory: " + str(exec_path.absolute()))
+        print_process_cli(proc_spec, str(exec_path.absolute()))
+        #print("    Parameters: " + str(proc_spec))
+        #print("    Working directory: " + str(exec_path.absolute()))
 
         if dry_run:
             return 0

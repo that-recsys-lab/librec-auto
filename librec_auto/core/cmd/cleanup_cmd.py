@@ -26,7 +26,7 @@ class CleanupCmd(Cmd):
         print(str(self))
 
     def dry_run(self, config):
-        print(f'librec-auto (DR): Running status command {self}')
+        print(f'librec-auto (DR): Running clean up command {self}')
     
     def execute(self, config: ConfigCmd):
         study_path = config.get_files().get_study_path()

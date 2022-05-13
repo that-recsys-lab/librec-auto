@@ -65,8 +65,12 @@ class BBO:
         else:
             self.discrete = ranges
 
+<<<<<<< HEAD
     #creates hyperparameter dictionary in optuna format
     # Might need to move into compile.py or create an object    
+=======
+    #creates hyperparameter dictionary in optuna format    
+>>>>>>> master
     def create_space(self, trial):
         # self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
         if self.discrete == None:

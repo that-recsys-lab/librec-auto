@@ -50,12 +50,12 @@ class FAIRREC():
     # order looking at customers matters
 
     # Allocation set for each customer, initially it is set to empty set
-        print("U",U)
-        print("P",P)
-        print("k",k)
-        print("m",m)
-        print("n",n)
-        print("V", V[:5])
+        # print("U",U)
+        # print("P",P)
+        # print("k",k)
+        # print("m",m)
+        # print("n",n)
+        # print("V", V[:5])
 
         alpha = float(alpha)
         m = int(m)
@@ -115,8 +115,8 @@ class FAIRREC():
                 if len(A[u])==k:
                     break
 
-        print("returning A")
-        print(A)
+        # print("returning A")
+        # print(A)
         return A
 
 
@@ -247,8 +247,8 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     #     print("no training data")
     #     exit(-1)
 
-    print("reading")
-    print(file_path)
+    # print("reading")
+    # print(file_path)
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
     
     user_id_list = rating_df['userid'].values.tolist()
@@ -283,14 +283,14 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
 
     arr =[[-1 for i in range(m)] for j in range(n)]
 
-    print(m,n)
+    # print(m,n)
 
     with open(file_path, 'r') as f:
         for line in f:
             split = line.split(',')
             arr[int(split[1])][int(split[0])] = float(split[2])
 
-    print("calling Fairrec")
+    # print("calling Fairrec")
 
     re_ranker = FAIRREC()
     # FairRec(self,U,P,k,V,alpha,m,n):
@@ -355,13 +355,13 @@ def main():
 
     p = []
 
-    print(args)
+    # print(args)
 
     k = args['max_len']
 
     alpha = args['alpha']
 
-    print(pat, result_files, split_path, dest_results_path)
+    # print(pat, result_files, split_path, dest_results_path)
 
     for file_path in result_files:
         print(file_path)
