@@ -37,7 +37,6 @@ class ConfigCmd:
         self._files.create_temp_dir()
 
         self._xml_input = self.read_xml(self._files.get_config_file_path())
-        print(self._files.get_config_file_path())
         if self._xml_input is None:
             raise InvalidConfiguration('Parsing of config file failed.')
         self.protected_features = ProtectedFeature(ProtectedFeature.parse_protected(self), 
@@ -183,7 +182,6 @@ class ConfigCmd:
                     logging.warning(f"No such element in library {ref_name}")
 
     def collect_vars(self):
-        print("COLLECTING VARS")
         self.collect_librec_vars()
         self.collect_rerank_vars()
         self._var_coll.compute_var_configurations(self._bbo_steps)
@@ -228,7 +226,6 @@ class ConfigCmd:
                 val_lower = [elem.text for elem in parent.iterchildren(tag='lower')]
                 val_upper = [elem.text for elem in parent.iterchildren(tag='upper')]
                 vals = []
-                # print(val_lower,val_upper)
                 for i in range(len(val_lower)):
                     vals.append(val_lower[i])
                     vals.append(val_upper[i])
@@ -270,12 +267,10 @@ class ConfigCmd:
                     iter(self._var_coll.var_confs)))
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
-            print("before", vconf.vars)
             for x in range(len(val)):
                 vconf.vars[x].val = val[vconf.vars[x].path]
             vconf.exp_no = None
             vconf.exp_dir = exp.exp_name
-            print("after", vconf.vars)
 
             current_exp_path = self._files.get_study_path() / self._files.get_exp_name(iteration)
 
@@ -397,7 +392,6 @@ class ConfigCmd:
 
 def read_config_file(config_file, target, log_filename=None):
     config = ConfigCmd(config_file, target, log_filename)
-    print(target)
     if config.is_valid():
         config.load_libraries()
         config.process_config()
