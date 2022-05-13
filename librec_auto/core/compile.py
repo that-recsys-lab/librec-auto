@@ -78,7 +78,6 @@ class compile_commands():
             range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
             ranges = [[min(array), max(array)] for array in range_val_store]
             for i in range(self.iterations):
-                print(self.iterations)
                 ask = AskCmd(self.args, self.config, i, study, ranges, parameter_space, num_of_vars)
                 trial = ask.trial()
                 alg_cmd = AlgCmd(i)
@@ -95,7 +94,6 @@ class compile_commands():
 
     def build_librec_commands(self, librec_action: str, args: dict, config: ConfigCmd, BBO = False):
         threads = config.thread_count()
-        # print("actions:",librec_action)
         if librec_action == 'full':
             exp_commands = [LibrecCmd('split', 0)]
         else:
@@ -127,7 +125,6 @@ class compile_commands():
 
     #likely will delete later, need this as a placeholder
     def build_librec_ask_tell(self, librec_action: str, args: dict, config: ConfigCmd):
-        print("build ask/tell")
         threads = config.thread_count()
         if librec_action == 'full':
             exp_commands = [LibrecCmd('split', 0)]
@@ -139,7 +136,6 @@ class compile_commands():
             if librec_action == 'check':
                 exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
             else:
-                print("here")
                 study = optuna.create_study(pruner=RepeatPruner())
                 addition_exp_commands = []
                 parameter_space = {}        
@@ -163,7 +159,6 @@ class compile_commands():
                     arr = [float(i) for i in arr]
                     value_store_dict[val] = [min(arr), max(arr)]
 
-                print("1")
 
                 for arr in rerank_value_store:
                     for item in arr:
@@ -177,23 +172,12 @@ class compile_commands():
                     arr = [float(i) for i in arr]
                     rerank_value_store_dict[val] = [min(arr), max(arr)]
 
-                print("2")
-                print(rerank_value_store_dict)
-
                 discrete_optimization = {elem.getparent().tag: "discrete" if elem.getparent().get("type") is not None else "continuous" for elem in config._xml_input.xpath('/librec-auto/alg/*/lower')}
 
                 key_split = {i:i.split('/')[-1] for i in value_store_dict.keys()}
                 
-                print(discrete_optimization)
                 continuous = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "continuous"}
                 discrete = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "discrete"}
-
-                print(continuous)
-                print(discrete)
-
-                print("dicts created")
-                # if rerank_ranges == []:
-                #     rerank_ranges = None
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
 
@@ -201,7 +185,6 @@ class compile_commands():
                     ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
-                    print("i")
 
                     #if rerank, add reranking step here
                     # self, args, config, current_exp_no, study, trial, metric, direction)
@@ -209,13 +192,9 @@ class compile_commands():
                     rerank1 = None
                     rerank2 = None
                     if self.rerank_flag:
-                    #   print("in rerank")
                       rerank1 = RerankCmd(exp_no = i)
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
-                    #   cmd3 = EvalCmd(self.args, self.config)  # python-side eval
-                    #   rerank = SequenceCmd([cmd1, cmd3])
 
-                      print(rerank2)
                     
                       tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True)
 
@@ -312,7 +291,6 @@ class compile_commands():
         self.met_lang = self.execution_platform(config, 'metric')
         # Create flags for optional steps
         self.rerank_flag = config.has_rerank()
-        # print(self.rerank_flag,"rerank")
         self.post_flag = config.has_post()
 
         # Flag to use/avoid check
@@ -329,14 +307,12 @@ class compile_commands():
         self.script_alg = self.study_xml.xpath('/study/alg/script')
 
         #no describe?
-        print(args)
         call_functions_dictionary = {'split': self.split, 'check': self.check, 'bbo': self.new_bbo, 'split': self.split, 'purge': self.purge, 'rerank': self.rerank, \
         'run': self.run_or_show, 'show': self.run_or_show, 'status': self.status, 'post': self.post, 'eval': self.eval}
 
         function = call_functions_dictionary[self.action]
 
         if 'show_bbo' in args:
-            print("show_bbo")
             function = call_functions_dictionary['bbo']
             
         return function()
@@ -377,9 +353,6 @@ class compile_commands():
         return bracketed_cmd
 
     def bbo(self):
-        # if action == 'bbo':
-            # print("bbo function")
-            # print("checking")
             cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
             cmd2 = SetupCmd(False)
             cmd3 = [cmd1, cmd2]
@@ -412,16 +385,11 @@ class compile_commands():
             else:
                 final_cmds.append(CleanupCmd())
 
-            # cmd = init_cmds + check_cmds + exec_cmds + final_cmds
-
             cmd = init_cmds + exec_cmds + final_cmds
-
-            # print(cmd)
 
             return cmd
 
     def new_bbo(self):
-        print("new bbo")
         cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
         cmd2 = SetupCmd(False)
         init_cmds = [cmd1, cmd2]
@@ -431,31 +399,20 @@ class compile_commands():
         #         librec_check = self.build_librec_commands('check', self.args, self.config, BBO = 200)
         #         check_cmds = [librec_check[0], CheckCmd()]
         
-        print("exec")
         exec_cmds = []
         if self.config.has_alg_script():
             exec_cmds = self.build_alg_commands(self.args, self.config)
         else:
             exec_cmds = self.build_librec_ask_tell('full', self.args, self.config)
-        
-        print("rerank")
-        # if self.rerank_flag:
-                # cmd.append(RerankCmd())
-                # cmd.append(build_exp_commands('eval', args, config))
-                # raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
 
         final_cmds = []
 
-        print("post")
         if self.post_flag:
             final_cmds.append(PostCmd())
         else:
             final_cmds.append(CleanupCmd())
 
         cmd = init_cmds + check_cmds + exec_cmds + final_cmds
-
-        print("returning cmd")
-        print(cmd)
 
         return cmd
 
@@ -500,49 +457,6 @@ class compile_commands():
             cmd = SequenceCmd([cmd1, cmd2])
             bracketed_cmd = self.bracket_sequence('none', self.args, self.config, cmd)
             return bracketed_cmd
-
-    # The purge rule is: if the command says to run step X, purge the results of X and everything after.
-    # def setup_commands(self, args: dict, config: ConfigCmd):
-    #     print('args:',args)
-        
-
-
-        # Purge files (possibly) from splits and subexperiments
-       
-
-        # Shows the status of the experiment
-
-
-        # Perform (only) post-processing on results
-        
-        # No post scripts available
-
-            
-        # Perform re-ranking on results, followed by evaluation and post-processing
-
-        # No re-ranker available
-
-
-        # LibRec actions
-        # re-run splits only
-
-
-        # re-run experiment
-       
-
-
-        # re-run experiment and continue
-
-        
-
-
-        # eval-only
-        
-
-        # check setup of experiment
-        # We don't check on algorithm scripts
-        
-
 
     def bracket_sequence(self, purge_action, args, config, seq_cmd):
         # purge based on what action is being called

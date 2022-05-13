@@ -128,16 +128,6 @@ class LibrecCmd(Cmd):
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
-        i = 0
-        for sub_paths in self._config._files.get_exp_paths_iterator():
-
-            if i != self._sub_no:
-                i += 1
-                continue
-            status = Status(sub_paths)
-            self._previous_status = status.get_metric_info(status._log, BBO = True)
-            break
-
         
 
     # Checks for any contents of split directory, which would have been removed by purging
