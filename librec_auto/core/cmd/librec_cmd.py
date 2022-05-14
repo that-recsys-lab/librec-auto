@@ -32,9 +32,6 @@ class LibrecCmd(Cmd):
     # proc = subprocess.run(cmd, capture_output=True
     def execute_librec(self):
         cmd = self.create_proc_spec()
-        print(cmd)
-        print("EXECUTING LIBREC")
-        print(self.select_librec_action())
 
         if len(cmd) == 0:
             print(
