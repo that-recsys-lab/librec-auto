@@ -72,26 +72,21 @@ class AskCmd(Cmd):
 
     def create_space(self):
         self.space = {}
-        print("creating space")
         #ranges, rerank_ranges become dictionaries of ranges
 
         for i,type in enumerate(self.continuous.keys()):
             self.space[type] = self.trial.suggest_float(type,self.continuous[type][0], self.continuous[type][1])
 
         for i,type in enumerate(self.discrete.keys()):
-            print("TYPE")
-            print(self.discrete[type])
             self.space[type] = self.trial.suggest_int(type,self.discrete[type][0], self.discrete[type][1])
 
         #may have to add discrete option for reranking
         if self.rerank_ranges is not None:
             for i,type in enumerate(self.rerank_ranges.keys()):
-                    print(self.rerank_ranges[type],float(self.rerank_ranges[type][0]), float(self.rerank_ranges[type][1]))
                     rerank_val = self.trial.suggest_float(type,float(self.rerank_ranges[type][0]), float(self.rerank_ranges[type][1]))
                     self.space[type] = rerank_val
                     self.rerank_val = rerank_val
 
-        print("SPACE",self.space)
     def set_optimization_direction(self, metric):
 
         self.metric = metric
@@ -107,9 +102,6 @@ class AskCmd(Cmd):
             self.direction = self.metric_map[metric]
 
     def modify_xml(self, params):
-        print("PARAMS")
-        print(params.values())
-        print(self.space)
         self.config.write_exp_configs(val = params, iteration = self.current_exp_no)
 
 
