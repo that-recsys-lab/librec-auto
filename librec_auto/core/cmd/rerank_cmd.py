@@ -86,7 +86,6 @@ class RerankCmd(Cmd):
             script_path = get_script_path(script_elem, 'rerank')
             study_path = self._files.get_study_path()
             result_path = sub_path.get_path('result')
-            print("PATHS", sub_path, result_path)
 
             original_path = self.find_original_results(result_path, script_path, sub_path)
 

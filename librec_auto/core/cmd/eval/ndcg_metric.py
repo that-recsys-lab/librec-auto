@@ -27,6 +27,8 @@ class NdcgMetric(ListBasedMetric):
         recDCG = 0.0
         test_user_items = list(test_user_data[:, 1])
 
+        print(test_user_items)
+
         for j in range(rec_num):
             item = int(result_user_data[j][1])
             if item in test_user_items:

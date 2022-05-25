@@ -241,6 +241,7 @@ if __name__ == '__main__':
                         command.dry_run(config)
                     else:
                         try: 
+                            # print("try")
                             command.execute(config)
                         except LibRecAutoException:
                             print("Exception caught, check output.xml file.")

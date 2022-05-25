@@ -35,6 +35,7 @@ class compile_commands():
             return 'none'
 
     def build_alg_commands(self,args: dict, config: ConfigCmd, BBO = False):
+        print("building")
         threads = config.thread_count()
 
         # Need to split because normally librec does that
@@ -194,10 +195,7 @@ class compile_commands():
                     if self.rerank_flag:
                       rerank1 = RerankCmd(exp_no = i)
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
-
-                    
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True)
-
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = False)
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
 
                     else:
@@ -419,16 +417,17 @@ class compile_commands():
     def run_or_show(self):
 
         cmd1 = self.build_librec_commands('full', self.args, self.config)
-
-        if self.config.has_alg_script(): 
-            cmd1 = self.build_librec_commands('full', self.args, self.config)
-
         add_eval = self.maybe_add_eval(config=self.config)
-        if add_eval:
-            # cmd2 = EvalCmd(args, config)  # python-side eval
+
+        if add_eval and not self.config.has_alg_script():
             cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
             cmd = SequenceCmd([cmd1, cmd2])
-        else: cmd = SequenceCmd([cmd1])
+        elif add_eval:
+            cmd1 = self.build_alg_commands(self.args, self.config)
+            cmd2 = EvalCmd(self.args, self.config)  # python-side eval
+            cmd = SequenceCmd([cmd1, cmd2])
+        else: 
+            cmd = SequenceCmd([cmd1])
         if self.rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(self.build_librec_commands('eval', self.args, self.config))

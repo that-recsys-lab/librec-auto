@@ -50,19 +50,14 @@ class TellCmd(Cmd):
                 i += 1
                 continue
             status = Status(sub_paths)
-            # print("STATUS", status.get_metric_info(status._log, BBO = True))
             if self.hack is not False:
                 old_val = self.old_librec_value_command._previous_status["NormalizedDCGEvaluator"]
                 store_dict = status.get_metric_info(status._log, BBO = True)
                 store_val = max(0,(store_dict["NormalizedDCGEvaluator"] - 0.9*old_val)) + store_dict["PStatisticalParityEvaluator"]
 
-                # print(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
-                # print(s)
                 with open(s,"w+") as f:
                     f.write(str(store_val))
-                # print("HACK VAL", store_val)
-                # print(status._params, status._vals, status._log)
             else:
                 store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
             break
