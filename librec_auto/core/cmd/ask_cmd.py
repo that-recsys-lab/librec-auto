@@ -38,11 +38,14 @@ class AskCmd(Cmd):
         self.num_of_vars = num_of_vars
 
         metric = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/metric')][0]
-
+        self.metric = metric
         if metric in self.metric_map:
             self.set_optimization_direction(metric)
         else:
-            self.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
+            if len(config._xml_input.xpath('/librec-auto/metric/@optimize')) == 0:
+                self.set_optimization_direction("higher")
+            else:
+                self.set_optimization_direction(config._xml_input.xpath('/librec-auto/metric/@optimize')[0])
 
         self.trial = self.study.ask()
 
@@ -88,8 +91,8 @@ class AskCmd(Cmd):
                     self.rerank_val = rerank_val
 
     def set_optimization_direction(self, metric):
-
-        self.metric = metric
+        # self.metric = metric
+        print("self.metric",self.metric)
         if metric == "higher":
             self.direction = "positive"
         elif metric == "lower":

@@ -67,7 +67,8 @@ class FAR(Reranker):
             num_remain = len(user_helper.item_list)
             best_score = -1
             scores = []
-
+            # print("num remain", num_remain)
+            # print(rerank_helper.protected_set)
             for i in range(num_remain):
                 item = user_helper.item_list[i]
                 score = rec[i]
@@ -76,14 +77,18 @@ class FAR(Reranker):
                                             user_helper.score_profile, rerank_helper)
                 else:
                     new_score = rescore_prop(item, score, user_helper.item_so_far,
-                                            user_helper.score_profile, rerank_helper)
+                                            0.5, rerank_helper)
 
+                # if new_score != score:
+                #     # if new_score != 0:
+                #     print("{} -- item {}: {} -> {}".format(rerank_helper.is_protected(item),item, score, new_score))  
+                    # pass
                 scores.append(new_score)
-                
+            # print("scores", len(scores))    
             return scores, rerank_helper, user_helper
         return far
 
-    def __init__(self, rating, training, rerank_helper):
+    def __init__(self, rating, training, rerank_helper, protected = None):
         Reranker.__init__(self, rating, training, rerank_helper, self.fun())
 
 
@@ -159,7 +164,7 @@ def execute(rerank_helper, pat, file_path, split_path, dest_results_path):
     cv_count = m.group(1)
     tr_df = load_training(split_path, cv_count)
     if tr_df is None:
-        print("no traning data")
+        print("no training data")
         exit(-1)
 
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
@@ -167,11 +172,36 @@ def execute(rerank_helper, pat, file_path, split_path, dest_results_path):
     re_ranker = FAR(rating_df, tr_df, rerank_helper)
 
     reranked_df, rerank_helper = re_ranker.reranker()
+
     output_reranked(reranked_df, dest_results_path, file_path)
 
+def check_percentage(item_feature_df):
+    store_countries = {}
+    total = 0
+    for i in range(len(item_feature_df)):
+        if "COUNTRY" in item_feature_df.iloc[i]['feature']:
+            if item_feature_df.iloc[i]['feature'] not in store_countries:
+                store_countries[item_feature_df.iloc[i]['feature']] = 0
+            else:
+                store_countries[item_feature_df.iloc[i]['feature']] += 1
+
+            total += 1
+
+    for key in store_countries:
+        store_countries[key] = store_countries[key]/total
+
+    store_underrepresented = []
+
+    for key in store_countries:
+        if store_countries[key] <= 0.01:
+            store_underrepresented.append(key)
+
+    return store_underrepresented
 
 def main():
     args = read_args()
+    # print(args)
+    print("h")
     config = read_config_file(args['conf'], '.')
 
     original_results_path = Path(args['original'])
@@ -191,8 +221,10 @@ def main():
     #item_helper = set_item_helper(item_feature_df)
 
     #rerank_helper = set_rerank_helper(args, config, item_helper)
+    protected = str(args['protected_feature'])
+
     rerank_helper = Rerank_Helper()
-    rerank_helper.set_rerank_helper(args, config, item_feature_df)
+    rerank_helper.set_rerank_helper(args, config, item_feature_df, protected)
 
     split_path = data_path / 'split'
     pat = re.compile(RESULT_FILE_PATTERN)

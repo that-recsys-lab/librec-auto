@@ -106,12 +106,14 @@ def get_script_path(script_xml, cmd_type):
 
 def create_param_spec(script_xml):
     params = script_xml.xpath('param')
+    print(params)
     param_list = []
     for param in params:
         key = param.get('name')
         if param.text:
             val = param.text
             param_list.append(f'--{key}={val}')
+            print(f'--{key}={val}')
     return param_list
 
 def safe_run_subprocess(process_specs: list, current_working_directory: str):

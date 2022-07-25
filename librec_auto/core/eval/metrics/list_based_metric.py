@@ -16,7 +16,7 @@ class ListBasedMetric:
 
     @staticmethod
     def read_data_from_file(file_name, delimiter='\t'):
-        data = np.genfromtxt(file_name, delimiter=delimiter)
+        data = np.genfromtxt(file_name, delimiter=delimiter, dtype = None)
         return data
 
     def get_params(self) -> dict:
@@ -48,8 +48,10 @@ class ListBasedMetric:
         self.preprocessing()
 
         # A unique list of users in the data
-        users = np.unique(self._test_data[:, 0])
-
+        self._test_data = np.array([list(i) for i in self._test_data])
+        self._result_data = np.array([list(i) for i in self._result_data])
+        # users = np.unique(self._result_data[:, 0]) 
+        users = np.unique(self._result_data[:, 0]) 
         for user in users:
             # get all of the rows where user_id = user for test and result data
             test_mask = self._test_data[:, 0] == user
@@ -58,8 +60,9 @@ class ListBasedMetric:
             result_mask = self._result_data[:, 0] == user
             result_user_data = self._result_data[result_mask, :]
 
-            self._values.append(
-                self.evaluate_user(test_user_data, result_user_data))
+            if len(test_user_data) != 0:
+                self._values.append(
+                    self.evaluate_user(test_user_data, result_user_data))
 
         result = self.postprocessing()
         self._save_custom_results(result)

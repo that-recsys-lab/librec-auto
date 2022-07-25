@@ -1,3 +1,4 @@
+from bs4 import Script
 from librec_auto.core.cmd.eval_cmd import EvalCmd
 from librec_auto.core.cmd.ask_cmd import AskCmd
 from librec_auto.core.cmd.tell_cmd import TellCmd
@@ -66,7 +67,7 @@ class compile_commands():
         # Need to split because normally librec does that
         exp_commands = [LibrecCmd('split', 0)]
         exp_range = range(BBO) if BBO else range(config.get_sub_exp_count())
-
+        print("ALGS")
         try:
             study = optuna.create_study(pruner=RepeatPruner())
 
@@ -181,22 +182,41 @@ class compile_commands():
                 discrete = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "discrete"}
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
-
                 for i in range(int(iterations)):
                     ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
+
 
                     #if rerank, add reranking step here
                     # self, args, config, current_exp_no, study, trial, metric, direction)
                     tell = None
                     rerank1 = None
                     rerank2 = None
-                    if self.rerank_flag:
+
+                    platform = self.execution_platform(self.config, "metric")
+                    
+                    if (platform == "system" or platform == "both") and self.rerank_flag:
+                      r = EvalCmd(self.args, self.config, curr_exp = i) 
+                      rerank1 = RerankCmd(exp_no = i)
+                      rerank1 = SequenceCmd([r, rerank1])
+                      rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
+                      cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side evaluation
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, hack = True)
+                      tell = SequenceCmd([cmd2,tell])
+                      rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
+
+                    elif self.rerank_flag:
                       rerank1 = RerankCmd(exp_no = i)
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = False)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True)
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
+
+                    #python metric
+                    elif platform == "system" or platform == "both":
+                      cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side eval
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+                      tell = SequenceCmd([cmd2,tell])
 
                     else:
                       tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
@@ -206,10 +226,11 @@ class compile_commands():
                         seq = SequenceCmd([ask, execute, rerank, tell])
                     else:
                         seq = SequenceCmd([ask, execute, tell])
+
+                    
                     addition_exp_commands.append(seq)
 
                 exp_commands += addition_exp_commands
-
                 return [SequenceCmd(exp_commands)]
         except:
             raise LibRecAutoException("Building Librec Commands",
@@ -231,7 +252,9 @@ class compile_commands():
         return SequenceCmd(experiment_cmds)
 
     def maybe_add_eval(self, config: ConfigCmd):
-        if self.script_alg is not None:
+        if len(self.script_alg) > 0:
+            return True
+        elif len(self.study_xml.xpath('/librec-auto/metric/script')) > 0:
             return True
         else: return False
 
@@ -398,8 +421,9 @@ class compile_commands():
         #         check_cmds = [librec_check[0], CheckCmd()]
         
         exec_cmds = []
+        print("BEFORE ALG SCRIPT", self.config.has_alg_script())
         if self.config.has_alg_script():
-            exec_cmds = self.build_alg_commands(self.args, self.config)
+            exec_cmds = self.build_ask_tell_alg_commands(self.args, self.config)
         else:
             exec_cmds = self.build_librec_ask_tell('full', self.args, self.config)
 
@@ -419,10 +443,17 @@ class compile_commands():
         cmd1 = self.build_librec_commands('full', self.args, self.config)
         add_eval = self.maybe_add_eval(config=self.config)
 
-        if add_eval and not self.config.has_alg_script():
+        # print(add_eval, self.config.has_alg_script(), self.config.has_metric_script())
+        if add_eval and not self.config.has_alg_script() and not self.config.has_metric_script():
+            print("11")
             cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
             cmd = SequenceCmd([cmd1, cmd2])
+        elif add_eval and not self.config.has_alg_script():
+            print("2")
+            # cmd =  SequenceCmd([cmd1, self.build_eval_commands(self.args, self.config, self.met_lang),EvalCmd(self.args, self.config)])
+            cmd =  SequenceCmd([cmd1,EvalCmd(self.args, self.config)])
         elif add_eval:
+            print("3")
             cmd1 = self.build_alg_commands(self.args, self.config)
             cmd2 = EvalCmd(self.args, self.config)  # python-side eval
             cmd = SequenceCmd([cmd1, cmd2])

@@ -228,6 +228,7 @@ def load_training(split_path, cv_count):
 
 #def execute(rerank_helper, item_helper, scoring_function, profile_flag, pat, file_path, split_path, dest_results_path):
 def execute(pat, file_path, split_path, dest_results_path, k, alpha):
+    print("EXECUTE")
     tr_df = None
 
     # k size of rec list
@@ -319,7 +320,7 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     reranked_df = pd.DataFrame(reranked_array)
 
     output_reranked(reranked_df, dest_results_path, file_path)
-    # print(c)
+    print(c)
     return c
 
 
@@ -329,6 +330,7 @@ def main():
     config = read_config_file(args['conf'], '.')
 
     original_results_path = Path(args['original'])
+    print([file for file in original_results_path.iterdir()])
     result_files = [file for file in original_results_path.iterdir()]
 
     dest_results_path = Path(args['result'])

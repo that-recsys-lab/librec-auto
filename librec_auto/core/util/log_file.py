@@ -111,7 +111,7 @@ class LogFile:
         * Exceptions from librec log
         * Errors from librec log 
         """
-        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is [-]?(((\d+\.\d*)?|\.\d+)([eE][+-]?\d+)?)'
+        evaluator_pattern_str = r'.*Evaluator info:([A-z]*) is ([-]?(((\d+\.\d*)?|\.\d+)([eE][+-]?\d+)?))'
         kcv_pattern_str = r'.*TextDataConvertor: Dataset: \[.+split/cv_(\d+)/test.txt\]'
         # Old pattern
         # kcv_pattern_str = r'.*Splitting training and testing with [.0-9]*% ratio on fold ([0-9]*)'

@@ -1,3 +1,4 @@
+from distutils.text_file import TextFile
 from pathlib import Path
 import os
 import json
@@ -17,9 +18,10 @@ from librec_auto.core.eval.evaluator import Evaluator
 
 
 class EvalCmd(Cmd):
-    def __init__(self, args, config):
+    def __init__(self, args, config, curr_exp = None):
         self._config = config
         self._args = args  # Evaluation arguments
+        self.curr_exp = curr_exp
 
     def __str__(self):
         return f'EvalCmd()'
@@ -59,6 +61,7 @@ class EvalCmd(Cmd):
             for child in params_elements:
                 params[child.get('name')] = child.text
                 print("param name: " + child.text)
+
             return params
 
         metric_elements = self._config.get_python_metrics()
@@ -90,6 +93,24 @@ class EvalCmd(Cmd):
         return metric_classes
 
     def save_results(self, study_count: int, experiment_results: list) -> None:
+        try:
+            t = 0
+            p = 0
+            # print(experiment_results)
+            for exp in experiment_results:
+                t += exp[0]['value']
+
+                if len(exp) > 1:
+                    p += exp[1]['value']
+
+            self._previous_status = {}
+            self._previous_status['ndcg_metric.py'] = t/3
+
+            if len(experiment_results[0]) > 1:
+                self._previous_status['psp.py'] = p/3
+        except:
+            pass
+
         log_file = self._config.get_files().get_exp_paths(
             study_count).get_custom_metrics_log_path()
 
@@ -97,6 +118,7 @@ class EvalCmd(Cmd):
             json.dump(experiment_results, file)
 
     def execute(self, config: ConfigCmd, dry_run=False):
+        lower = 0
         self._config = config
         self.status = Cmd.STATUS_INPROC
 
@@ -109,7 +131,13 @@ class EvalCmd(Cmd):
         num_of_experiments = self._config.get_sub_exp_count()
 
         # Run the evaluator for every cv in every experiment.
-        for experiment_num in range(num_of_experiments):
+
+        if self.curr_exp is not None:
+            num_of_experiments = self.curr_exp + 1
+            print("num_of_experiments: " + str(self.curr_exp))
+            lower = self.curr_exp
+
+        for experiment_num in range(lower, num_of_experiments):
             # Each item in this list represents a cv in the experiment.
             experiment_results = []
 
@@ -127,8 +155,13 @@ class EvalCmd(Cmd):
                     experiment_results.append(cv_results)  # Add to results.
 
                     self.save_results(experiment_num, experiment_results)
-                    Status.save_status("Python-side metrics completed", experiment_num, config, \
-                        config.get_files().get_exp_paths(experiment_num))
+
+        if self.curr_exp is not None:
+            Status.save_status("Python-side metrics completed", self.curr_exp, config, \
+                config.get_files().get_exp_paths(self.curr_exp))
+        else:
+            Status.save_status("Python-side metrics completed", num_of_experiments-1, config, \
+                config.get_files().get_exp_paths(num_of_experiments-1))
 
         if not dry_run:
             temp_binary_path = self._config.get_files().get_study_path() / Path(

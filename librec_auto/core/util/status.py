@@ -120,8 +120,6 @@ class Status:
 
         conf_xml = config.get_files().get_exp_paths(exp_count).get_study_conf()
 
-        print("exp no status", exp_count)
-        # print(config.get_files().get_exp_paths(exp_count)._exp_path_dict)
 
         variable_elements = conf_xml.xpath("//*[@var='true']")
 

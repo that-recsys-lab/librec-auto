@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, ExpPaths, Status
+from librec_auto.core.util import Files, ExpPaths, Status, StudyStatus
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util.xml_utils import single_xpath
 import os
@@ -124,6 +124,20 @@ class LibrecCmd(Cmd):
             self.execute_librec()
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
+
+        try:
+            i = 0
+            for sub_paths in self._config._files.get_exp_paths_iterator():
+
+                # if i != self._sub_no:
+                #     i += 1
+                #     continue
+                status = StudyStatus(self._config)
+                self._previous_status = status.get_metric_averages("ndcg_metric.py")
+                print(f'librec-auto: Previous status: {self._previous_status}')
+                break
+        except:
+            pass
 
         
 

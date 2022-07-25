@@ -34,8 +34,55 @@ import os
 import re
 from pathlib import Path
 import fairsearchcore as fsc
+from fairsearchcore import re_ranker
 import warnings
 warnings.filterwarnings('ignore')
+
+def fair_top_k(k, protected_candidates, non_protected_candidates,p_score,n_score, proportion):
+
+    result = []
+    countProtected = 0
+
+    idxProtected = 0
+    idxNonProtected = 0
+
+    for i in range(k):
+        if idxProtected >= len(protected_candidates) and idxNonProtected >= len(non_protected_candidates):
+            # no more candidates available, return list shorter than k
+            # print("A")
+            return result
+        if idxProtected >= len(protected_candidates):
+            # no more protected candidates available, take non-protected instead
+            result.append(non_protected_candidates[idxNonProtected])
+            idxNonProtected += 1
+            # print("B")
+
+        elif idxNonProtected >= len(non_protected_candidates):
+            # no more non-protected candidates available, take protected instead
+            result.append(protected_candidates[idxProtected])
+            idxProtected += 1
+            countProtected += 1
+            # print("C")
+        elif countProtected < proportion * k:
+            # add a protected candidate
+            result.append(protected_candidates[idxProtected])
+            idxProtected += 1
+            countProtected += 1
+            # print("D")
+        else:
+            # find the best candidate available
+            # print("E")
+            if p_score[idxProtected] >= n_score[idxNonProtected]:
+                # the best is a protected one
+                result.append(protected_candidates[idxProtected])
+                idxProtected += 1
+                countProtected += 1
+            else:
+                # the best is a non-protected one
+                result.append(non_protected_candidates[idxNonProtected])
+                idxNonProtected += 1
+
+    return result 
 
 class FairStarHelper():
     item_feature_df = None
@@ -67,7 +114,13 @@ def set_helper(alpha, max_len, binary, protected, item_feature_df):
     return helper
 
 def get_protected_set(item_features, helper):
-    return set((item_features[(item_features['feature'] == helper.protected)
+    if isinstance(helper.protected, str):
+        return set((item_features[(item_features['feature'] == helper.protected)
+                              & (item_features['value'] == 1)].itemid).tolist())
+    else:
+        for p in helper.protected:
+            print(p)
+            return set((item_features[(item_features['feature'] == p)
                               & (item_features['value'] == 1)].itemid).tolist())
 
 def protected_prop(helper, items):
@@ -96,20 +149,36 @@ def rerank(user_rating_df, fair, helper):
         scaled_ratings = scaler.fit_transform(user_rating).flatten()
         unfair_list = []
         items = user_rating_df.loc[user_rating_df["userid"] == user, ["itemid"]].to_numpy().flatten()
+        # print
+        # print(help)
+        protected_candidates = []
+        non_protected_candidates = []
 
-        for i in range(min(helper.max_len, len(items))):
+        p_score = []
+        n_score = []
+        # print(user)
+        for i in range(len(items)):
 
             item = items[i]
             score = (scaled_ratings[i] * 100)
-            unfair_list.append(fsc.models.FairScoreDoc(item,score, False if item not in helper.protected_set else True))
-        
-        fair.is_fair(unfair_list)
-        re_ranked = fair.re_rank(unfair_list)
-        
+            # unfair_list.append(fsc.models.FairScoreDoc(item,score, False if item not in helper.protected_set else True))
+            if item not in helper.protected_set:
+                non_protected_candidates.append(item)
+                n_score.append(score)
+            else:
+                protected_candidates.append(item)
+                p_score.append(score)
+            # print(item, score, False if item not in helper.protected_set else True)
+
+        # fair.is_fair(unfair_list)
+        re_ranked = fair_top_k(helper.max_len, protected_candidates, non_protected_candidates, p_score, n_score, helper.alpha)
+        # print(re_ranked)
+        # print([(i.id, i.score) for i in re_ranked])
+        # print()
         for j in range(helper.max_len):
             user_id.append(user)
-            reranked_id.append(re_ranked[j].id)
-            reranked_score.append(re_ranked[j].score / 100)
+            reranked_id.append(re_ranked[j])
+            reranked_score.append((100 - j) / 100)
     
     ziplist = list(zip(user_id, reranked_id, reranked_score))
     df = pd.DataFrame(ziplist, columns=['userid', 'itemid', 'rating'])
@@ -158,6 +227,29 @@ def output_reranked(reranked_df, dest_results_path, file_path):
     print('Reranking for ', output_file_path)
     reranked_df.to_csv(output_file_path, header=False, index=False)
 
+def check_percentage(item_feature_df):
+    store_countries = {}
+    total = 0
+    for i in range(len(item_feature_df)):
+        if "COUNTRY" in item_feature_df.iloc[i]['feature']:
+            if item_feature_df.iloc[i]['feature'] not in store_countries:
+                store_countries[item_feature_df.iloc[i]['feature']] = 0
+            else:
+                store_countries[item_feature_df.iloc[i]['feature']] += 1
+
+            total += 1
+
+    for key in store_countries:
+        store_countries[key] = store_countries[key]/total
+
+    store_underrepresented = []
+
+    for key in store_countries:
+        if store_countries[key] <= 0.01:
+            store_underrepresented.append(key)
+
+    return store_underrepresented
+
 def main():
     args = read_args()
     config = read_config_file(args['conf'], '.')
@@ -174,7 +266,7 @@ def main():
 
     item_feature_df = load_item_features(config, data_path)
 
-    protected = single_xpath(config.get_xml(), '/librec-auto/metric/protected-feature').text
+    # protected = single_xpath(config.get_xml(), '/librec-auto/metric/protected-feature').text
 
 
     if item_feature_df is None:
@@ -183,8 +275,7 @@ def main():
     alpha = float(args['alpha'])
     max_len = int(args['max_len'])
     binary = args['binary'] == 'True'
-    # protected = str(args['protected'])
-    print(alpha, max_len, binary)
+    protected = str(args['protected_feature'])
 
     helper = set_helper(alpha, max_len, binary, protected, item_feature_df)
 
@@ -192,7 +283,7 @@ def main():
 
         results_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
 
-        fair = generate_fairstar(helper)
+        fair = None
         reranked_df = rerank(results_df, fair, helper)
 
         output_reranked(reranked_df, dest_results_path, file_path)
