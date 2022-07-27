@@ -33,6 +33,7 @@ class ExperimentData:
 
             # getting values each paramter was set to
             self._param_vals[self._param[i]] = float(param.find('value').text)
+            print(self._param_vals)
 
         # Folds
         folds = experiment.xpath('results/folds')
@@ -45,6 +46,7 @@ class ExperimentData:
         # Averages
         averages = experiment.xpath('results/averages')
         for ave in averages:
+            #NOT ENTERING HERE
             for met in ave.getchildren():
                 self._metric_avg[met.attrib['name']] = float(met.text)
 
@@ -70,15 +72,19 @@ class StudyStatus:
         
         # if the output xml has one element it's check, 0 nothing has ran
         # if there's more than that then the experiment ran and user is evaluating
+
         if study_xml is None or len(study_xml.getchildren()) <= 1:
             create_study_output(config)
             study_xml = xml_load_from_path(status_path)
             
+        print(study_xml.xpath('//experiment'), len(study_xml.xpath('//experiment')))
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
             exp_name = Files.get_exp_name(exp.attrib['count'])
-            
+            print(exp_name)
             self._experiments[exp_name] = ExperimentData(exp)
+            print(self._experiments)
+            print()
 
         model = single_xpath(study_xml, '/study/config/splitter/model')
         if model.text == 'kcv':
