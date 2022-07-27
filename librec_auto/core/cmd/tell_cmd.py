@@ -67,6 +67,7 @@ class TellCmd(Cmd):
                 if self.metric in self.title_map:
                     store_val = study_status.get_metric_averages(self.metric)[self.title_map[self.metric]]
                 else:
+                    print(study_status._experiments.values())
                     store_val = study_status.get_metric_averages(self.metric)[0]
                 print("STORE VAL",store_val)
             break
