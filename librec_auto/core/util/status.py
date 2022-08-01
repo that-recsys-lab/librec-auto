@@ -184,6 +184,9 @@ def _generate_folds_results_output(
             metric_element = etree.SubElement(cv_element,
                                               "metric",
                                               name=metric)
+            print(index)
+            print(all_values)
+            print(all_values[metric]['cv_results'])
             metric_element.text = all_values[metric]['cv_results'][
                 index]  # add cv value
         if python_metric_results is not None:
