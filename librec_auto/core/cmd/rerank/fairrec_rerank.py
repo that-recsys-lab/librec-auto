@@ -50,7 +50,7 @@ class FAIRREC():
     # order looking at customers matters
 
     # Allocation set for each customer, initially it is set to empty set
-        # print("U",U)
+        print("U",U)
         # print("P",P)
         # print("k",k)
         # print("m",m)
@@ -115,8 +115,8 @@ class FAIRREC():
                 if len(A[u])==k:
                     break
 
-        # print("returning A")
-        # print(A)
+        print("returning A")
+        print(A)
         return A
 
 
@@ -204,7 +204,7 @@ def load_item_features(config, data_path):
         return None
 
     item_feature_df = pd.read_csv(item_feature_path,
-                                  names=['itemid', 'feature', 'value'])
+                                  names=['itemid', 'feature', 'value'],  encoding= 'unicode_escape')
     item_feature_df.set_index('itemid', inplace=True)
     return item_feature_df
 
@@ -222,7 +222,7 @@ def load_training(split_path, cv_count):
         print('Cannot locate training data: ' + str(tr_file_path.absolute()))
         return None
 
-    tr_df = pd.read_csv(tr_file_path, names=['userid', 'itemid', 'score'], sep='\t')
+    tr_df = pd.read_csv(tr_file_path, names=['userid', 'itemid', 'score'],  encoding= 'unicode_escape', sep='\t')
 
     return tr_df
 
@@ -248,10 +248,12 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     #     print("no training data")
     #     exit(-1)
 
-    # print("reading")
-    # print(file_path)
+    print("reading")
+    print("file pah",file_path)
     rating_df = pd.read_csv(file_path, names=['userid', 'itemid', 'rating'])
     
+   
+
     user_id_list = rating_df['userid'].values.tolist()
     item_id_list = rating_df['itemid'].values.tolist()
     rating_list = rating_df['rating'].values.tolist()
@@ -262,6 +264,7 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     user_id_list = [int(user_dict[x]) for x in user_id_list]
     item_id_list = [int(item_dict[x]) for x in item_id_list]
     rating_list = [float(x) for x in rating_list]
+    print("AIAI")
 
     # V = [(user_id_list[i], rating_list[i], item_id_list[i]) for i in range(len(rating_df))]
 
@@ -273,6 +276,8 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     m = max(user_id_list)
     n = max(item_id_list)
 
+    array =[[-1 for i in range(m)] for j in range(n)]
+
     # with open(file_path, 'r') as f:
     #     for line in f:
     #         # print(line)
@@ -281,18 +286,37 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     #         n = max(n, int(split[0]))
     m += 1
     n += 1 #check if kiva is one indexed
+    print("SEDOIFS")
+    
+    print("here")
+    
+    print("calling Fairrec")
+    
+    
 
-    arr =[[-1 for i in range(m)] for j in range(n)]
+    print(m,n)
 
-    # print(m,n)
+    
+    # arr = [[]]
 
+    # for i in range(m):
+    #     print(i) if i%10 == 0
+    #     for j in range(n):
+    #         arr[i].append(-1)
+
+    #     arr.append([])
+
+    print(file_path)
+    store = []
     with open(file_path, 'r') as f:
         for line in f:
+            print(line)
             split = line.split(',')
+            store.append((int(split[1]),int(split[0])))
             arr[int(split[1])][int(split[0])] = float(split[2])
 
-    # print("calling Fairrec")
-
+    print(store)
+    print("C1")
     re_ranker = FAIRREC()
     # FairRec(self,U,P,k,V,alpha,m,n):
 
@@ -309,6 +333,8 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     # reranked_df, rerank_helper = re_ranker.reranker()
 
     c= list(c.values())
+    print("C")
+    print(c)
 
     reranked_array = []
 
@@ -320,7 +346,8 @@ def execute(pat, file_path, split_path, dest_results_path, k, alpha):
     reranked_df = pd.DataFrame(reranked_array)
 
     output_reranked(reranked_df, dest_results_path, file_path)
-    print(c)
+    
+    
     return c
 
 
@@ -330,7 +357,7 @@ def main():
     config = read_config_file(args['conf'], '.')
 
     original_results_path = Path(args['original'])
-    print([file for file in original_results_path.iterdir()])
+    # print([file for file in original_results_path.iterdir()])
     result_files = [file for file in original_results_path.iterdir()]
 
     dest_results_path = Path(args['result'])
@@ -340,24 +367,10 @@ def main():
     data_path = Path(data_dir)
     data_path = data_path.resolve()
 
-    # item_feature_df = load_item_features(config, data_path)
-    # if item_feature_df is None:
-    #     exit(-1)
-
-    # item_helper = set_item_helper(item_feature_df)
-
-    #rerank_helper = set_rerank_helper(args, config, item_helper)
-    # rerank_helper = Rerank_Helper()
-    # rerank_helper.set_rerank_helper(args, config, item_feature_df)
 
     split_path = data_path / 'split'
     pat = re.compile(RESULT_FILE_PATTERN)
-
-    # method = args['method']
-
     p = []
-
-    # print(args)
 
     k = args['max_len']
 
@@ -365,10 +378,10 @@ def main():
 
     # print(pat, result_files, split_path, dest_results_path)
 
-    for file_path in result_files:
-        print(file_path)
-        p1 = multiprocessing.Process(target=execute, args=(
-        pat, file_path, split_path, dest_results_path, k, alpha))
+    for file_path in result_files[:1]:
+        # print(file_path)
+        p1 = multiprocessing.Process(target=execute, args=(pat, file_path, split_path, dest_results_path, k, alpha))
+        # p1 = execute(pat, file_path, split_path, dest_results_path, k, alpha)
         p.append(p1)
         p1.start()
 
