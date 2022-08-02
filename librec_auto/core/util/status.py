@@ -176,12 +176,15 @@ def _generate_folds_results_output(
     root_xml = etree.Element("root")
     results_element = etree.SubElement(root_xml, "folds")
     python_metric_results = _get_python_side_metric_results(python_metric_path)
+    print(python_metric_results)
     for _, index in enumerate(range(log.get_kcv_count())):
         # using index + 1 to one-index the folds
         cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
         all_values = log.get_all_values()
         try:
             for metric in all_values:
+                print(index)
+                print(all_values)
                 metric_element = etree.SubElement(cv_element,
                                                 "metric",
                                                 name=metric)
