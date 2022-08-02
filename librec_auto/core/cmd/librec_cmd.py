@@ -125,19 +125,19 @@ class LibrecCmd(Cmd):
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
-        # try:
-        #     i = 0
-        #     for sub_paths in self._config._files.get_exp_paths_iterator():
+        try:
+            i = 0
+            for sub_paths in self._config._files.get_exp_paths_iterator():
 
-        #         if i != self._sub_no:
-        #             i += 1
-        #             continue
-        #         status = StudyStatus(self._config)
-        #         self._previous_status = status.get_metric_averages("ndcg_metric.py")
-        #         print(f'librec-auto: Previous status: {self._previous_status}')
-        #         break
-        # except:
-        #     pass
+                if i != self._sub_no:
+                    i += 1
+                    continue
+                status = StudyStatus(self._config)
+                self._previous_status = status.get_metric_averages("ndcg_metric.py")
+                print(f'librec-auto: Previous status: {self._previous_status}')
+                break
+        except:
+            pass
 
         
 
