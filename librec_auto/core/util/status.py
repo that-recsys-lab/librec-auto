@@ -180,21 +180,21 @@ def _generate_folds_results_output(
         # using index + 1 to one-index the folds
         cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
         all_values = log.get_all_values()
-        for metric in all_values:
-            metric_element = etree.SubElement(cv_element,
-                                              "metric",
-                                              name=metric)
-            print(index)
-            print(all_values)
-            print(all_values[metric]['cv_results'])
-            metric_element.text = all_values[metric]['cv_results'][
-                index]  # add cv value
-        if python_metric_results is not None:
-            for python_metric in python_metric_results[index]:
+        try:
+            for metric in all_values:
                 metric_element = etree.SubElement(cv_element,
-                                                  "metric",
-                                                  name=python_metric['name'])
-                metric_element.text = str(python_metric['value'])
+                                                "metric",
+                                                name=metric)
+                metric_element.text = all_values[metric]['cv_results'][
+                    index]  # add cv value
+            if python_metric_results is not None:
+                for python_metric in python_metric_results[index]:
+                    metric_element = etree.SubElement(cv_element,
+                                                    "metric",
+                                                    name=python_metric['name'])
+                    metric_element.text = str(python_metric['value'])
+        except:
+            pass
     return root_xml
 
 
