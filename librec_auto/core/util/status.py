@@ -185,7 +185,7 @@ def _generate_folds_results_output(
             for metric in all_values:
                 print(index)
                 print(all_values)
-                print(index, python_metric_results[index])
+                print("i",index, python_metric_results[index])
                 metric_element = etree.SubElement(cv_element,
                                                 "metric",
                                                 name=metric)
