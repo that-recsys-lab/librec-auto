@@ -194,7 +194,11 @@ def _generate_folds_results_output(
                                                     name=python_metric['name'])
                     metric_element.text = str(python_metric['value'])
         except:
-            pass
+            metric_element = etree.SubElement(cv_element,
+                                                    "metric",
+                                                    name=python_metric_results[index]['name'])
+            metric_element.text = 0
+
     return root_xml
 
 
