@@ -203,7 +203,7 @@ def _generate_folds_results_output(
                     metric_element = etree.SubElement(cv_element,
                                                     "metric",
                                                     name=python_metric['name'])
-                    metric_element.text = 0
+                    metric_element.text = str(0)
 
     return root_xml
 
