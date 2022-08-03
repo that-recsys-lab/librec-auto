@@ -44,6 +44,7 @@
 	<optimize>
 		<metric action="no-translate"/>
 		<iterations action="no-translate"/>
+		<previous-max action="no-translate"/>
 	</optimize>
 	
 	<alg>

@@ -182,7 +182,11 @@ class compile_commands():
                 discrete = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "discrete"}
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
+                optimize_val = None
+                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')]) > 0:
+                    optimize_val = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')][0]
                 for i in range(int(iterations)):
+                    # print(i)
                     ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
@@ -195,14 +199,13 @@ class compile_commands():
                     rerank2 = None
 
                     platform = self.execution_platform(self.config, "metric")
-                    
                     if (platform == "system" or platform == "both") and self.rerank_flag:
                       r = EvalCmd(self.args, self.config, curr_exp = i) 
                       rerank1 = RerankCmd(exp_no = i)
                       rerank1 = SequenceCmd([r, rerank1])
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
                       cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side evaluation
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, hack = True)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, optimize_val = optimize_val)
                       tell = SequenceCmd([cmd2,tell])
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
 
@@ -421,7 +424,7 @@ class compile_commands():
         #         check_cmds = [librec_check[0], CheckCmd()]
         
         exec_cmds = []
-        print("BEFORE ALG SCRIPT", self.config.has_alg_script())
+        # print("BEFORE ALG SCRIPT", self.config.has_alg_script())
         if self.config.has_alg_script():
             exec_cmds = self.build_ask_tell_alg_commands(self.args, self.config)
         else:

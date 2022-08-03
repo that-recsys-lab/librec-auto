@@ -5,7 +5,7 @@ from librec_auto.core.util import Status, StudyStatus
 import optuna
 
 class TellCmd(Cmd):
-    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, hack = False):
+    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None):
         # print("inside tell")
         self.config = config
         self.args = args
@@ -28,7 +28,7 @@ class TellCmd(Cmd):
 
         self.old_librec_value_command = old_librec_value_command
 
-        self.hack = hack
+        self.optimize_val = optimize_val
 
         self.new_val = new_val
         
@@ -53,12 +53,15 @@ class TellCmd(Cmd):
             #     continue
             # status = Status(sub_paths)
             study_status = StudyStatus(self.config)
-            if self.hack is not False:
-                print("hack = true")
-                old_val = self.old_librec_value_command._previous_status["ndcg_metric.py"]
-                store_dict = self.new_val._previous_status["ndcg_metric.py"]
-                print(store_dict, old_val)
-                store_val = max(0,(store_dict - 0.9*old_val)) + self.new_val._previous_status["psp.py"]
+            print("TELL O VAL")
+            print(self.optimize_val)
+            if self.optimize_val is not None:
+                print("Joint Optimization")
+                old_val = self.optimize_val
+
+                store_new_val = self.new_val._previous_status["ndcg_metric.py"]
+                print(store_new_val, old_val)
+                store_val = max(0,(store_new_val - 0.98*float(old_val))) + self.new_val._previous_status["psp.py"]
 
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
                 with open(s,"w+") as f:

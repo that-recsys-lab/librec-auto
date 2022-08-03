@@ -92,7 +92,7 @@ class AskCmd(Cmd):
 
     def set_optimization_direction(self, metric):
         # self.metric = metric
-        print("self.metric",self.metric)
+        # print("self.metric",self.metric)
         if metric == "higher":
             self.direction = "positive"
         elif metric == "lower":
