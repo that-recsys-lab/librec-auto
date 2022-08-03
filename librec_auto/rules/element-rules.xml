@@ -220,6 +220,7 @@
 		<optimize>
 			<iterations action="no-translate"/>
 			<metric action="no-translate"/>
+			<previous-max action="no-translate"/>
 		</optimize>
 	</alg>
 
