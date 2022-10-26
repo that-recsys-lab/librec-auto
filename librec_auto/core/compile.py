@@ -25,6 +25,7 @@ class compile_commands():
 
     def __init__(self):
         self.iterations = None
+        self.startpos = None
 
     def purge_type(self, args: dict) -> str:
         if 'purge' in args:
@@ -61,7 +62,7 @@ class compile_commands():
                                     f"While building alg command an error was thrown.")
 
     #perhaps a placeholder
-    def build_ask_tell_alg_commands(self,args: dict, config: ConfigCmd, BBO = False):
+    def build_ask_tell_alg_commands(self,args: dict, config: ConfigCmd, BBO = False, startpos = 0):
         threads = config.thread_count()
 
         # Need to split because normally librec does that
@@ -79,13 +80,13 @@ class compile_commands():
             range_val_store = [[i.val for i in j.vars if i.type == 'librec'] for j in vconf]
             range_val_store = [[float(array[i]) for array in range_val_store] for i in range(len(range_val_store[0]))]
             ranges = [[min(array), max(array)] for array in range_val_store]
-            for i in range(self.iterations):
+            for i in range(startpos, self.iterations):
                 ask = AskCmd(self.args, self.config, i, study, ranges, parameter_space, num_of_vars)
                 trial = ask.trial()
                 alg_cmd = AlgCmd(i)
                 eval_cmd = LibrecCmd('eval', i) # Need eval after each experiment
                 alg_seq = SequenceCmd([alg_cmd, eval_cmd])
-                tell = TellCmd(study, self.args, self.config, i, study, trial)
+                tell = TellCmd(study, self.args, self.config, i, study, trial, files = self.files)
                 seq = SequenceCmd([ask, alg_seq, tell])
                 exp_commands.append(seq)
 
@@ -94,7 +95,7 @@ class compile_commands():
             raise LibRecAutoException("Building Alg Commands",
                                     f"While building alg command an error was thrown.")
 
-    def build_librec_commands(self, librec_action: str, args: dict, config: ConfigCmd, BBO = False):
+    def build_librec_commands(self, librec_action: str, args: dict, config: ConfigCmd, BBO = False, startpos = 0):
         threads = config.thread_count()
         if librec_action == 'full':
             exp_commands = [LibrecCmd('split', 0)]
@@ -126,19 +127,25 @@ class compile_commands():
                                     f"While building librec command {librec_action}, a script failed")
 
     #likely will delete later, need this as a placeholder
-    def build_librec_ask_tell(self, librec_action: str, args: dict, config: ConfigCmd):
-        threads = config.thread_count()
+    def build_librec_ask_tell(self, librec_action: str, args: dict, config: ConfigCmd, startpos = 0):
+        # threads = config.thread_count()
         if librec_action == 'full':
-            exp_commands = [LibrecCmd('split', 0)]
+            exp_commands = [LibrecCmd('split', startpos)]
         else:
             exp_commands = []
 
 
         try:
             if librec_action == 'check':
-                exp_commands =  exp_commands + [LibrecCmd(librec_action, 0)]
+                exp_commands =  exp_commands + [LibrecCmd(librec_action, startpos)]
             else:
                 study = optuna.create_study(pruner=RepeatPruner())
+                file_num = str(startpos)
+                while len(file_num) < 5:
+                    file_num = "0" + str(file_num)
+
+                if startpos != 0:
+                    study = optuna.load_study(study_name = self.files._study_path + "/" + "exp" + file_num)
                 addition_exp_commands = []
                 parameter_space = {}        
                 vconf = config._var_coll.var_confs
@@ -185,8 +192,8 @@ class compile_commands():
                 optimize_val = None
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')]) > 0:
                     optimize_val = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')][0]
-                for i in range(int(iterations)):
-                    # print(i)
+                for i in range(startpos, int(iterations)):
+                    print(i)
                     ask = AskCmd(self.args, self.config, i, study, parameter_space, num_of_vars, continuous = continuous, discrete = discrete, rerank_ranges = rerank_value_store_dict)
                     trial = ask.trial
                     execute = LibrecCmd("full", i)
@@ -205,24 +212,24 @@ class compile_commands():
                       rerank1 = SequenceCmd([r, rerank1])
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
                       cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side evaluation
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, optimize_val = optimize_val)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, optimize_val = optimize_val, files = self.files)
                       tell = SequenceCmd([cmd2,tell])
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
 
                     elif self.rerank_flag:
                       rerank1 = RerankCmd(exp_no = i)
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = rerank2[0], hack = True, files = self.files)
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
 
                     #python metric
                     elif platform == "system" or platform == "both":
                       cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side eval
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, files = self.files)
                       tell = SequenceCmd([cmd2,tell])
 
                     else:
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, files = self.files)
 
                     seq = None
                     if self.rerank_flag:
@@ -330,9 +337,25 @@ class compile_commands():
         self.study_xml = config._xml_input
         self.script_alg = self.study_xml.xpath('/study/alg/script')
 
+        config_file = Files.DEFAULT_CONFIG_FILENAME
+
+        if self.args['conf']:  # User requested a different configuration file from the default
+            config_file = self.args['conf']
+
+        target = ""
+        if (self.args['target'] != None):
+            target = self.args['target']
+        
+        log_file = self.args['log_name']
+
+        # create a path: 
+        
+        self.co = read_config_file(config_file, target, log_file)
+        self.files = self.co._files
+
         #no describe?
         call_functions_dictionary = {'split': self.split, 'check': self.check, 'bbo': self.new_bbo, 'split': self.split, 'purge': self.purge, 'rerank': self.rerank, \
-        'run': self.run_or_show, 'show': self.run_or_show, 'status': self.status, 'post': self.post, 'eval': self.eval}
+        'run': self.run_or_show, 'show': self.run_or_show, 'status': self.status, 'post': self.post, 'eval': self.eval, 'resume':self.resume}
 
         function = call_functions_dictionary[self.action]
 
@@ -349,6 +372,32 @@ class compile_commands():
 
     def status(self):
         return StatusCmd()
+
+    def resume(self):
+        # self.
+        folder_count = 0
+        folder_to_resume = -1
+        for folder in os.listdir(self.co._files._study_path):
+            if folder == "temp" or folder == "conf" or os.path.isfile(str(self.co._files._study_path)+ '/' + str(folder)):
+                continue
+            
+            output_xml = "output.xml"
+            break_loop = True
+            if len(os.listdir(str(self.co._files._study_path) + '/' + str(folder))) == 0:
+                break_loop = False
+            for file in os.listdir(str(self.co._files._study_path) + '/' + str(folder)):
+                
+                folder_to_resume = str(self.co._files._study_path) + '/' + str(folder)
+                if output_xml == file:
+                    break_loop = False
+            folder_count += 1
+            if break_loop == True:
+                break
+        
+        print("startpos", folder_count)
+        self.startpos = folder_count
+        return self.new_bbo()
+
 
     def post(self):
         if self.post_flag:
@@ -376,43 +425,6 @@ class compile_commands():
         bracketed_cmd = self.bracket_sequence('split', self.args, self.config, cmd)
         return bracketed_cmd
 
-    def bbo(self):
-            cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
-            cmd2 = SetupCmd(False)
-            cmd3 = [cmd1, cmd2]
-            if self.config.has_alg_script():
-                cmd_store = self.build_alg_commands(self.args, self.config, BBO=200)
-            else:
-                cmd_store = self.build_librec_commands('full', self.args, self.config, BBO = 200)
-            store_post = [PostCmd() for _ in range(len(cmd_store))]
-
-
-            init_cmds = [cmd1, cmd2]
-            check_cmds = []
-            if not self.no_check_flag:
-                # check_cmds = [build_librec_commands('check',args,config), CheckCmd()]
-                librec_check = self.build_librec_commands('check', self.args, self.config, BBO = 200)
-                check_cmds = [librec_check[0], CheckCmd()]
-            
-            exec_cmds = self.build_librec_commands('full',self.args,self.config, BBO= 200)
-            exec_cmds = [SequenceCmd([exec_cmds[i]]) for i in range (len(exec_cmds))]
-
-            if self.rerank_flag:
-                # cmd.append(RerankCmd())
-                # cmd.append(build_exp_commands('eval', args, config))
-                raise UnsupportedFeatureException("Optimization", "Optimization is not currently supported with reranking")
-
-            final_cmds = []
-
-            if self.post_flag:
-                final_cmds.append(PostCmd())
-            else:
-                final_cmds.append(CleanupCmd())
-
-            cmd = init_cmds + exec_cmds + final_cmds
-
-            return cmd
-
     def new_bbo(self):
         cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
         cmd2 = SetupCmd(False)
@@ -425,10 +437,15 @@ class compile_commands():
         
         exec_cmds = []
         # print("BEFORE ALG SCRIPT", self.config.has_alg_script())
+        startpos = 0
+        # print("before adk_tell_call")
+        if self.startpos is not None:
+            startpos = self.startpos
+            init_cmds = []
         if self.config.has_alg_script():
-            exec_cmds = self.build_ask_tell_alg_commands(self.args, self.config)
+            exec_cmds = self.build_ask_tell_alg_commands(self.args, self.config, startpos=startpos)
         else:
-            exec_cmds = self.build_librec_ask_tell('full', self.args, self.config)
+            exec_cmds = self.build_librec_ask_tell('full', self.args, self.config, startpos=startpos)
 
         final_cmds = []
 
@@ -438,7 +455,6 @@ class compile_commands():
             final_cmds.append(CleanupCmd())
 
         cmd = init_cmds + check_cmds + exec_cmds + final_cmds
-
         return cmd
 
     def run_or_show(self):
@@ -448,15 +464,12 @@ class compile_commands():
 
         # print(add_eval, self.config.has_alg_script(), self.config.has_metric_script())
         if add_eval and not self.config.has_alg_script() and not self.config.has_metric_script():
-            print("11")
             cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
             cmd = SequenceCmd([cmd1, cmd2])
         elif add_eval and not self.config.has_alg_script():
-            print("2")
             # cmd =  SequenceCmd([cmd1, self.build_eval_commands(self.args, self.config, self.met_lang),EvalCmd(self.args, self.config)])
             cmd =  SequenceCmd([cmd1,EvalCmd(self.args, self.config)])
         elif add_eval:
-            print("3")
             cmd1 = self.build_alg_commands(self.args, self.config)
             cmd2 = EvalCmd(self.args, self.config)  # python-side eval
             cmd = SequenceCmd([cmd1, cmd2])

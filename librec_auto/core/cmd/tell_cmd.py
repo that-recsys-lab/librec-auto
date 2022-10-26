@@ -3,9 +3,11 @@ from librec_auto.core.util import Files
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util import Status, StudyStatus
 import optuna
+import joblib
+import numpy as np
 
 class TellCmd(Cmd):
-    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None):
+    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None, files = None):
         # print("inside tell")
         self.config = config
         self.args = args
@@ -15,6 +17,7 @@ class TellCmd(Cmd):
         self.metric = metric
         self.direction = direction
         self.status = 3 
+        self.files = files
         self.title_map = {'auc': 'AUCEvaluator', 'ap': 'AveragePrecisionEvaluator','arhr': 'AverageReciprocalHitRankEvaluator','diversity': 'DiversityEvaluator',
         'hitrate': 'HitRateEvaluator','idcg': 'IdealDCGEvaluator','ndcg': 'NormalizedDCGEvaluator',
         'precision': 'PrecisionEvaluator', 'recall': 'RecallEvaluator', 'rr': 'ReciprocalRankEvaluator',
@@ -53,51 +56,62 @@ class TellCmd(Cmd):
             #     continue
             # status = Status(sub_paths)
             study_status = StudyStatus(self.config)
-            print("TELL O VAL")
-            print(self.optimize_val)
+            # status = Status(self.config)
             if self.optimize_val is not None:
-                print("Joint Optimization")
                 old_val = self.optimize_val
 
                 store_new_val = self.new_val._previous_status["ndcg_metric.py"]
-                print(store_new_val, old_val)
-                store_val = max(0,(store_new_val - 0.98*float(old_val))) + self.new_val._previous_status["psp.py"]
+                store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
 
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
                 with open(s,"w+") as f:
                     f.write(str(store_val))
             else:
                 if self.metric in self.title_map:
-                    print(study_status._experiments.values())
-                    for exp in study_status._experiments.values():
-                        print(exp._metric_avg)
-                        
-                    store_val = study_status.get_metric_averages(self.metric)[self.title_map[self.metric]]
+                    # print("HERE")
+                    # print(study_status._experiments.values())
+                    # for exp in study_status._experiments.values():
+                    #     print(exp._metric_avg)
+        
+                    # print(study_status._experiments.values()[self.title_map[self.metric]])
+                    # store_val = np.mean([x for x in study_status._experiments.values()[self.title_map[self.metric]]['cv_results']])
+                    for sub_paths in self.config._files.get_exp_paths_iterator():
+
+                        if i != self.current_exp_no:
+                            i += 1
+                            continue
+                        status = Status(sub_paths)
+                        store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
+                        break
                 else:
                     print(study_status._experiments.values())
                     for exp in study_status._experiments.values():
                         print(exp._metric_avg)
 
                     store_val = study_status.get_metric_averages(self.metric)[0]
-                print("STORE VAL",store_val)
+                # print("STORE VAL",store_val)
             break
                 
         return float(store_val)
         
-    def run_experiments(self):
-        data = self.get_data()
-        return data
+    # def run_experiments(self):
+    #     data = self.get_data()
+    #     return data
     
     def execute(self, command):
-        print("running tell")
-        data = self.run_experiments()
+        data = self.get_data()
         pruned_trial = False
         if self.trial.should_prune():
             pruned_trial = True
 
+        file_num = str(self.current_exp_no)
+        while len(file_num) < 5:
+            file_num = "0" + str(file_num)
+        path = str(self.files._study_path) + "/exp" + file_num
+        joblib.dump(self.study, path+ "/study.pkl")
         if pruned_trial:
             self.study.tell(self.trial, state=optuna.trial.TrialState.PRUNED)
         else:
-            self.study.tell(self.trial, self.run_experiments())
+            self.study.tell(self.trial, data)
 
     

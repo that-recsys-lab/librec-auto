@@ -33,7 +33,6 @@ class ExperimentData:
 
             # getting values each paramter was set to
             self._param_vals[self._param[i]] = float(param.find('value').text)
-            print(self._param_vals)
 
         # Folds
         folds = experiment.xpath('results/folds')
@@ -77,14 +76,11 @@ class StudyStatus:
             create_study_output(config)
             study_xml = xml_load_from_path(status_path)
             
-        print(study_xml.xpath('//experiment'), len(study_xml.xpath('//experiment')))
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
+            print(exp, "for")
             exp_name = Files.get_exp_name(exp.attrib['count'])
-            print(exp_name)
             self._experiments[exp_name] = ExperimentData(exp)
-            print(self._experiments)
-            print()
 
         model = single_xpath(study_xml, '/study/config/splitter/model')
         if model.text == 'kcv':

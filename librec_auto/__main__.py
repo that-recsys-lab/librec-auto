@@ -32,7 +32,7 @@ def read_args():
     parser.add_argument('action',
                         choices=[
                             'run', 'split', 'eval', 'rerank', 'post', 'purge',
-                            'status', 'describe', 'check', 'show'
+                            'status', 'describe', 'check', 'show', 'resume'
                         ])
 
     parser.add_argument("-t", "--target", help="Path to experiment directory")
