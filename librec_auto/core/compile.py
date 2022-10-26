@@ -18,6 +18,7 @@ from librec_auto.core.util.xml_utils import single_xpath
 import librec_auto
 import optuna
 import os
+import joblib
 
 
 
@@ -139,13 +140,14 @@ class compile_commands():
             if librec_action == 'check':
                 exp_commands =  exp_commands + [LibrecCmd(librec_action, startpos)]
             else:
-                study = optuna.create_study(pruner=RepeatPruner())
+                study = None
                 file_num = str(startpos)
                 while len(file_num) < 5:
                     file_num = "0" + str(file_num)
-
                 if startpos != 0:
-                    study = optuna.load_study(study_name = self.files._study_path + "/" + "exp" + file_num)
+                    study = joblib.load(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
+                else:
+                    study = optuna.create_study(pruner=RepeatPruner())
                 addition_exp_commands = []
                 parameter_space = {}        
                 vconf = config._var_coll.var_confs
@@ -377,22 +379,28 @@ class compile_commands():
         # self.
         folder_count = 0
         folder_to_resume = -1
-        for folder in os.listdir(self.co._files._study_path):
-            if folder == "temp" or folder == "conf" or os.path.isfile(str(self.co._files._study_path)+ '/' + str(folder)):
-                continue
+        while folder_count < 1000:
+            folder = "exp"
+            num = str(folder_count)
+            while len(num) < 5:
+                num = "0" + num
             
+            folder += num
+
             output_xml = "output.xml"
             break_loop = True
+            print(folder)
             if len(os.listdir(str(self.co._files._study_path) + '/' + str(folder))) == 0:
                 break_loop = False
             for file in os.listdir(str(self.co._files._study_path) + '/' + str(folder)):
-                
+                # print(file)
                 folder_to_resume = str(self.co._files._study_path) + '/' + str(folder)
                 if output_xml == file:
                     break_loop = False
-            folder_count += 1
+                print(file)
             if break_loop == True:
                 break
+            folder_count += 1
         
         print("startpos", folder_count)
         self.startpos = folder_count
