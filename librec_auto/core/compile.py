@@ -450,6 +450,7 @@ class compile_commands():
         final_cmds = []
 
         if self.post_flag:
+            final_cmds.append(CleanupCmd())
             final_cmds.append(PostCmd())
         else:
             final_cmds.append(CleanupCmd())
