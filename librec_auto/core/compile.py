@@ -145,7 +145,10 @@ class compile_commands():
                 while len(file_num) < 5:
                     file_num = "0" + str(file_num)
                 if startpos != 0:
+                    print("loading joblib")
+                    print(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
                     study = joblib.load(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
+                    print("loaded joblib")
                 else:
                     study = optuna.create_study(pruner=RepeatPruner())
                 addition_exp_commands = []
@@ -387,7 +390,7 @@ class compile_commands():
             
             folder += num
 
-            output_xml = "output.xml"
+            output = "study.pkl"
             break_loop = True
             print(folder)
             if len(os.listdir(str(self.co._files._study_path) + '/' + str(folder))) == 0:
@@ -395,15 +398,17 @@ class compile_commands():
             for file in os.listdir(str(self.co._files._study_path) + '/' + str(folder)):
                 # print(file)
                 folder_to_resume = str(self.co._files._study_path) + '/' + str(folder)
-                if output_xml == file:
+                if output == file:
                     break_loop = False
                 print(file)
             if break_loop == True:
+                print("breaking on", folder_count)
                 break
-            folder_count += 1
+            else:
+                folder_count += 1
         
-        print("startpos", folder_count)
-        self.startpos = folder_count
+        print("startpos", folder_count-1)
+        self.startpos = folder_count-1
         return self.new_bbo()
 
 
