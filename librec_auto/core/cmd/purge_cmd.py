@@ -4,16 +4,18 @@ from librec_auto.core import ConfigCmd
 from librec_auto.core.util import confirm
 import shutil
 import os
+from os.path import exists
 
 
 class PurgeCmd(Cmd):
     def __str__(self):
         return f'PurgeCmd({self._type})'
 
-    def __init__(self, type, no_ask=False):
+    def __init__(self, type, no_ask=False, start_number = 0):
         self._type = type
         self._no_ask = no_ask
         self._files = None
+        self._start_number = start_number
 
     def show(self):
         print(str(self))
@@ -56,7 +58,6 @@ class PurgeCmd(Cmd):
 
     def purge_subexperiments(self):
         target = self._files.get_study_path()
-
         output_path = target / 'output.xml'
         if os.path.exists(output_path):
             os.remove(output_path)
@@ -65,8 +66,10 @@ class PurgeCmd(Cmd):
         if self._files.get_exp_count() > 0:
             for sub_paths in self._files.get_exp_paths_iterator():
                 exp_str = sub_paths.get_path_str('subexp')
-                print("librec-auto: Deleting experiment directory:", exp_str)
-                shutil.rmtree(exp_str)
+                exp_no = int(exp_str[-5:])
+                if exp_no >= self._start_number:
+                    print("librec-auto: Deleting experiment directory:", exp_str)
+                    shutil.rmtree(exp_str)
         else:
             print("librec-auto: No experiments folders found in", target)
 

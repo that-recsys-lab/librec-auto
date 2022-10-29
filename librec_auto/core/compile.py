@@ -145,10 +145,10 @@ class compile_commands():
                 while len(file_num) < 5:
                     file_num = "0" + str(file_num)
                 if startpos != 0:
-                    print("loading joblib")
-                    print(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
+                    # print("loading joblib")
+                    # print(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
                     study = joblib.load(str(self.files._study_path) + "/" + "exp" + file_num + "/" +"study.pkl")
-                    print("loaded joblib")
+                    # print("loaded joblib")
                 else:
                     study = optuna.create_study(pruner=RepeatPruner())
                 addition_exp_commands = []
@@ -439,7 +439,10 @@ class compile_commands():
         return bracketed_cmd
 
     def new_bbo(self):
-        cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask)
+        start_number = 0
+        if self.co is not None:
+            start_number = [elem.text for elem in self.co._xml_input.xpath('/librec-auto/optimize/resume')][0]
+        cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask, start_number = 0)
         cmd2 = SetupCmd(False)
         init_cmds = [cmd1, cmd2]
 
