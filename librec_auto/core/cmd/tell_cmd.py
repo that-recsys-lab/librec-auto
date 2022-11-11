@@ -71,30 +71,20 @@ class TellCmd(Cmd):
         i = 0
         for sub_paths in self.config._files.get_exp_paths_iterator():
 
-            # if i != self.current_exp_no:
-            #     i += 1
-            #     continue
-            # status = Status(sub_paths)
             study_status = StudyStatus(self.config)
-            # status = Status(self.config)
             if self.optimize_val is not None:
                 old_val = self.optimize_val
 
                 store_new_val = self.new_val._previous_status["ndcg_metric.py"]
-                store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
-
+                # store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
+                value_object = OptimizationFunction(store_new_val,old_val, self.new_val._previous_status["psp.py"])
+                store_val = value_object.value
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
+
                 with open(s,"w+") as f:
                     f.write(str(store_val))
             else:
                 if self.metric in self.title_map:
-                    # print("HERE")
-                    # print(study_status._experiments.values())
-                    # for exp in study_status._experiments.values():
-                    #     print(exp._metric_avg)
-        
-                    # print(study_status._experiments.values()[self.title_map[self.metric]])
-                    # store_val = np.mean([x for x in study_status._experiments.values()[self.title_map[self.metric]]['cv_results']])
                     for sub_paths in self.config._files.get_exp_paths_iterator():
 
                         if i != self.current_exp_no:
