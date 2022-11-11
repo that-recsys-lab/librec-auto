@@ -6,6 +6,26 @@ import optuna
 import joblib
 import numpy as np
 
+class OptimizationFunction():
+    def __init__(self, type, new_value, old_value, fairness, acceptable_threshold = 0.9):
+        self.type = type
+        self.store = {"Additive":self.additive, "Multiplicative":self.multiplicative, "Exponential":self.exponential}
+        self.new_value = new_value
+        self.old_value = old_value
+        self.fairness = fairness
+        self.acceptable_threshold = acceptable_threshold
+
+        self.store[type]()
+
+    def additive(self):
+        self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) + self.fairness
+
+    def multiplicative(self):
+        self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) * self.fairness
+
+    def exponential(self):
+        self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) ** self.fairness
+
 class TellCmd(Cmd):
     def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None, files = None):
         # print("inside tell")
@@ -89,14 +109,10 @@ class TellCmd(Cmd):
                         print(exp._metric_avg)
 
                     store_val = study_status.get_metric_averages(self.metric)[0]
-                # print("STORE VAL",store_val)
             break
                 
         return float(store_val)
         
-    # def run_experiments(self):
-    #     data = self.get_data()
-    #     return data
     
     def execute(self, command):
         data = self.get_data()
