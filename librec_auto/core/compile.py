@@ -442,7 +442,11 @@ class compile_commands():
     def new_bbo(self):
         start_number = 0
         if self.co is not None:
-            start_number = [elem.text for elem in self.co._xml_input.xpath('/librec-auto/optimize/resume')][0]
+            start_number = [elem.text for elem in self.co._xml_input.xpath('/librec-auto/optimize/resume')]
+            if len(start_number) >=1:
+                start_number = start_number[0]
+            else:
+                start_number = 0
         cmd1 = PurgeCmd('results', no_ask=self.purge_no_ask, start_number = 0)
         cmd2 = SetupCmd(False)
         init_cmds = [cmd1, cmd2]
