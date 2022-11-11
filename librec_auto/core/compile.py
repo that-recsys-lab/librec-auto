@@ -17,6 +17,7 @@ from librec_auto.core.util.utils import move_log_file
 from librec_auto.core.util.xml_utils import single_xpath
 import librec_auto
 import optuna
+from optuna.samplers import TPESampler
 import os
 import joblib
 
@@ -69,9 +70,11 @@ class compile_commands():
         # Need to split because normally librec does that
         exp_commands = [LibrecCmd('split', 0)]
         exp_range = range(BBO) if BBO else range(config.get_sub_exp_count())
-        print("ALGS")
+        seed = 11102022
         try:
-            study = optuna.create_study(pruner=RepeatPruner())
+            if len([elem.text for elem in config._xml_input.xpath('/librec-auto/random-seed')]) > 0:
+                seed = [elem.text for elem in config._xml_input.xpath('/librec-auto/random-seed')][0]
+            study = optuna.create_study(pruner=RepeatPruner(), sampler=TPESampler(seed=seed))
 
             #maybe seperate into additional function?
             parameter_space = {}        
