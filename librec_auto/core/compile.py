@@ -197,6 +197,9 @@ class compile_commands():
                 discrete = {path:value_store_dict[path] for path in value_store_dict.keys() if discrete_optimization[key_split[path]] == "discrete"}
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
+                optimization_type = "additive"
+                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]) > 0:
+                    optimization_type = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]
                 optimize_val = None
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')]) > 0:
                     optimize_val = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')][0]
@@ -220,7 +223,7 @@ class compile_commands():
                       rerank1 = SequenceCmd([r, rerank1])
                       rerank2 = self.build_librec_commands('eval', self.args, self.config, BBO = i)
                       cmd2 = EvalCmd(self.args, self.config, curr_exp = i)  # python-side evaluation
-                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, optimize_val = optimize_val, files = self.files)
+                      tell = TellCmd(self.args, self.config, i, study, trial, ask.metric, ask.direction, old_librec_value_command = r, new_val = cmd2, optimize_val = optimize_val, files = self.files, optimization_type = optimization_type)
                       tell = SequenceCmd([cmd2,tell])
                       rerank = SequenceCmd([rerank1, SequenceCmd(rerank2)])
 

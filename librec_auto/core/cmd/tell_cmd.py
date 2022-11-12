@@ -27,7 +27,7 @@ class OptimizationFunction():
         self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) ** self.fairness
 
 class TellCmd(Cmd):
-    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None, files = None):
+    def __init__(self, args, config, current_exp_no, study, trial, metric, direction, old_librec_value_command = None, new_val = None, optimize_val = None, files = None, optimization_type = "additive"):
         # print("inside tell")
         self.config = config
         self.args = args
@@ -38,6 +38,7 @@ class TellCmd(Cmd):
         self.direction = direction
         self.status = 3 
         self.files = files
+        self.optimization_type = optimization_type
         self.title_map = {'auc': 'AUCEvaluator', 'ap': 'AveragePrecisionEvaluator','arhr': 'AverageReciprocalHitRankEvaluator','diversity': 'DiversityEvaluator',
         'hitrate': 'HitRateEvaluator','idcg': 'IdealDCGEvaluator','ndcg': 'NormalizedDCGEvaluator',
         'precision': 'PrecisionEvaluator', 'recall': 'RecallEvaluator', 'rr': 'ReciprocalRankEvaluator',
@@ -77,7 +78,7 @@ class TellCmd(Cmd):
 
                 store_new_val = self.new_val._previous_status["ndcg_metric.py"]
                 # store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
-                value_object = OptimizationFunction(store_new_val,old_val, self.new_val._previous_status["psp.py"])
+                value_object = OptimizationFunction(self.optimization_type, store_new_val,old_val, self.new_val._previous_status["psp.py"])
                 store_val = value_object.value
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
 
@@ -94,9 +95,9 @@ class TellCmd(Cmd):
                         store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
                         break
                 else:
-                    print(study_status._experiments.values())
-                    for exp in study_status._experiments.values():
-                        print(exp._metric_avg)
+                    # print(study_status._experiments.values())
+                    # for exp in study_status._experiments.values():
+                    #     print(exp._metric_avg)
 
                     store_val = study_status.get_metric_averages(self.metric)[0]
             break
