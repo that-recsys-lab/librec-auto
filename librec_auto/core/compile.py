@@ -198,7 +198,7 @@ class compile_commands():
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
                 optimization_type = "additive"
-                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]) > 0:
+                if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')]) > 0:
                     optimization_type = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]
                 optimize_val = None
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/previous-max')]) > 0:
@@ -363,7 +363,6 @@ class compile_commands():
         
         self.co = read_config_file(config_file, target, log_file)
         self.files = self.co._files
-
         #no describe?
         call_functions_dictionary = {'split': self.split, 'check': self.check, 'bbo': self.new_bbo, 'split': self.split, 'purge': self.purge, 'rerank': self.rerank, \
         'run': self.run_or_show, 'show': self.run_or_show, 'status': self.status, 'post': self.post, 'eval': self.eval, 'resume':self.resume}
@@ -372,7 +371,6 @@ class compile_commands():
 
         if 'show_bbo' in args:
             function = call_functions_dictionary['bbo']
-            
         return function()
 
         # Set the password in the configuration if we have it
@@ -485,7 +483,6 @@ class compile_commands():
         return cmd
 
     def run_or_show(self):
-
         cmd1 = self.build_librec_commands('full', self.args, self.config)
         add_eval = self.maybe_add_eval(config=self.config)
 

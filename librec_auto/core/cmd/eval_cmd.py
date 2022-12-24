@@ -97,17 +97,18 @@ class EvalCmd(Cmd):
             t = 0
             p = 0
             # print(experiment_results)
+            length_experiment_results = 0
             for exp in experiment_results:
                 t += exp[0]['value']
-
+                length_experiment_results += 1
                 if len(exp) > 1:
                     p += exp[1]['value']
 
             self._previous_status = {}
-            self._previous_status['ndcg_metric.py'] = t/3
+            self._previous_status['ndcg_metric.py'] = t/length_experiment_results
 
             if len(experiment_results[0]) > 1:
-                self._previous_status['psp.py'] = p/3
+                self._previous_status['psp.py'] = p/length_experiment_results
         except:
             pass
 
@@ -154,7 +155,7 @@ class EvalCmd(Cmd):
                     cv_results = evaluator.evaluate()  # Evaluate it.
                     experiment_results.append(cv_results)  # Add to results.
 
-                    self.save_results(experiment_num, experiment_results)
+            self.save_results(experiment_num, experiment_results)
 
         if self.curr_exp is not None:
             Status.save_status("Python-side metrics completed", self.curr_exp, config, \

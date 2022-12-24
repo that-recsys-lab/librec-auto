@@ -125,19 +125,19 @@ class LibrecCmd(Cmd):
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
 
-        try:
-            i = 0
-            for sub_paths in self._config._files.get_exp_paths_iterator():
+        # try:
+        #     i = 0
+        #     for sub_paths in self._config._files.get_exp_paths_iterator():
 
-                if i != self._sub_no:
-                    i += 1
-                    continue
-                status = StudyStatus(self._config)
-                self._previous_status = status.get_metric_averages("ndcg_metric.py")
-                print(f'librec-auto: Previous status: {self._previous_status}')
-                break
-        except:
-            pass
+        #         if i != self._sub_no:
+        #             i += 1
+        #             continue
+        #         status = StudyStatus(self._config)
+        #         self._previous_status = status.get_metric_averages("ndcg_metric.py")
+        #         print(f'librec-auto: Previous status: {self._previous_status}')
+        #         break
+        # except:
+        #     pass
 
         
 
@@ -171,6 +171,10 @@ class LibrecCmd(Cmd):
             return [
                 'java', '-cp', classpath, mainClass, confpath_str, java_command
             ]
+        # else:
+        #     return [
+        #         'java', '-Xmx14000m', '-cp', classpath, mainClass, confpath_str, java_command
+        #     ]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):

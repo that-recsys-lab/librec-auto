@@ -227,6 +227,7 @@ if __name__ == '__main__':
                         command = compile.setup_commands(args, config)
                     else:
                         command = compile.setup_commands(args, config)
+
                 except LibRecAutoException:
                     print("Exception caught, check output.xml file.")
                     logging.shutdown()
