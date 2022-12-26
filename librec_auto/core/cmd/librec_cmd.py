@@ -155,7 +155,7 @@ class LibrecCmd(Cmd):
             return []
         else:
             return [
-                'java', '-cp', classpath, mainClass, confpath_str, java_command
+                'java', 'Xmx15000m', '-cp', classpath, mainClass, confpath_str, java_command
             ]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.

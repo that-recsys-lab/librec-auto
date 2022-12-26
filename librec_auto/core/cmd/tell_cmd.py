@@ -61,7 +61,7 @@ class TellCmd(Cmd):
                 old_val = self.optimize_val
 
                 store_new_val = self.new_val._previous_status["ndcg_metric.py"]
-                store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
+                store_val = max(0,(store_new_val - 0.95*float(old_val)))*self.new_val._previous_status["psp.py"]
 
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
                 with open(s,"w+") as f:

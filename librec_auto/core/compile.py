@@ -479,12 +479,34 @@ class compile_commands():
         cmd = init_cmds + check_cmds + exec_cmds + final_cmds
         return cmd
 
+    # TODO: Not handled: case when no Java-side evaluation.
     def run_or_show(self):
 
-        cmd1 = self.build_librec_commands('full', self.args, self.config)
-        add_eval = self.maybe_add_eval(config=self.config)
+        python_eval_q = self.maybe_add_eval(config=self.config)
+        python_rec_q = self.config.has_alg_script()
+
+        if python_rec_q:
+            cmd_exp = self.build_alg_commands(self.args, self.config)
+            cmd_eval = self.build_librec_commands('eval', self.args, self.config)
+            cmd = SequenceCmd([cmd_exp, cmd_eval])
+        else:
+            cmd_exp = self.build_librec_commands('full', self.args, self.config)
+            cmd = SequenceCmd([cmd_exp])
+
+        if not self.rerank_flag and python_eval_q:
+            cmd.add_command(self.build_eval_commands(self.args, self.config, self.met_lang))
+
+        if self.rerank_flag:
+            cmd.add_command(RerankCmd())
+            cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
+            if python_eval_q:
+                cmd.add_command(EvalCmd(self.args, self.config))
+
+        bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
+        return bracketed_cmd
 
         # print(add_eval, self.config.has_alg_script(), self.config.has_metric_script())
+        """
         if add_eval and not self.config.has_alg_script() and not self.config.has_metric_script():
             cmd2 = self.build_eval_commands(self.args, self.config, self.met_lang) 
             cmd = SequenceCmd([cmd1, cmd2])
@@ -500,15 +522,17 @@ class compile_commands():
         if self.rerank_flag:
             cmd.add_command(RerankCmd())
             cmd.add_command(self.build_librec_commands('eval', self.args, self.config))
+            if add_eval:
+                cmd.add_command(EvalCmd(self.args, self.config))
+
         # bracketed_cmd = bracket_sequence('results', args, config, cmd)
-        bracketed_cmd = self.bracket_sequence('all', self.args, self.config, cmd)
-        return bracketed_cmd
+"""
 
     def eval(self):
         # if action == 'eval':
             #maybe get this to work later
             if single_xpath(self.config.get_xml(), '/librec-auto/optimize') is not None:
-                raise InvalidConfiguration("Eval-only not currently supported with Bayesian optimization.")
+               raise InvalidConfiguration("Eval-only not currently supported with Bayesian optimization.")
 
             # cmd1 = PurgeCmd('post', no_ask=purge_no_ask)
             # cmd2 = SetupCmd()
