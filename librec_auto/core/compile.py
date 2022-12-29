@@ -198,6 +198,7 @@ class compile_commands():
 
                 iterations = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/iterations')][0]
                 optimization_type = "additive"
+                
                 if len([elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]) > 0:
                     optimization_type = [elem.text for elem in config._xml_input.xpath('/librec-auto/optimize/optimization-type')][0]
                 optimize_val = None
