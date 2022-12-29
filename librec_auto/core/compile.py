@@ -395,6 +395,7 @@ class compile_commands():
             folder += num
 
             output = "study.pkl"
+
             break_loop = True
             print(folder)
             if len(os.listdir(str(self.co._files._study_path) + '/' + str(folder))) == 0:

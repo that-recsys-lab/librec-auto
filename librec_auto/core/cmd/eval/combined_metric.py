@@ -48,6 +48,16 @@ if __name__ == '__main__':
     test_data = ListBasedMetric.read_data_from_file(
         args['test']
     )
+
+    # original_data = args['results']
+
+    # original_data.replace('result', 'out')
+
+    # original_data = ListBasedMetric.read_data_from_file(
+    #     original_data,
+    #     delimiter=','
+    # )
+
     result_data = ListBasedMetric.read_data_from_file(
         args['result'],
         delimiter=','
