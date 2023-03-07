@@ -20,6 +20,7 @@ import multiprocessing
 class OFAIR(Reranker):
     def fun(self):
         def ofair(rec, rerank_helper, user_helper):
+            raise RuntimeError("Broken. Don't use.")
             num_remain = len(user_helper.item_list)
             num_curr = len(user_helper.item_so_far)
 
