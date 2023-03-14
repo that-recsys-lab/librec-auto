@@ -45,6 +45,7 @@
 		<metric action="no-translate"/>
 		<iterations action="no-translate"/>
 		<previous-max action="no-translate"/>
+		<resume action="no-translate"/>
 	</optimize>
 	
 	<alg>
@@ -220,8 +221,8 @@
 		<optimize>
 			<iterations action="no-translate"/>
 			<metric action="no-translate"/>
-			<previous-max action="no-translate"/>
 			<optimization-type action="no-translate"/>
+			<previous-max action="no-translate"/>
 		</optimize>
 	</alg>
 

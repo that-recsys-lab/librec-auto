@@ -9,7 +9,7 @@ import numpy as np
 class OptimizationFunction():
     def __init__(self, type, new_value, old_value, fairness, acceptable_threshold = 0.9):
         self.type = type
-        self.store = {"Additive":self.additive, "Multiplicative":self.multiplicative, "Exponential":self.exponential}
+        self.store = {"additive":self.additive, "multiplicative":self.multiplicative, "exponential":self.exponential}
         self.new_value = new_value
         self.old_value = old_value
         self.fairness = fairness
@@ -75,10 +75,23 @@ class TellCmd(Cmd):
             study_status = StudyStatus(self.config)
             if self.optimize_val is not None:
                 old_val = self.optimize_val
+                store_val = None
+                store_psp = None
+                if self.metric in self.title_map:
+                    for sub_paths in self.config._files.get_exp_paths_iterator():
 
-                store_new_val = self.new_val._previous_status["ndcg_metric.py"]
+                        if i != self.current_exp_no:
+                            i += 1
+                            continue
+                        status = Status(sub_paths)
+                        store_val = status.get_metric_info(status._log, BBO = True)[self.title_map[self.metric]]
+                        store_psp = status.get_metric_info(status._log, BBO = True)[self.title_map["psp"]]
+                        break
+
+                store_new_val = store_val
+                print(store_val, store_psp,"get_data")
                 # store_val = max(0,(store_new_val - 0.95*float(old_val))) + self.new_val._previous_status["psp.py"]
-                value_object = OptimizationFunction(self.optimization_type, store_new_val,old_val, self.new_val._previous_status["psp.py"])
+                value_object = OptimizationFunction(self.optimization_type, store_new_val,old_val, store_psp)
                 store_val = value_object.value
                 s = str(self.config._files.get_exp_paths(self.current_exp_no)._path_dict["output"])[:-10] + "output_combo.txt"
 

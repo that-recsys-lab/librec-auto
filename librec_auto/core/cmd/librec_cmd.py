@@ -154,7 +154,7 @@ class LibrecCmd(Cmd):
             return []
         else:
             return [
-                'java', '-cp', classpath, mainClass, confpath_str, java_command
+                'java', '-Xmx15000m', '-cp', classpath, mainClass, confpath_str, java_command
             ]
         # else:
         #     return [
