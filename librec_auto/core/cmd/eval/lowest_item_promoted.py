@@ -3,6 +3,7 @@ import numpy as np
 import math
 import rbo
 import pandas as pd
+from icecream import ic
 
 from pathlib import Path
 from librec_auto.core.util.xml_utils import single_xpath
@@ -13,7 +14,8 @@ class LowestItemPromoted(ListBasedMetric):
     def __init__(self, params: dict, conf: ConfigCmd, original_data: np.array,
                  reranked_data: np.array, output_file, item_feature_df, itemids, protected) -> None:
             # print(params)
-        super().__init__(params, conf, test_data, reranked_data, output_file)
+        super().__init__(params, conf, original_data, reranked_data, output_file)
+
         self._name = 'LowestItemPromoted'
         self._item_feature_df = item_feature_df
             # print(self._item_feature_df)
@@ -38,25 +40,28 @@ class LowestItemPromoted(ListBasedMetric):
 
     def evaluate_user(self, original_user_data: np.array,
                       reranked_user_data: np.array) -> float:
-
+       # ic(len(original_user_data))
         original = original_user_data[:, 1]
 
         reranked = reranked_user_data[:, 1]
 
         # modified from https://github.com/nasimsonboli/OFAiR/blob/main/source%20code/OFAiR_Evaluation.ipynb
 
+        result = -1
         for element in reversed(original):
             if element in reranked:
-                if int(original[element][1]) in self.protected_set:
-                    result = original.index(element)
+               # ic(int(element))
+          #      if int(original[int(element)][1]) in self.protected_set:
+                if int(element) in self.protected_set:
+                #    ic(len(original))
+                    result = np.where(original == element)[0].item()+1
+                 #   ic(result)
 
-        if self._user_file is not None:
-            file.write(result)
         return result
 
     def postprocessing(self):
-        print(np.average(self._values))
-        return np.average(self._values)
+        print(np.average(self._values), np.max(self._values))
+        return (np.average(self._values), np.max(self._values))
 
 
 def read_args():
@@ -122,10 +127,6 @@ if __name__ == '__main__':
     data_path = Path(data_dir)
     data_path = data_path.resolve()
 
-    test_data = read_data_from_file(
-        args['test']
-    )
-
 
     item_feature_df, itemids = load_item_features(config, data_path)
     if item_feature_df is None:
@@ -136,10 +137,10 @@ if __name__ == '__main__':
         delimiter = ','
     )
 
-    original_data = args['result']
-    original_data = original_data.replace('result', 'original')
-    original_data = ListBasedMetric.read_data_from_file(
-        original_data,
+    original_data_path = args['result']
+    original_data_path = original_data_path.replace('result', 'original')
+    original_data = read_data_from_file(
+        original_data_path,
         delimiter=','
     )
 
@@ -152,7 +153,7 @@ if __name__ == '__main__':
             custom.evaluate()
     else:
 
-        custom = LowestItemPromoted(params, config, reranked_data, original_data,
+        custom = LowestItemPromoted(params, config, original_data, reranked_data,
                             args['output_file'], item_feature_df, itemids, protected)
         custom.evaluate()
 
