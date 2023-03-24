@@ -1,26 +1,29 @@
 import argparse
 import numpy as np
 import math
-
+import scipy.stats as stats
+from icecream import ic
 from librec_auto.core.eval import ListBasedMetric
 from librec_auto.core import read_config_file, ConfigCmd
 
-class NdcgMetric(ListBasedMetric):
-    def __init__(self, params: dict, conf: ConfigCmd, test_data: np.array,
-                 result_data: np.array, output_file, user_file=None) -> None:
+class KendallTauMetric(ListBasedMetric):
+    def __init__(self, params: dict, conf: ConfigCmd, original_data: np.array,
+                 reranked_data: np.array, output_file, user_file=None) -> None:
         # print(params)
-        super().__init__(params, conf, test_data, result_data, output_file)
+        super().__init__(params, conf, original_data, reranked_data, output_file)
         self._user_file = user_file
-        self._name = 'Kendall'
+        self._name = 'KendallTau'
 
-    def evaluate_user(self, test_user_data: np.array,
-                      result_user_data: np.array) -> float:
+    def evaluate_user(self, original_user_data: np.array,
+                      reranked_user_data: np.array) -> float:
         rec_num = int(self._params['list_size'])
-        reranked = result_user_data[0:rec_num]
+        ic(len(original_user_data))
+        original = original_user_data[0:rec_num, 1]
 
-        #This is where I need original results
+        reranked = reranked_user_data[0:rec_num, 1]
 
-        result = rbo.RankingSimilarity(original, reranked).rbo()
+        result, p_value = stats.kendalltau(original, reranked)
+
         if self._user_file is not None:
             file.write(result)
         return result
@@ -41,7 +44,7 @@ def read_args():
     parser.add_argument('--output-file', help='The output pickle file.')
 
     # Custom params defined in the config go here
-    parser.add_argument('--list_size', help='Size of the list for NDCG.')
+    parser.add_argument('--list_size', help='Size of the list for Kendall Tau.')
     # parser.add_argument('--user_output')
 
     input_args = parser.parse_args()
@@ -72,26 +75,29 @@ if __name__ == '__main__':
 
     params = {'list_size': args['list_size']}
 
-    test_data = read_data_from_file(
-        args['test']
-    )
-    result_data = read_data_from_file(
+    reranked_data = read_data_from_file(
         args['result'],
+        delimiter = ','
+    )
+    original_data_path = args['result']
+    original_data_path = original_data_path.replace('result', 'original')
+    original_data = read_data_from_file(
+        original_data_path,
         delimiter=','
     )
 
-    user_output_file = 'DEBUG_user_output.txt'
+   # user_output_file = 'DEBUG_user_output.txt'
 
     print("Creating metric")
 
     if "user_output" in args:
         with open(user_output_file, 'w') as file:
-            custom = NdcgMetric(params, config, test_data, result_data,
+            custom = KendallTauMetric(params, config, original_data, reranked_data,
                                 args['output_file'], file)
             custom.evaluate()
     else:
 
-        custom = NdcgMetric(params, config, test_data, result_data,
+        custom = KendallTauMetric(params, config, original_data, reranked_data,
                             args['output_file'])
         custom.evaluate()
 
