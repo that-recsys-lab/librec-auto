@@ -21,7 +21,7 @@ class OptimizationFunction():
         self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) + self.fairness
 
     def multiplicative(self):
-        self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) * self.fairness
+        self.value = min(1,(1-(self.acceptable_threshold*float(self.old_value)-self.new_value))) * self.fairness
 
     def exponential(self):
         self.value = max(0,(self.new_value - self.acceptable_threshold*float(self.old_value))) ** self.fairness

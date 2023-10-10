@@ -63,6 +63,9 @@ class ListBasedMetric:
             if len(test_user_data) != 0:
                 self._values.append(
                     self.evaluate_user(test_user_data, result_user_data))
+            else:
+                self._values.append(
+                    self.evaluate_user(result_user_data))
 
         result = self.postprocessing()
         self._save_custom_results(result)
