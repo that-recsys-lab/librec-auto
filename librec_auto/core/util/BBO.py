@@ -65,7 +65,8 @@ class BBO:
         else:
             self.discrete = ranges
 
-    #creates hyperparameter dictionary in optuna format    
+    #creates hyperparameter dictionary in optuna format
+    # Might need to move into compile.py or create an object    
     def create_space(self, trial):
         # self.space = {self.alphabet[i]: hp.hp.uniform(self.alphabet[i], self.Ranges[i][0], self.Ranges[i][1]) for i in range(self.num_of_vars)}
         if self.discrete == None:
@@ -80,7 +81,6 @@ class BBO:
     #uses direction from existing metrics or user chosen direction if custom
     def set_optimization_direction(self, metric):
         self.metric = metric
-
         if metric == "higher":
             self.direction = "positive"
         elif metric == "lower":

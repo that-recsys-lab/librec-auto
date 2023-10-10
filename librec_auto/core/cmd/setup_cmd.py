@@ -13,9 +13,11 @@ class SetupCmd(Cmd):
     def __str__(self):
         return 'SetupCmd()'
 
-    def __init__(self, no_java_flag):
+    def __init__(self, no_java_flag, startflag = False, exp_no = None):
         super().__init__()
         self._no_java_flag = no_java_flag
+        self.startflag = startflag
+        self.exp_no = exp_no
 
     def show(self):
         print(str(self))
@@ -25,9 +27,10 @@ class SetupCmd(Cmd):
         config.ensure_experiments()
         config.setup_exp_configs()
 
-    def execute(self, config: ConfigCmd, startflag = None, exp_no = None):
-        config.ensure_experiments(exp_no)
-        config.setup_exp_configs(startflag)
+    def execute(self, config: ConfigCmd):
+        config.ensure_experiments(self.exp_no)
+        print(self.startflag)
+        config.setup_exp_configs(self.startflag)
 
 def ensure_java_version():
         java_dict = {

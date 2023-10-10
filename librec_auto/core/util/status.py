@@ -120,6 +120,7 @@ class Status:
 
         conf_xml = config.get_files().get_exp_paths(exp_count).get_study_conf()
 
+
         variable_elements = conf_xml.xpath("//*[@var='true']")
 
         for variable_element in variable_elements:
@@ -175,22 +176,36 @@ def _generate_folds_results_output(
     root_xml = etree.Element("root")
     results_element = etree.SubElement(root_xml, "folds")
     python_metric_results = _get_python_side_metric_results(python_metric_path)
+    # print(python_metric_results)
     for _, index in enumerate(range(log.get_kcv_count())):
         # using index + 1 to one-index the folds
         cv_element = etree.SubElement(results_element, "cv", id=str(index + 1))
         all_values = log.get_all_values()
-        for metric in all_values:
-            metric_element = etree.SubElement(cv_element,
-                                              "metric",
-                                              name=metric)
-            metric_element.text = all_values[metric]['cv_results'][
-                index]  # add cv value
-        if python_metric_results is not None:
-            for python_metric in python_metric_results[index]:
+        try:
+            for metric in all_values:
+                # print("status.py")
+                # print(index)
+                # print(all_values)
+                # print("i",index, python_metric_results[index])
                 metric_element = etree.SubElement(cv_element,
-                                                  "metric",
-                                                  name=python_metric['name'])
-                metric_element.text = str(python_metric['value'])
+                                                "metric",
+                                                name=metric)
+                metric_element.text = all_values[metric]['cv_results'][
+                    index]  # add cv value
+            if python_metric_results is not None:
+                for python_metric in python_metric_results[index]:
+                    metric_element = etree.SubElement(cv_element,
+                                                    "metric",
+                                                    name=python_metric['name'])
+                    metric_element.text = str(python_metric['value'])
+        except:
+            if python_metric_results is not None:
+                for python_metric in python_metric_results[index]:
+                    metric_element = etree.SubElement(cv_element,
+                                                    "metric",
+                                                    name=python_metric['name'])
+                    metric_element.text = str(0)
+
     return root_xml
 
 

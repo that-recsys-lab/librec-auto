@@ -7,17 +7,18 @@ import copy
 # The product of all of the type factors is the total number of experiments. The
 # type_factor for the "librec" type gives the number of calls to LibRec.
 class VarColl:
-    def __init__(self):
+    def __init__(self, BBO = False):
         self.vars = defaultdict(list)
         self.var_confs = []
         self.types = []
         self.type_factor = defaultdict(lambda: 1)
 
-    def compute_var_configurations(self):
+    def compute_var_configurations(self, bbo = False):
         if len(self.types) == 0:
             self.var_confs = [VarConfig('merged')]
             return
         # Need to reverse so that the cartesian product has the right priority
+        
         rev_types = copy.copy(self.types)
         rev_types.reverse()
         configs = [self.get_type_conf(type) for type in rev_types]
@@ -25,7 +26,8 @@ class VarColl:
         self.var_confs = [
             self.conf_merge(conf_elem) for conf_elem in conf_product
         ]
-        self.set_refs()
+        if bbo is not False:
+            self.set_refs()
 
     def add_var(self, type, path, vals):
         if len(self.vars[type]) == 0:

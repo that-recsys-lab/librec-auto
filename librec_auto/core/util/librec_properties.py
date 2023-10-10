@@ -66,6 +66,7 @@ class LibrecProperties:
         for conf_elem in conf_tree.iterchildren(tag=etree.Element):
             conf_tag = conf_elem.tag
             rule_elem = rule_tree.findall(conf_tag)
+            # print(conf_tag, rule_elem)
             if len(rule_elem
                    ) > 0:  # If the entry corresponds to one or more rules
                 if len(rule_elem) == 1:
@@ -93,7 +94,10 @@ class LibrecProperties:
 
             else:  # If the key isn't in the rules, ignore it but warn because it is probably an error.
   #              logging.warning(f"Tag {conf_tag} is not in element rules.")
-                raise UnknownConfigurationElementException(conf_tag)
+                if conf_tag == "optimization-type":
+                    pass
+                else:
+                    raise UnknownConfigurationElementException(conf_tag)
 
 
     # Two cases:

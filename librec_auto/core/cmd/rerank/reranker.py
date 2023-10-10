@@ -29,8 +29,9 @@ class Rerank_Helper():
         self.item_feature_matrix = None
         self.weight = None
 
-    def set_rerank_helper(self, args, config, item_feature_df):
+    def set_rerank_helper(self, args, config, item_feature_df, protected_features = None):
         # basic info
+        print(args)
         self.binary = args['binary'] == 'True'
         self.max_len = int(args['max_len'])
         self.item_feature_df = item_feature_df
@@ -39,14 +40,20 @@ class Rerank_Helper():
         # protected data
         # try: rerank_helper.protected = str(args['protected'])
         try:
-            self.protected = args['protected_feature']
-                
-        
+            if protected_features is None:
+                self.protected = args['protected_feature']
+            else:
+                self.protected = protected_features
         except:
             pass
 
         try:
-            self.protected_set = self.get_protected_set()
+            if protected_features is None or isinstance(protected_features, str):
+                self.protected_set = self.get_protected_set()
+            else:
+                self.protected_set = set()
+                for protected in protected_features:
+                    self.protected_set.union(self.get_protected_set(protected))
         except:
             pass
 
@@ -61,6 +68,8 @@ class Rerank_Helper():
         except:
             pass
 
+        print(self.lamb, self.alpha)
+
     def is_protected(self, itemid):
         return itemid in self.protected_set
 
@@ -68,8 +77,12 @@ class Rerank_Helper():
         num_prot = [self.is_protected(itemid) for itemid in items].count(True)
         return num_prot
 
-    def get_protected_set(self):
-        return set((self.item_feature_df[(self.item_feature_df['feature'] == self.protected)
+    def get_protected_set(self, protected = None):
+        
+        if protected is None:
+            protected = self.protected
+        
+        return set((self.item_feature_df[(self.item_feature_df['feature'] == protected)
                                        & (self.item_feature_df ['value'] == 1)].index).tolist())
 
     def similarity(self, feature1, feature2, binary):
@@ -197,7 +210,11 @@ class Reranker():
             item += self.user_helper.item_so_far
             score += self.user_helper.item_so_far_score
 
+
         ziplist = list(zip(user, item, score))
+        # sort ziplist by user and then by score in descending order
+        ziplist.sort(key=lambda x: (x[0], -x[2]))
+
         df = pd.DataFrame(ziplist, columns=['Users', 'Items', 'Ratings'])
         return df, self.rerank_helper
 
@@ -209,12 +226,16 @@ class Reranker():
 
         scaler = MinMaxScaler()
 
+        k_store = []
+
         for k in range(num_item):
             # scoring function
             scores, self.rerank_helper, self.user_helper = self.scoring_function(rec, self.rerank_helper,
                                                                                  self.user_helper)
-
+            # print(len(scores), num_item)
             max_idx = np.argmax(np.array(scores))
+
+            k_store.append(max_idx)
             all_scores[k] = scores[max_idx]
 
             self.user_helper.item_so_far.append(self.user_helper.item_list[max_idx])
@@ -222,8 +243,12 @@ class Reranker():
 
             self.user_helper.total_score += rec[max_idx]
             rec = np.delete(rec, max_idx)
+            # print()
 
         # self.user_helper.item_so_far_score = list(all_scores)
+        # print(k_store)
         # print(scaler.fit_transform(all_scores))
         # self.user_helper.item_so_far_score = list(scaler.fit_transform(all_scores.reshape(-1, 1)))
         self.user_helper.item_so_far_score = list(scaler.fit_transform(all_scores.reshape(-1, 1)).flatten())
+        # print(self.user_helper.item_so_far_score)
+        # print()

@@ -1,5 +1,5 @@
 from librec_auto.core.cmd import Cmd
-from librec_auto.core.util import Files, ExpPaths, Status
+from librec_auto.core.util import Files, ExpPaths, Status, StudyStatus
 from librec_auto.core import ConfigCmd
 from librec_auto.core.util.xml_utils import single_xpath
 import os
@@ -16,11 +16,12 @@ class LibrecCmd(Cmd):
     def __str__(self):
         return f'LibrecCmd(sub-exp: {self._sub_no}, command: {self._command})'
 
-    def __init__(self, command, sub_no):
+    def __init__(self, command, sub_no, write_config = True):
         self._command = command
         self._sub_no = sub_no
         self._config: ConfigCmd = None
         self._exp_path: ExpPaths = None
+        self._write_config = write_config
 
     def show(self):
         print(str(self))
@@ -118,11 +119,12 @@ class LibrecCmd(Cmd):
             if self._command != 'check':
                 Status.save_status("Executing", self._sub_no, config,
                                self._exp_path)
-            if self._command == "eval":
+            if self._command == "eval" and self._write_config is True:
                 self.fix_list_length()
             self.execute_librec()
         if self._command != 'check':
             Status.save_status("Completed", self._sub_no, config, self._exp_path)
+
 
     # Checks for any contents of split directory, which would have been removed by purging
     def split_exists(self):
@@ -152,8 +154,12 @@ class LibrecCmd(Cmd):
             return []
         else:
             return [
-                'java', '-cp', classpath, mainClass, confpath_str, java_command
+                'java', '-Xmx15000m', '-cp', classpath, mainClass, confpath_str, java_command
             ]
+        # else:
+        #     return [
+        #         'java', '-Xmx14000m', '-cp', classpath, mainClass, confpath_str, java_command
+        #     ]
 
     # 2019-11-23 RB Not sure if this step can be replaced by more checking when commands are created.
     def select_librec_action(self):

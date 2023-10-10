@@ -104,24 +104,14 @@ class RerankCmd(Cmd):
                     'More than one re-ranking script found. Ignoring.')
 
     def find_original_results(self, result_path, script_path, sub_path):
-        if not sub_path.get_ref_exp_name(
-        ):  # If there is no ref, then LibRec was run
-            if not result_path.exists():
-                raise ScriptFailureException('rerank', f'No results. Cannot rerank: {self._config.get_target()}')
-            original_path = sub_path.get_path('original')
-            # If original dir not empty, don't overwrite
-            if not os.listdir(original_path):
-                sub_path.results2original()  # and there are results here
-            original_path = sub_path.get_path('original')
-        else:  # If there is a ref, the results are in
-            ref_sub_path = sub_path.get_ref_exp_path(
-            )  # that experiment's directory
-            original_path = ref_sub_path.get_path('original')
-            result_path.mkdir(
-                exist_ok=True)  # script needs a place for results
-        print(
-            f'librec-auto: Running re-ranking script {script_path} for {sub_path.exp_name}'
-        )
+        if not result_path.exists():
+            raise ScriptFailureException('rerank', f'No results. Cannot rerank: {self._config.get_target()}')
+        original_path = sub_path.get_path('original')
+        # If original dir not empty, don't overwrite
+        if not os.listdir(original_path):
+            sub_path.results2original()  # and there are results here
+        original_path = sub_path.get_path('original')
+
         return original_path
 
     def run_script(self, script, sub_paths, original_path, param_spec):
@@ -141,3 +131,4 @@ class RerankCmd(Cmd):
         print("    Working directory: " + str(exec_path.absolute()))
         
         return safe_run_subprocess(proc_spec, str(exec_path.absolute()))
+

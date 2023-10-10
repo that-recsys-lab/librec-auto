@@ -90,6 +90,7 @@ class Evaluator:
                 script_path = metric_dict['script']
                 script_name = metric_dict['script'].name
                 if script_run != 0:
+                    print(proc_spec + params)
                     raise ScriptFailureException(script_name, f"Script at {script_path} failed with errors", script_run)
 
 

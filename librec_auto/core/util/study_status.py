@@ -45,6 +45,7 @@ class ExperimentData:
         # Averages
         averages = experiment.xpath('results/averages')
         for ave in averages:
+            #NOT ENTERING HERE
             for met in ave.getchildren():
                 self._metric_avg[met.attrib['name']] = float(met.text)
 
@@ -70,14 +71,15 @@ class StudyStatus:
         
         # if the output xml has one element it's check, 0 nothing has ran
         # if there's more than that then the experiment ran and user is evaluating
+
         if study_xml is None or len(study_xml.getchildren()) <= 1:
             create_study_output(config)
             study_xml = xml_load_from_path(status_path)
             
         for exp in study_xml.xpath('//experiment'):
             # keep track of experiment's name
+            print(exp, "for")
             exp_name = Files.get_exp_name(exp.attrib['count'])
-            
             self._experiments[exp_name] = ExperimentData(exp)
 
         model = single_xpath(study_xml, '/study/config/splitter/model')

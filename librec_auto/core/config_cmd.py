@@ -184,7 +184,7 @@ class ConfigCmd:
     def collect_vars(self):
         self.collect_librec_vars()
         self.collect_rerank_vars()
-        self._var_coll.compute_var_configurations()
+        self._var_coll.compute_var_configurations(self._bbo_steps)
 
     def collect_librec_vars(self):
         Tag = 'value'
@@ -226,7 +226,6 @@ class ConfigCmd:
                 val_lower = [elem.text for elem in parent.iterchildren(tag='lower')]
                 val_upper = [elem.text for elem in parent.iterchildren(tag='upper')]
                 vals = []
-                # print(val_lower,val_upper)
                 for i in range(len(val_lower)):
                     vals.append(val_lower[i])
                     vals.append(val_upper[i])
@@ -237,11 +236,27 @@ class ConfigCmd:
     def collect_rerank_vars(self):
         value_elems = self._xml_input.xpath('/librec-auto/rerank/*//value')
         parents = [elem.getparent() for elem in value_elems]
+
+        check_lower = [elem.getparent() for elem in self._xml_input.xpath('/librec-auto/rerank/script/*/lower')]
+        tag = "value"
+        if len(check_lower) > 0:
+            value_elems = self._xml_input.xpath('/librec-auto/rerank/*//lower')
+            parents = [elem.getparent() for elem in value_elems]
+            tag = "lower"
+
         parents = list(set(parents))
-        for parent in parents:
-            vals = [elem.text for elem in parent.iterchildren(tag='value')]
-            parent_path = build_parent_path(parent)
-            self._var_coll.add_var('rerank', parent_path, vals)
+
+        if tag == 'value':
+            for parent in parents:
+                vals = [elem.text for elem in parent.iterchildren(tag='value')]
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('rerank', parent_path, vals)
+        else:
+            for parent in parents:
+                vals = [elem.text for elem in parent.iterchildren(tag='lower')]
+                vals += [elem.text for elem in parent.iterchildren(tag='upper')]
+                parent_path = build_parent_path(parent)
+                self._var_coll.add_var('rerank', parent_path, vals)
 
     # Write versions of the config file in which the parameters with multiple values are replaced with
     # a single value
@@ -252,9 +267,8 @@ class ConfigCmd:
                     iter(self._var_coll.var_confs)))
         if self.get_bbo_steps() is not None and startflag is None:
             exp, vconf = configs[0]
-
             for x in range(len(val)):
-                vconf.vars[x].val = val[x]
+                vconf.vars[x].val = val[vconf.vars[x].path]
             vconf.exp_no = None
             vconf.exp_dir = exp.exp_name
 
@@ -265,7 +279,7 @@ class ConfigCmd:
             self.write_exp_config(exp, vconf, current_exp_path)
 
 
-        elif startflag is not None:
+        elif startflag is not False:
             i = 0
             for exp, vconf in configs[:1]:
                 vconf.exp_no = i
@@ -378,7 +392,6 @@ class ConfigCmd:
 
 def read_config_file(config_file, target, log_filename=None):
     config = ConfigCmd(config_file, target, log_filename)
-    print(target)
     if config.is_valid():
         config.load_libraries()
         config.process_config()
