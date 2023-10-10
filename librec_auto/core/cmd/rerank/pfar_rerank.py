@@ -142,7 +142,7 @@ def read_args():
     parser.add_argument('--max_len', help='The maximum number of items to return in each list', default=10)
     parser.add_argument('--lambda', help='The weight for re-ranking. Higher lambda = more diversity')
     parser.add_argument('--binary', help='Whether P(\\bar{s)|d) is binary or real-valued', default=True)
-    parser.add_argument('--alpha', help='alpha.')
+    # parser.add_argument('--alpha', help='alpha.')
     parser.add_argument('--protected_feature', help='protected feature')
     parser.add_argument('--method', help='reranking method')
 

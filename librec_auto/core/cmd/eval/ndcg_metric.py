@@ -87,10 +87,10 @@ if __name__ == '__main__':
     
     params = {'list_size': args['list_size']}
 
-    original_data = read_data_from_file(
-        args['original'],
-        delimiter=','
-    )
+    # original_data = read_data_from_file(
+    #     args['original'],
+    #     delimiter=','
+    # )
     test_data = read_data_from_file(
         args['test']
     )

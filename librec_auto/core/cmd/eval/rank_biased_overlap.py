@@ -1,27 +1,30 @@
 import argparse
 import numpy as np
 import math
+import rbo
 
 from librec_auto.core.eval import ListBasedMetric
 from librec_auto.core import read_config_file, ConfigCmd
 
 
 class RBOMetric(ListBasedMetric):
-    def __init__(self, params: dict, conf: ConfigCmd, test_data: np.array,
-                 result_data: np.array, output_file, user_file=None) -> None:
+    def __init__(self, params: dict, conf: ConfigCmd, original_data: np.array,
+                 reranked_data: np.array, output_file, user_file=None) -> None:
         # print(params)
-        super().__init__(params, conf, test_data, result_data, output_file)
+        super().__init__(params, conf, original_data, reranked_data, output_file)
         self._user_file = user_file
         self._name = 'RBO'
 
-    def evaluate_user(self, test_user_data: np.array,
+    def evaluate_user(self, original_user_data: np.array,
                       result_user_data: np.array) -> float:
         rec_num = int(self._params['list_size'])
-        reranked = result_user_data[0:rec_num]
 
-        # This is where I need original results
+        original = original_user_data[0:rec_num, 1]
+
+        reranked = result_user_data[0:rec_num, 1]
 
         result = rbo.RankingSimilarity(original, reranked).rbo()
+
         if self._user_file is not None:
             file.write(result)
         return result
@@ -65,19 +68,19 @@ def read_data_from_file(file_name, delimiter='\t'):
 
 if __name__ == '__main__':
     args = read_args()
-    # print(args)
-    # parse_protected
-    # protected_feature_file can be parsed here
 
     config = read_config_file(args['conf'], '.')
 
     params = {'list_size': args['list_size']}
 
-    test_data = read_data_from_file(
-        args['test']
-    )
-    result_data = read_data_from_file(
+    reranked_data = read_data_from_file(
         args['result'],
+        delimiter = ','
+    )
+    original_data_path = args['result']
+    original_data_path = original_data_path.replace('result', 'original')
+    original_data = read_data_from_file(
+        original_data_path,
         delimiter=','
     )
 
@@ -87,12 +90,12 @@ if __name__ == '__main__':
 
     if "user_output" in args:
         with open(user_output_file, 'w') as file:
-            custom = RBOMetric(params, config, test_data, result_data,
+            custom = RBOMetric(params, config, original_data, reranked_data,
                                 args['output_file'], file)
             custom.evaluate()
     else:
 
-        custom = RBOMetric(params, config, test_data, result_data,
+        custom = RBOMetric(params, config, original_data, reranked_data,
                             args['output_file'])
         custom.evaluate()
 

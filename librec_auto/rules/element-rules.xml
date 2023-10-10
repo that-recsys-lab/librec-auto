@@ -218,12 +218,12 @@
 		<l3-reg>rec.bnslim.regularization.l3</l3-reg>
 		<min-sim>rec.bnslim.minsimilarity</min-sim>
 		
-		<optimize>
-			<iterations action="no-translate"/>
+		<optimize action="no-translate"/>
+			<!-- <iterations action="no-translate"/>
 			<metric action="no-translate"/>
 			<optimization-type action="no-translate"/>
 			<previous-max action="no-translate"/>
-		</optimize>
+		</optimize> -->
 	</alg>
 
 	<metric>
